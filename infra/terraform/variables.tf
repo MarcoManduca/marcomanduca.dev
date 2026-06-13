@@ -81,5 +81,5 @@ variable "backend_health_check_path" {
 variable "contact_email" {
   description = "Address that receives contact-form emails (passed to the backend container)."
   type        = string
-  default     = "marco.manduca@adkaora.com"
+  default     = "marco.manduca95@gmail.com"
 }
