@@ -6,11 +6,10 @@ export const Footer = () => {
 
   return (
     <footer className="border-t border-edge">
-      <div className="mx-auto flex max-w-5xl flex-col items-center gap-1 px-4 py-6 text-center text-xs text-muted sm:flex-row sm:justify-between">
+      <div className="mx-auto max-w-5xl px-4 py-6 text-center text-xs text-muted">
         <p>
           © {year} Marco Manduca. {t('footer.rights')}
         </p>
-        <p>{t('footer.builtWith')}</p>
       </div>
     </footer>
   )

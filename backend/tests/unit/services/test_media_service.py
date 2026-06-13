@@ -46,7 +46,7 @@ def test_create_upload_url_accepts_pdf_under_cv_prefix(
     response = service.create_upload_url(payload)
 
     # Assert
-    assert response.key.startswith("cv/")
+    assert response.key == "cv/cv.pdf"
     assert response.expires_in == 900
 
 

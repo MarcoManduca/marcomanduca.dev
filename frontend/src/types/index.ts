@@ -1,5 +1,4 @@
 export * from './contact'
-export * from './cv'
 export * from './i18n'
 export * from './learning'
 export * from './media'

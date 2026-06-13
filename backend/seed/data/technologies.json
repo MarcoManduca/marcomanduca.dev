@@ -1,0 +1,8 @@
+[
+  { "name": "Python", "icon": "python", "category": "language" },
+  { "name": "R", "icon": "r", "category": "language" },
+  { "name": "Jupyter", "icon": "jupyter", "category": "tooling" },
+  { "name": "Polars", "icon": "polars", "category": "data" },
+  { "name": "NumPy", "icon": "numpy", "category": "data" },
+  { "name": "SciPy", "icon": "scipy", "category": "data" }
+]

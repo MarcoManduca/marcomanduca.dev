@@ -1,14 +1,16 @@
 import type { FormEvent } from 'react'
+import { useState } from 'react'
 
 import { useTranslation } from 'react-i18next'
 
+import { TechnologyPicker } from '@/components/projects/TechnologyPicker'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { Textarea } from '@/components/ui/Textarea'
 import type { Project, ProjectInput, ProjectStatus } from '@/types'
 import { PROJECT_CATEGORIES, PROJECT_STATUSES } from '@/types'
-import { parseCsv, parseLines } from '@/utils/parseList'
+import { parseLines } from '@/utils/parseList'
 
 interface ProjectFormProps {
   initial: Project | null
@@ -17,7 +19,7 @@ interface ProjectFormProps {
   onCancel: () => void
 }
 
-const toInput = (data: FormData): ProjectInput => ({
+const toInput = (data: FormData, technologies: string[]): ProjectInput => ({
   title: { it: String(data.get('titleIt')), en: String(data.get('titleEn')) },
   description: {
     it: String(data.get('descriptionIt')),
@@ -29,7 +31,7 @@ const toInput = (data: FormData): ProjectInput => ({
   },
   category: String(data.get('category')),
   status: String(data.get('status')) as ProjectStatus,
-  technologies: parseCsv(String(data.get('technologies'))),
+  technologies,
   images: parseLines(String(data.get('images'))),
   github_url: String(data.get('githubUrl')),
   demo_url: String(data.get('demoUrl')) || null,
@@ -42,10 +44,13 @@ export const ProjectForm = ({
   onCancel,
 }: ProjectFormProps) => {
   const { t } = useTranslation()
+  const [technologies, setTechnologies] = useState<string[]>(
+    initial?.technologies ?? [],
+  )
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    onSubmit(toInput(new FormData(event.currentTarget)))
+    onSubmit(toInput(new FormData(event.currentTarget), technologies))
   }
 
   return (
@@ -103,11 +108,7 @@ export const ProjectForm = ({
         rows={8}
         defaultValue={initial?.content_markdown.en}
       />
-      <Input
-        label={t('admin.form.technologies')}
-        name="technologies"
-        defaultValue={initial?.technologies.join(', ')}
-      />
+      <TechnologyPicker value={technologies} onChange={setTechnologies} />
       <Select
         label={t('admin.form.status')}
         name="status"

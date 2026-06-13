@@ -2,8 +2,6 @@ import { HttpResponse, http } from 'msw'
 
 import {
   articlesFixture,
-  cvFixtureEn,
-  cvFixtureIt,
   projectsFixture,
   technologiesFixture,
   versionsFixture,
@@ -90,15 +88,16 @@ export const handlers = [
   http.get(`${API_URL}/technologies`, () =>
     HttpResponse.json(technologiesFixture),
   ),
-
-  // CV — localized per ?lang query param.
-  http.get(`${API_URL}/cv`, ({ request }) => {
-    const lang = new URL(request.url).searchParams.get('lang')
-    return HttpResponse.json(lang === 'it' ? cvFixtureIt : cvFixtureEn)
-  }),
-  http.put(`${API_URL}/cv/:section`, async ({ request, params }) => {
-    const body = (await request.json()) as { content: unknown }
-    return HttpResponse.json({ section: params.section, content: body.content })
+  http.post(`${API_URL}/technologies`, async ({ request }) => {
+    const body = (await request.json()) as {
+      name: string
+      icon: string
+      category: string
+    }
+    return HttpResponse.json(
+      { id: body.name.toLowerCase(), ...body },
+      { status: 201 },
+    )
   }),
 
   // Contact — acknowledgement carries a `detail` message.
@@ -120,4 +119,13 @@ export const handlers = [
 
   // Presigned S3 PUT target (the URL the presign response points to).
   http.put(S3_UPLOAD_URL, () => new HttpResponse(null, { status: 200 })),
+
+  // Media presigned GET URL — { url, key, expires_in }.
+  http.get(`${API_URL}/media/url`, () =>
+    HttpResponse.json({
+      url: 'http://localhost/cv-download',
+      key: 'cv/cv.pdf',
+      expires_in: 900,
+    }),
+  ),
 ]

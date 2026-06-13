@@ -1,6 +1,5 @@
 import type {
   ArticleVersion,
-  Cv,
   LearningArticle,
   Project,
   Technology,
@@ -89,27 +88,3 @@ export const technologiesFixture: Technology[] = [
   { id: 't3', name: 'AWS', icon: 'aws', category: 'cloud' },
   { id: 't4', name: 'TypeScript', icon: 'typescript', category: 'language' },
 ]
-
-/** CV localized to English, as returned by `GET /cv?lang=en`. */
-export const cvFixtureEn: Cv = {
-  lang: 'en',
-  sections: {
-    summary: 'Data and software engineer focused on AWS platforms.',
-    experience: [
-      { role: 'Data Engineer', company: 'Company', period: '2023 — Present' },
-    ],
-    skills: ['Python', 'AWS', 'React'],
-  },
-}
-
-/** CV localized to Italian, as returned by `GET /cv?lang=it`. */
-export const cvFixtureIt: Cv = {
-  lang: 'it',
-  sections: {
-    summary: 'Ingegnere dati e software focalizzato su piattaforme AWS.',
-    experience: [
-      { role: 'Data Engineer', company: 'Azienda', period: '2023 — Presente' },
-    ],
-    skills: ['Python', 'AWS', 'React'],
-  },
-}

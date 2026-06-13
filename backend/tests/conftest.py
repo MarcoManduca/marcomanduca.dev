@@ -1,9 +1,7 @@
 """Project-wide fixtures: environment, moto AWS backend, API clients."""
 
-import json
 import os
 from collections.abc import AsyncIterator, Callable, Iterator
-from pathlib import Path
 from typing import Any
 
 import boto3
@@ -17,8 +15,6 @@ from src.main import create_app
 from src.utils.auth import optional_admin, require_admin
 from src.utils.rate_limit import reset_contact_limiter
 
-FIXTURES_DIR = Path(__file__).parent / "fixtures"
-
 _TEST_ENV = {
     "AWS_ACCESS_KEY_ID": "testing",
     "AWS_SECRET_ACCESS_KEY": "testing",
@@ -29,7 +25,6 @@ _TEST_ENV = {
     "PROJECTS_TABLE_NAME": "test-projects",
     "LEARNING_TABLE_NAME": "test-learning",
     "TECHNOLOGIES_TABLE_NAME": "test-technologies",
-    "CV_TABLE_NAME": "test-cv",
     "MEDIA_BUCKET_NAME": "test-media-bucket",
     "COGNITO_USER_POOL_ID": "eu-west-1_testpool",
     "COGNITO_CLIENT_ID": "test-client-id",
@@ -146,15 +141,8 @@ def article_payload_factory() -> Callable[..., dict[str, Any]]:
     return _make
 
 
-@pytest.fixture
-def sample_cv_sections() -> dict[str, Any]:
-    """Bilingual CV sections loaded from the shared JSON fixture."""
-    with (FIXTURES_DIR / "sample_cv.json").open(encoding="utf-8") as handle:
-        return json.load(handle)
-
-
 def _create_tables() -> None:
-    """Create the four DynamoDB tables used by the application."""
+    """Create the three DynamoDB tables used by the application."""
     dynamodb = boto3.client("dynamodb", region_name=os.environ["AWS_REGION"])
     dynamodb.create_table(
         TableName=os.environ["PROJECTS_TABLE_NAME"],
@@ -178,12 +166,6 @@ def _create_tables() -> None:
         TableName=os.environ["TECHNOLOGIES_TABLE_NAME"],
         KeySchema=[{"AttributeName": "id", "KeyType": "HASH"}],
         AttributeDefinitions=[{"AttributeName": "id", "AttributeType": "S"}],
-        BillingMode="PAY_PER_REQUEST",
-    )
-    dynamodb.create_table(
-        TableName=os.environ["CV_TABLE_NAME"],
-        KeySchema=[{"AttributeName": "section", "KeyType": "HASH"}],
-        AttributeDefinitions=[{"AttributeName": "section", "AttributeType": "S"}],
         BillingMode="PAY_PER_REQUEST",
     )
 

@@ -5,8 +5,9 @@
     "projects": "Progetti",
     "learning": "Learning",
     "contacts": "Contatti",
-    "cv": "CV",
-    "admin": "Admin"
+    "admin": "Admin",
+    "openMenu": "Apri menu",
+    "closeMenu": "Chiudi menu"
   },
   "common": {
     "loading": "Caricamento…",
@@ -18,8 +19,8 @@
   "home": {
     "heroGreeting": "Ciao, sono",
     "heroName": "Marco Manduca",
-    "heroRole": "Data & Software Engineer",
-    "heroTagline": "Progetto piattaforme dati, servizi backend e interfacce web pulite — dall'infrastruttura cloud all'ultimo pixel.",
+    "heroRole": "Data Engineer & Data Scientist",
+    "heroTagline": "Tra dati grezzi e decisioni strategiche c'è un percorso fatto di architetture, algoritmi e analisi. Il mio lavoro consiste nel progettare quel percorso e renderlo scalabile, efficiente e misurabile.",
     "ctaProjects": "Esplora i progetti",
     "ctaLearning": "Leggi la knowledge base",
     "ctaContacts": "Contattami",
@@ -28,48 +29,83 @@
   },
   "about": {
     "title": "Chi sono",
-    "subtitle": "Ingegnere, appassionato di dati, sempre in apprendimento.",
-    "bio": "Sono un data e software engineer in Italia. Costruisco sistemi end-to-end: pipeline dati e piattaforme di analytics su AWS, API backend in Python e applicazioni frontend moderne. Mi stanno a cuore le architetture semplici, il codice leggibile e i risultati misurabili.",
+    "subtitle": "Data professional con oltre 5 anni sull'intero ciclo di vita del dato.",
+    "downloadCv": "Scarica il CV",
+    "bio": "Data professional con oltre cinque anni di esperienza sull'intero ciclo di vita del dato — dalla raccolta e validazione fino alle dashboard operative e agli insight strategici per team commerciali e C-level. Unisco solide basi statistiche (Laurea triennale in Statistica, Laurea magistrale in Data Science in corso) a un approccio pratico e orientato ai risultati. Lavoro principalmente con Python, SQL e strumenti cloud su AWS, con esperienza in automazione dei processi e algoritmi di Machine/Deep Learning. Appassionato di AI e tecnologie emergenti, mi piace tradurre dati complessi in strategie chiare e attuabili per interlocutori tecnici e non.",
     "experienceTitle": "Esperienza",
+    "educationTitle": "Formazione",
     "skillsTitle": "Competenze",
     "skillGroups": {
-      "tech": "Tech",
-      "analytics": "Analytics",
-      "cloud": "Cloud",
-      "frontend": "Frontend"
+      "programming": "Programmazione",
+      "dataEngineering": "Data Engineering",
+      "dataViz": "Data Visualization",
+      "versioning": "Versionamento",
+      "storage": "Storage",
+      "crm": "CRM"
     },
     "experience": [
       {
-        "period": "2023 — Oggi",
-        "role": "Data & Software Engineer",
-        "company": "Consulenza digitale",
-        "description": "Progettazione e sviluppo di piattaforme dati, pipeline ETL e servizi di analytics su AWS per clienti marketing e media."
+        "period": "Novembre 2020 — Oggi",
+        "role": "Business Data Analyst",
+        "company": "AdKaora (Mondadori Digital)",
+        "description": "Nel team di Business Intelligence, gestisco l'intero ciclo di vita del dato:",
+        "highlights": [
+          "Data collection: estrazione e validazione dei dati dalle piattaforme digitali via API, garantendo accuratezza e tempestività.",
+          "Automazione dei processi: pipeline ETL su AWS (S3, Athena, Lambda, Glue) per ridurre le attività manuali e ottimizzare i flussi dati.",
+          "Data governance: documentazione dei processi analitici, delle metriche di business e degli standard del team BI.",
+          "Analisi SQL & Python: script e query per estrazioni avanzate, anomaly detection, analisi dei trend e reporting.",
+          "Dashboard & reporting: dashboard interattive in Power BI per performance digitali, traffico, engagement e KPI di campagna."
+        ]
       },
       {
-        "period": "2021 — 2023",
-        "role": "Backend Developer",
-        "company": "Software house",
-        "description": "API REST con Python e FastAPI, modellazione dati relazionale e NoSQL, automazione CI/CD."
+        "period": "Settembre 2019 — Novembre 2020",
+        "role": "Business Intelligence Consultant",
+        "company": "InfoEdge (Lutech)",
+        "description": "Consulente SAS presso UniCredit Services, focalizzato su reporting e sviluppo su SAS Viya:",
+        "highlights": [
+          "Reporting & data management: sviluppo e manutenzione di report su SAS Viya con gestione dati back-end e front-end, integrati in dashboard operative.",
+          "Compliance & data governance: ho guidato un progetto cross-funzionale per il monitoraggio degli accessi ai report, garantendo conformità GDPR e qualità del dato."
+        ]
+      }
+    ],
+    "education": [
+      {
+        "period": "Settembre 2025 — Oggi",
+        "degree": "Laurea Magistrale in Data Science",
+        "school": "Università degli Studi di Milano-Bicocca"
       },
       {
-        "period": "2017 — 2021",
-        "role": "Studi di Informatica",
-        "company": "Università",
-        "description": "Fondamenti di informatica, algoritmi, basi di dati e matematica applicata."
+        "period": "Aprile 2024 — Aprile 2025",
+        "degree": "Master di I livello in Artificial Intelligence and Data Analytics for Business",
+        "school": "Università degli Studi di Milano-Bicocca"
+      },
+      {
+        "period": "Settembre 2015 — Settembre 2019",
+        "degree": "Laurea Triennale in Statistica",
+        "school": "Università degli Studi di Milano-Bicocca"
       }
     ],
     "skills": {
-      "tech": ["Python", "FastAPI", "SQL", "TypeScript", "Docker", "Git"],
-      "analytics": ["Pandas", "DynamoDB", "Pipeline ETL", "Modellazione dati"],
-      "cloud": [
+      "programming": ["Python", "R", "SAS Base", "SAS Macro", "SQL"],
+      "dataEngineering": [
+        "AWS Athena",
+        "AWS Glue",
         "AWS Lambda",
-        "ECS",
-        "S3",
-        "CloudFront",
-        "Cognito",
-        "Terraform"
+        "SAS Data Integration",
+        "SAS Data Management"
       ],
-      "frontend": ["React", "Vite", "Tailwind CSS", "Redux Toolkit"]
+      "dataViz": ["Power BI", "Tableau", "SAS Viya", "Looker Studio"],
+      "versioning": ["GitHub", "Bitbucket"],
+      "storage": [
+        "AWS S3",
+        "MongoDB",
+        "Neo4j",
+        "ChromaDB",
+        "Redis",
+        "Oracle",
+        "PostgreSQL"
+      ],
+      "crm": ["Salesforce"]
     }
   },
   "projects": {
@@ -121,19 +157,6 @@
     "success": "Grazie! Il tuo messaggio è stato inviato.",
     "error": "Impossibile inviare il messaggio. Riprova più tardi."
   },
-  "cv": {
-    "title": "Curriculum Vitae",
-    "subtitle": "Il mio percorso professionale, generato da dati strutturati.",
-    "downloadIt": "Scarica PDF (IT)",
-    "downloadEn": "Scarica PDF (EN)",
-    "empty": "Il CV non è ancora stato pubblicato.",
-    "sections": {
-      "summary": "Sommario",
-      "experience": "Esperienza",
-      "education": "Formazione",
-      "skills": "Competenze"
-    }
-  },
   "notFound": {
     "title": "404",
     "message": "La pagina che cerchi non esiste.",
@@ -157,15 +180,13 @@
       "dashboard": "Dashboard",
       "projects": "Progetti",
       "learning": "Learning",
-      "media": "Media",
-      "cv": "CV"
+      "media": "Media"
     },
     "dashboard": {
       "title": "Dashboard",
       "projects": "Progetti",
       "articles": "Articoli learning",
-      "technologies": "Tecnologie",
-      "cvSections": "Sezioni CV"
+      "technologies": "Tecnologie"
     },
     "actions": {
       "new": "Nuovo",
@@ -174,7 +195,8 @@
       "save": "Salva",
       "cancel": "Annulla",
       "saving": "Salvataggio…",
-      "saved": "Salvato"
+      "saved": "Salvato",
+      "add": "Aggiungi"
     },
     "table": {
       "title": "Titolo",
@@ -208,8 +230,14 @@
       "contentEn": "Contenuto (EN, markdown)",
       "category": "Categoria",
       "status": "Stato",
-      "technologies": "Tecnologie (separate da virgola)",
-      "tags": "Tag (separati da virgola)",
+      "technologies": "Tecnologie",
+      "addTechnology": "Aggiungi una tecnologia",
+      "addTechnologyPlaceholder": "es. PostgreSQL",
+      "noTechnologies": "Nessuna tecnologia — aggiungine una qui sotto.",
+      "tags": "Tag",
+      "addTag": "Aggiungi un tag",
+      "addTagPlaceholder": "es. algoritmi",
+      "noTags": "Nessun tag — aggiungine uno qui sotto.",
       "githubUrl": "URL GitHub",
       "demoUrl": "URL demo",
       "images": "URL immagini (uno per riga)"
@@ -223,20 +251,10 @@
       "success": "File caricato con successo.",
       "error": "Caricamento fallito. Riprova.",
       "objectKey": "Chiave oggetto"
-    },
-    "cv": {
-      "title": "Editor CV",
-      "sectionTitleIt": "Titolo sezione (IT)",
-      "sectionTitleEn": "Titolo sezione (EN)",
-      "itLabel": "Contenuto (IT, JSON)",
-      "enLabel": "Contenuto (EN, JSON)",
-      "invalidJson": "JSON non valido.",
-      "saved": "Salvato"
     }
   },
   "footer": {
-    "rights": "Tutti i diritti riservati.",
-    "builtWith": "Realizzato con React, FastAPI e AWS."
+    "rights": "Tutti i diritti riservati."
   },
   "language": {
     "label": "Lingua",

@@ -20,7 +20,7 @@ export const Home = () => {
 
   return (
     <>
-      <Seo title={t('nav.home')} description={t('home.heroTagline')} />
+      <Seo description={t('home.heroTagline')} />
       <Hero />
       {latestProjects.length > 0 && (
         <PreviewSection title={t('home.latestProjects')} viewAllTo="/projects">

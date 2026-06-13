@@ -19,10 +19,12 @@ describe('LearningForm', () => {
 
     await userEvent.type(screen.getByLabelText('Title (IT)'), 'Titolo')
     await userEvent.type(screen.getByLabelText('Title (EN)'), 'Title')
-    await userEvent.type(
-      screen.getByLabelText('Tags (comma separated)'),
-      'algorithms, cs',
-    )
+    // Tags are added through the picker (free-form inline entry).
+    const tagInput = screen.getByLabelText('Add a tag')
+    await userEvent.type(tagInput, 'algorithms')
+    await userEvent.click(screen.getByRole('button', { name: 'Add' }))
+    await userEvent.type(tagInput, 'cs')
+    await userEvent.click(screen.getByRole('button', { name: 'Add' }))
     await userEvent.click(screen.getByRole('button', { name: 'Save' }))
 
     expect(onSubmit).toHaveBeenCalledTimes(1)

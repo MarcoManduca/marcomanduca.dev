@@ -12,7 +12,7 @@ describe('Home', () => {
       screen.getByRole('heading', { name: 'Marco Manduca' }),
     ).toBeInTheDocument()
     expect(
-      screen.getByRole('heading', { name: 'Data & Software Engineer' }),
+      screen.getByRole('heading', { name: 'Data Engineer & Data Scientist' }),
     ).toBeInTheDocument()
     expect(
       screen.getByRole('link', { name: 'Explore projects' }),

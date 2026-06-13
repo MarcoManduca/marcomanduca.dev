@@ -7,7 +7,10 @@ export const mediaApi = api.injectEndpoints({
     presignUpload: build.mutation<PresignResponse, PresignRequest>({
       query: (body) => ({ url: '/media/presign', method: 'POST', body }),
     }),
+    getMediaUrl: build.query<PresignResponse, string>({
+      query: (key) => ({ url: '/media/url', params: { key } }),
+    }),
   }),
 })
 
-export const { usePresignUploadMutation } = mediaApi
+export const { usePresignUploadMutation, useLazyGetMediaUrlQuery } = mediaApi

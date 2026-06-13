@@ -31,7 +31,7 @@ export const Learning = () => {
 
   return (
     <>
-      <Seo title={t('learning.title')} description={t('learning.subtitle')} />
+      <Seo description={t('learning.subtitle')} />
       <h1 className="text-3xl font-bold text-heading">{t('learning.title')}</h1>
       <p className="mt-2 text-muted">{t('learning.subtitle')}</p>
       <div className="mt-8 max-w-xs">

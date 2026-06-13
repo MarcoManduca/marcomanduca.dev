@@ -8,6 +8,12 @@ vi.mock('react-oidc-context', () => ({
   useAuth: vi.fn(),
 }))
 
+vi.mock('@/utils/env', () => ({
+  ADMIN_GROUP: 'Administrators',
+  COGNITO_CLIENT_ID: 'test-client',
+  COGNITO_DOMAIN: 'https://auth.test',
+}))
+
 const mockedOidc = vi.mocked(useOidcAuth)
 
 interface OidcStub {
@@ -21,13 +27,15 @@ const stubOidc = ({
   isAuthenticated = false,
   profile,
 }: OidcStub) => {
+  const removeUser = vi.fn()
   mockedOidc.mockReturnValue({
     isLoading,
     isAuthenticated,
     user: profile ? { profile } : null,
     signinRedirect: vi.fn(),
-    removeUser: vi.fn(),
+    removeUser,
   } as unknown as ReturnType<typeof useOidcAuth>)
+  return { removeUser }
 }
 
 describe('useAuth', () => {
@@ -66,5 +74,24 @@ describe('useAuth', () => {
     expect(result.current.isLoading).toBe(true)
     expect(result.current.isAuthenticated).toBe(false)
     expect(result.current.userName).toBeNull()
+  })
+
+  it('clears local tokens and redirects to the Cognito logout endpoint', () => {
+    const assign = vi.fn()
+    vi.stubGlobal('location', { origin: 'https://site.test', assign })
+    const { removeUser } = stubOidc({
+      isAuthenticated: true,
+      profile: { email: 'admin@example.com' },
+    })
+
+    const { result } = renderHook(() => useAuth())
+    result.current.signOut()
+
+    expect(removeUser).toHaveBeenCalledOnce()
+    expect(assign).toHaveBeenCalledWith(
+      'https://auth.test/logout?client_id=test-client&logout_uri=https%3A%2F%2Fsite.test%2F',
+    )
+
+    vi.unstubAllGlobals()
   })
 })

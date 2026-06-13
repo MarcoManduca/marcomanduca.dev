@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from src.config import get_settings
-from src.routers import contact, cv, health, learning, media, projects, technologies
+from src.routers import contact, health, learning, media, projects, technologies
 from src.services.errors import ConflictError, InvalidInputError, NotFoundError
 
 API_PREFIX = "/api/v1"
@@ -49,7 +49,6 @@ def _register_routers(app: FastAPI) -> None:
     api.include_router(projects.router)
     api.include_router(learning.router)
     api.include_router(technologies.router)
-    api.include_router(cv.router)
     api.include_router(contact.router)
     api.include_router(media.router)
     app.include_router(api)

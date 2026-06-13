@@ -47,7 +47,7 @@ class MediaService:
             When the MIME type is not allowed for the prefix.
         """
         _validate_content_type(payload.prefix, payload.content_type)
-        key = f"{payload.prefix.value}{uuid4().hex}-{_safe_name(payload.filename)}"
+        key = _object_key(payload.prefix, payload.filename)
         url = self._client.generate_presigned_url(
             "put_object",
             Params={
@@ -85,6 +85,30 @@ class MediaService:
             ExpiresIn=self._expiration,
         )
         return PresignDownloadResponse(url=url, key=key, expires_in=self._expiration)
+
+
+def _object_key(prefix: MediaPrefix, filename: str) -> str:
+    """Build the S3 object key for an upload.
+
+    The CV is a singleton document stored at a fixed key (``cv/cv.pdf``) so the
+    public download button can always find it and re-uploads replace it. Images
+    get a unique key to avoid collisions.
+
+    Parameters
+    ----------
+    prefix : MediaPrefix
+        Destination prefix.
+    filename : str
+        Original filename (used only for image keys).
+
+    Returns
+    -------
+    str
+        The S3 object key.
+    """
+    if prefix is MediaPrefix.CV:
+        return f"{prefix.value}cv.pdf"
+    return f"{prefix.value}{uuid4().hex}-{_safe_name(filename)}"
 
 
 def _validate_content_type(prefix: MediaPrefix, content_type: str) -> None:

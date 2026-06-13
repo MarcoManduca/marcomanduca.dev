@@ -9,7 +9,6 @@ const ADMIN_NAV = [
   { to: '/admin/projects', key: 'admin.nav.projects', end: false },
   { to: '/admin/learning', key: 'admin.nav.learning', end: false },
   { to: '/admin/media', key: 'admin.nav.media', end: false },
-  { to: '/admin/cv', key: 'admin.nav.cv', end: false },
 ] as const
 
 export const AdminLayout = () => {
