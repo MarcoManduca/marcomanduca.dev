@@ -74,7 +74,12 @@ data "aws_iam_policy_document" "task" {
       "ses:SendEmail",
       "ses:SendRawEmail",
     ]
-    resources = [var.ses_identity_arn]
+    # In the SES sandbox, SendEmail authorizes against BOTH the sender (the
+    # verified domain) AND the verified recipient identity, so scoping to a
+    # single identity ARN is insufficient. Limited to identity/* in this
+    # account/region (not Resource "*"); the contact recipient can change
+    # without touching IAM.
+    resources = [replace(var.ses_identity_arn, "/identity/.+$/", "identity/*")]
   }
 }
 
