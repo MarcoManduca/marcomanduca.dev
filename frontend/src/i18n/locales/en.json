@@ -155,7 +155,56 @@
     "submit": "Send message",
     "sending": "Sending…",
     "success": "Thank you! Your message has been sent.",
-    "error": "Could not send the message. Please try again later."
+    "error": "Could not send the message. Please try again later.",
+    "consent": "I have read and accept the <privacy>Privacy Policy</privacy> and consent to the processing of my data to receive a reply."
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "subtitle": "How your personal data is handled when you use this website.",
+    "lastUpdated": "Last updated: 13 June 2026",
+    "sections": [
+      {
+        "heading": "Data Controller",
+        "body": "The controller of the personal data collected through this website is Marco Manduca. You can reach the controller for any privacy-related matter at marco.manduca95@gmail.com."
+      },
+      {
+        "heading": "What data I collect",
+        "body": "I only collect the data you voluntarily provide through the contact form: your name, your email address and the content of your message. I do not collect any other personal data and I do not use profiling or tracking technologies."
+      },
+      {
+        "heading": "Why I process it and on what basis",
+        "body": "Your data is processed solely to read your message and reply to you. The legal basis is your consent, which you give by ticking the box on the contact form (Art. 6(1)(a) GDPR). Providing the data is optional, but without it I cannot answer you."
+      },
+      {
+        "heading": "Who processes the data",
+        "body": "Contact messages are transmitted and delivered through Amazon Web Services (Amazon SES), which acts as a data processor. The email is processed within the European Union (Ireland, eu-west-1 region). No data is sold or shared with third parties for marketing purposes."
+      },
+      {
+        "heading": "How long I keep it",
+        "body": "Your message is stored only as an email for the time needed to handle your request and any follow-up correspondence, after which it is deleted. The website itself does not store contact submissions in any database."
+      },
+      {
+        "heading": "Your rights",
+        "body": "Under the GDPR you have the right to:",
+        "items": [
+          "access your personal data and obtain a copy of it",
+          "request rectification of inaccurate data",
+          "request erasure of your data",
+          "request restriction of, or object to, the processing",
+          "request data portability",
+          "withdraw your consent at any time",
+          "lodge a complaint with the Italian Data Protection Authority (Garante per la protezione dei dati personali)"
+        ]
+      },
+      {
+        "heading": "Cookies and local storage",
+        "body": "This website does not use profiling or third-party tracking cookies. It only uses technical local storage that is strictly necessary for the site to work, such as remembering your preferred language."
+      },
+      {
+        "heading": "Changes to this policy",
+        "body": "This policy may be updated over time. Any changes will be published on this page with a revised \"last updated\" date."
+      }
+    ]
   },
   "notFound": {
     "title": "404",
@@ -254,7 +303,8 @@
     }
   },
   "footer": {
-    "rights": "All rights reserved."
+    "rights": "All rights reserved.",
+    "privacy": "Privacy Policy"
   },
   "language": {
     "label": "Language",

@@ -13,4 +13,12 @@ describe('Footer', () => {
       screen.getByText(new RegExp(`${year} Marco Manduca`)),
     ).toBeInTheDocument()
   })
+
+  it('links to the privacy policy', () => {
+    renderWithProviders(<Footer />)
+
+    expect(
+      screen.getByRole('link', { name: 'Privacy Policy' }),
+    ).toHaveAttribute('href', '/privacy-policy')
+  })
 })

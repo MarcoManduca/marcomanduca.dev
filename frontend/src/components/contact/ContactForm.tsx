@@ -1,8 +1,10 @@
 import { useState, type FormEvent } from 'react'
 
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
 
 import { Button } from '@/components/ui/Button'
+import { Checkbox } from '@/components/ui/Checkbox'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { useSendContactMutation } from '@/services/contactApi'
@@ -12,6 +14,7 @@ export const ContactForm = () => {
   const [sendContact, { isLoading, isSuccess, isError }] =
     useSendContactMutation()
   const [honeypotTriggered, setHoneypotTriggered] = useState(false)
+  const [consent, setConsent] = useState(false)
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -63,12 +66,35 @@ export const ContactForm = () => {
           autoComplete="off"
         />
       </div>
+      <Checkbox
+        name="consent"
+        required
+        checked={consent}
+        onChange={(e) => setConsent(e.target.checked)}
+        label={
+          <Trans
+            i18nKey="contacts.consent"
+            components={{
+              privacy: (
+                <Link
+                  to="/privacy-policy"
+                  className="text-accent transition-colors hover:text-accent-hover"
+                />
+              ),
+            }}
+          />
+        }
+      />
       {isError && (
         <p role="alert" className="rounded-lg bg-red-500/15 p-4 text-red-400">
           {t('contacts.error')}
         </p>
       )}
-      <Button type="submit" disabled={isLoading} className="self-start">
+      <Button
+        type="submit"
+        disabled={isLoading || !consent}
+        className="self-start"
+      >
         {isLoading ? t('contacts.sending') : t('contacts.submit')}
       </Button>
     </form>
