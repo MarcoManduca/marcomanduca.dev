@@ -1,0 +1,67 @@
+# Local development stack.
+#
+#   docker compose up --build
+#
+# Services:
+#   backend        FastAPI on http://localhost:8000 (docs at /docs)
+#   frontend       production nginx build on http://localhost:5173
+#   dynamodb-local in-memory DynamoDB on http://localhost:8001
+#   dynamodb-init  one-shot: creates the 4 tables, then exits
+#
+# Note: for day-to-day frontend work prefer the Vite dev server
+# (`cd frontend && npm run dev`) — instant HMR instead of a full nginx
+# rebuild. The frontend service here is for verifying the production build.
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    # backend/.env is optional (gitignored): create it from backend/.env.example
+    # for local overrides. Everything required for local runs is set below.
+    env_file:
+      - path: ./backend/.env
+        required: false
+    environment:
+      APP_ENV: local
+      AWS_DEFAULT_REGION: eu-west-1
+      # Dummy credentials: DynamoDB Local accepts anything, boto3 needs them set.
+      AWS_ACCESS_KEY_ID: local
+      AWS_SECRET_ACCESS_KEY: local
+      DYNAMODB_ENDPOINT_URL: http://dynamodb-local:8000
+      # Must match the names the dynamodb-init service creates below.
+      PROJECTS_TABLE_NAME: portfolio-projects
+      LEARNING_TABLE_NAME: portfolio-learning
+      TECHNOLOGIES_TABLE_NAME: portfolio-technologies
+      CV_TABLE_NAME: portfolio-cv
+    depends_on:
+      - dynamodb-local
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+  dynamodb-local:
+    image: amazon/dynamodb-local:2.5.2
+    # -inMemory: nothing is persisted, a fresh database on every start.
+    command: ["-jar", "DynamoDBLocal.jar", "-inMemory", "-sharedDb"]
+    ports:
+      - "8001:8000"
+
+  dynamodb-init:
+    image: amazon/aws-cli:2.22.35
+    entrypoint: ["bash", "/scripts/create-local-tables.sh"]
+    environment:
+      DYNAMODB_ENDPOINT_URL: http://dynamodb-local:8000
+      # Keep these in sync with the backend service above.
+      PROJECTS_TABLE_NAME: portfolio-projects
+      LEARNING_TABLE_NAME: portfolio-learning
+      TECHNOLOGIES_TABLE_NAME: portfolio-technologies
+      CV_TABLE_NAME: portfolio-cv
+    volumes:
+      - ./infra/scripts:/scripts:ro
+    depends_on:
+      - dynamodb-local

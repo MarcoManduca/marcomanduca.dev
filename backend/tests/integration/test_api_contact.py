@@ -1,0 +1,99 @@
+"""Integration tests for the contact API (honeypot, rate limit)."""
+
+import pytest
+from fastapi import FastAPI
+from httpx import ASGITransport, AsyncClient
+
+from src.config import get_settings
+from src.schemas.contact import ContactRequest
+from src.services.contact_service import get_contact_service
+from src.utils.rate_limit import reset_contact_limiter
+
+pytestmark = pytest.mark.integration
+
+_VALID_PAYLOAD = {
+    "name": "Alice",
+    "email": "alice@example.com",
+    "message": "Hello Marco!",
+    "website": "",
+}
+
+
+class _StubContactService:
+    """Records sent payloads instead of calling SES."""
+
+    def __init__(self) -> None:
+        self.sent: list[ContactRequest] = []
+
+    def send_contact_email(self, payload: ContactRequest) -> None:
+        self.sent.append(payload)
+
+
+@pytest.fixture
+def contact_stub(app: FastAPI) -> _StubContactService:
+    """Replace the contact service with a recording stub."""
+    stub = _StubContactService()
+    app.dependency_overrides[get_contact_service] = lambda: stub
+    return stub
+
+
+async def test_submit_contact_returns_202_and_sends_email(
+    public_client: AsyncClient, contact_stub: _StubContactService
+) -> None:
+    # Act
+    response = await public_client.post("/api/v1/contact", json=_VALID_PAYLOAD)
+
+    # Assert
+    assert response.status_code == 202
+    assert len(contact_stub.sent) == 1
+
+
+async def test_submit_contact_with_honeypot_skips_email(
+    public_client: AsyncClient, contact_stub: _StubContactService
+) -> None:
+    # Arrange
+    spam_payload = _VALID_PAYLOAD | {"website": "http://spam.example.com"}
+
+    # Act
+    response = await public_client.post("/api/v1/contact", json=spam_payload)
+
+    # Assert
+    assert response.status_code == 202
+    assert contact_stub.sent == []
+
+
+async def test_submit_contact_returns_422_on_invalid_email(
+    public_client: AsyncClient, contact_stub: _StubContactService
+) -> None:
+    # Arrange
+    bad_payload = _VALID_PAYLOAD | {"email": "not-an-email"}
+
+    # Act
+    response = await public_client.post("/api/v1/contact", json=bad_payload)
+
+    # Assert
+    assert response.status_code == 422
+    assert contact_stub.sent == []
+
+
+async def test_submit_contact_returns_429_over_rate_limit(
+    app: FastAPI,
+    contact_stub: _StubContactService,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Arrange
+    monkeypatch.setenv("CONTACT_RATE_LIMIT_MAX_REQUESTS", "2")
+    get_settings.cache_clear()
+    reset_contact_limiter()
+    transport = ASGITransport(app=app)
+
+    # Act
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        first = await client.post("/api/v1/contact", json=_VALID_PAYLOAD)
+        second = await client.post("/api/v1/contact", json=_VALID_PAYLOAD)
+        third = await client.post("/api/v1/contact", json=_VALID_PAYLOAD)
+
+    # Assert
+    assert first.status_code == 202
+    assert second.status_code == 202
+    assert third.status_code == 429

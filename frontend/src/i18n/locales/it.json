@@ -1,0 +1,246 @@
+{
+  "nav": {
+    "home": "Home",
+    "aboutMe": "Chi sono",
+    "projects": "Progetti",
+    "learning": "Learning",
+    "contacts": "Contatti",
+    "cv": "CV",
+    "admin": "Admin"
+  },
+  "common": {
+    "loading": "Caricamento…",
+    "error": "Qualcosa è andato storto. Riprova.",
+    "retry": "Riprova",
+    "viewAll": "Vedi tutti",
+    "readMore": "Leggi di più"
+  },
+  "home": {
+    "heroGreeting": "Ciao, sono",
+    "heroName": "Marco Manduca",
+    "heroRole": "Data & Software Engineer",
+    "heroTagline": "Progetto piattaforme dati, servizi backend e interfacce web pulite — dall'infrastruttura cloud all'ultimo pixel.",
+    "ctaProjects": "Esplora i progetti",
+    "ctaLearning": "Leggi la knowledge base",
+    "ctaContacts": "Contattami",
+    "latestProjects": "Ultimi progetti",
+    "latestArticles": "Ultimi articoli"
+  },
+  "about": {
+    "title": "Chi sono",
+    "subtitle": "Ingegnere, appassionato di dati, sempre in apprendimento.",
+    "bio": "Sono un data e software engineer in Italia. Costruisco sistemi end-to-end: pipeline dati e piattaforme di analytics su AWS, API backend in Python e applicazioni frontend moderne. Mi stanno a cuore le architetture semplici, il codice leggibile e i risultati misurabili.",
+    "experienceTitle": "Esperienza",
+    "skillsTitle": "Competenze",
+    "skillGroups": {
+      "tech": "Tech",
+      "analytics": "Analytics",
+      "cloud": "Cloud",
+      "frontend": "Frontend"
+    },
+    "experience": [
+      {
+        "period": "2023 — Oggi",
+        "role": "Data & Software Engineer",
+        "company": "Consulenza digitale",
+        "description": "Progettazione e sviluppo di piattaforme dati, pipeline ETL e servizi di analytics su AWS per clienti marketing e media."
+      },
+      {
+        "period": "2021 — 2023",
+        "role": "Backend Developer",
+        "company": "Software house",
+        "description": "API REST con Python e FastAPI, modellazione dati relazionale e NoSQL, automazione CI/CD."
+      },
+      {
+        "period": "2017 — 2021",
+        "role": "Studi di Informatica",
+        "company": "Università",
+        "description": "Fondamenti di informatica, algoritmi, basi di dati e matematica applicata."
+      }
+    ],
+    "skills": {
+      "tech": ["Python", "FastAPI", "SQL", "TypeScript", "Docker", "Git"],
+      "analytics": ["Pandas", "DynamoDB", "Pipeline ETL", "Modellazione dati"],
+      "cloud": [
+        "AWS Lambda",
+        "ECS",
+        "S3",
+        "CloudFront",
+        "Cognito",
+        "Terraform"
+      ],
+      "frontend": ["React", "Vite", "Tailwind CSS", "Redux Toolkit"]
+    }
+  },
+  "projects": {
+    "title": "Progetti",
+    "subtitle": "Una selezione di ciò che ho progettato e costruito.",
+    "searchLabel": "Cerca progetti",
+    "searchPlaceholder": "Cerca per titolo o descrizione…",
+    "categoryLabel": "Categoria",
+    "technologyLabel": "Tecnologia",
+    "allCategories": "Tutte le categorie",
+    "allTechnologies": "Tutte le tecnologie",
+    "empty": "Nessun progetto corrisponde ai filtri attuali.",
+    "github": "GitHub",
+    "demo": "Demo live",
+    "gallery": "Galleria",
+    "backToProjects": "Torna ai progetti"
+  },
+  "projectCategories": {
+    "data": "Data",
+    "backend": "Backend",
+    "frontend": "Frontend",
+    "cloud": "Cloud",
+    "other": "Altro"
+  },
+  "learning": {
+    "title": "Learning",
+    "subtitle": "Appunti e articoli dalla mia knowledge base tecnica.",
+    "categoryLabel": "Categoria",
+    "allCategories": "Tutte le categorie",
+    "empty": "Nessun articolo in questa categoria al momento.",
+    "backToLearning": "Torna al learning",
+    "updatedOn": "Aggiornato il"
+  },
+  "learningCategories": {
+    "CS": "Informatica",
+    "Data": "Data",
+    "SWE": "Ingegneria del Software",
+    "Cloud": "Cloud",
+    "Math": "Matematica"
+  },
+  "contacts": {
+    "title": "Contatti",
+    "subtitle": "Hai un progetto in mente o vuoi solo salutarmi? Scrivimi.",
+    "nameLabel": "Nome",
+    "emailLabel": "Email",
+    "messageLabel": "Messaggio",
+    "submit": "Invia messaggio",
+    "sending": "Invio in corso…",
+    "success": "Grazie! Il tuo messaggio è stato inviato.",
+    "error": "Impossibile inviare il messaggio. Riprova più tardi."
+  },
+  "cv": {
+    "title": "Curriculum Vitae",
+    "subtitle": "Il mio percorso professionale, generato da dati strutturati.",
+    "downloadIt": "Scarica PDF (IT)",
+    "downloadEn": "Scarica PDF (EN)",
+    "empty": "Il CV non è ancora stato pubblicato.",
+    "sections": {
+      "summary": "Sommario",
+      "experience": "Esperienza",
+      "education": "Formazione",
+      "skills": "Competenze"
+    }
+  },
+  "notFound": {
+    "title": "404",
+    "message": "La pagina che cerchi non esiste.",
+    "backHome": "Torna alla home"
+  },
+  "auth": {
+    "redirecting": "Reindirizzamento al login…",
+    "forbiddenTitle": "Accesso negato",
+    "forbiddenMessage": "Sei autenticato ma non hai i permessi di amministratore.",
+    "signOut": "Esci"
+  },
+  "statuses": {
+    "draft": "Bozza",
+    "published": "Pubblicato",
+    "archived": "Archiviato"
+  },
+  "admin": {
+    "title": "Pannello admin",
+    "backToSite": "Torna al sito",
+    "nav": {
+      "dashboard": "Dashboard",
+      "projects": "Progetti",
+      "learning": "Learning",
+      "media": "Media",
+      "cv": "CV"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "projects": "Progetti",
+      "articles": "Articoli learning",
+      "technologies": "Tecnologie",
+      "cvSections": "Sezioni CV"
+    },
+    "actions": {
+      "new": "Nuovo",
+      "edit": "Modifica",
+      "delete": "Elimina",
+      "save": "Salva",
+      "cancel": "Annulla",
+      "saving": "Salvataggio…",
+      "saved": "Salvato"
+    },
+    "table": {
+      "title": "Titolo",
+      "category": "Categoria",
+      "status": "Stato",
+      "version": "Versione",
+      "actions": "Azioni"
+    },
+    "projects": {
+      "title": "Gestione progetti",
+      "newProject": "Nuovo progetto",
+      "editProject": "Modifica progetto"
+    },
+    "learning": {
+      "title": "Gestione learning",
+      "newArticle": "Nuovo articolo",
+      "editArticle": "Modifica articolo",
+      "versions": "Versioni",
+      "rollback": "Ripristina",
+      "versionLabel": "Versione {{version}}"
+    },
+    "form": {
+      "slug": "Slug",
+      "titleIt": "Titolo (IT)",
+      "titleEn": "Titolo (EN)",
+      "descriptionIt": "Descrizione (IT)",
+      "descriptionEn": "Descrizione (EN)",
+      "summaryIt": "Sommario (IT)",
+      "summaryEn": "Sommario (EN)",
+      "contentIt": "Contenuto (IT, markdown)",
+      "contentEn": "Contenuto (EN, markdown)",
+      "category": "Categoria",
+      "status": "Stato",
+      "technologies": "Tecnologie (separate da virgola)",
+      "tags": "Tag (separati da virgola)",
+      "githubUrl": "URL GitHub",
+      "demoUrl": "URL demo",
+      "images": "URL immagini (uno per riga)"
+    },
+    "media": {
+      "title": "Caricamento media",
+      "folder": "Cartella di destinazione",
+      "file": "File",
+      "upload": "Carica",
+      "uploading": "Caricamento…",
+      "success": "File caricato con successo.",
+      "error": "Caricamento fallito. Riprova.",
+      "objectKey": "Chiave oggetto"
+    },
+    "cv": {
+      "title": "Editor CV",
+      "sectionTitleIt": "Titolo sezione (IT)",
+      "sectionTitleEn": "Titolo sezione (EN)",
+      "itLabel": "Contenuto (IT, JSON)",
+      "enLabel": "Contenuto (EN, JSON)",
+      "invalidJson": "JSON non valido.",
+      "saved": "Salvato"
+    }
+  },
+  "footer": {
+    "rights": "Tutti i diritti riservati.",
+    "builtWith": "Realizzato con React, FastAPI e AWS."
+  },
+  "language": {
+    "label": "Lingua",
+    "en": "English",
+    "it": "Italiano"
+  }
+}

@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+#
+# Create the four DynamoDB tables against DynamoDB Local.
+#
+# Used by the docker-compose "dynamodb-init" service, but can also be run
+# manually against a local endpoint:
+#
+#   DYNAMODB_ENDPOINT_URL=http://localhost:8001 ./create-local-tables.sh
+#
+# Table names match the defaults expected by the backend in local mode
+# (no project prefix locally — the prefix only exists on AWS).
+
+set -euo pipefail
+
+ENDPOINT_URL="${DYNAMODB_ENDPOINT_URL:-http://dynamodb-local:8000}"
+
+# Table names mirror the backend Settings defaults (and may be overridden by
+# the same environment variables the backend reads). DynamoDB requires names
+# of at least 3 characters, so short names like "cv" are not valid.
+PROJECTS_TABLE="${PROJECTS_TABLE_NAME:-portfolio-projects}"
+LEARNING_TABLE="${LEARNING_TABLE_NAME:-portfolio-learning}"
+TECHNOLOGIES_TABLE="${TECHNOLOGIES_TABLE_NAME:-portfolio-technologies}"
+CV_TABLE="${CV_TABLE_NAME:-portfolio-cv}"
+
+# DynamoDB Local accepts any credentials, but the AWS CLI requires them.
+export AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID:-local}"
+export AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY:-local}"
+export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-eu-west-1}"
+
+echo "Waiting for DynamoDB Local at ${ENDPOINT_URL}..."
+for _ in $(seq 1 30); do
+  if aws dynamodb list-tables --endpoint-url "${ENDPOINT_URL}" > /dev/null 2>&1; then
+    break
+  fi
+  sleep 1
+done
+
+# create_table <name> <key-schema> <attribute-definitions>
+create_table() {
+  local name="$1" key_schema="$2" attributes="$3"
+
+  if aws dynamodb describe-table --table-name "${name}" \
+    --endpoint-url "${ENDPOINT_URL}" > /dev/null 2>&1; then
+    echo "Table '${name}' already exists, skipping."
+    return
+  fi
+
+  echo "Creating table '${name}'..."
+  aws dynamodb create-table \
+    --table-name "${name}" \
+    --key-schema ${key_schema} \
+    --attribute-definitions ${attributes} \
+    --billing-mode PAY_PER_REQUEST \
+    --endpoint-url "${ENDPOINT_URL}" > /dev/null
+}
+
+create_table "${PROJECTS_TABLE}" \
+  "AttributeName=slug,KeyType=HASH" \
+  "AttributeName=slug,AttributeType=S"
+
+# learning is versioned: composite key slug (pk) + version (sk, number).
+create_table "${LEARNING_TABLE}" \
+  "AttributeName=slug,KeyType=HASH AttributeName=version,KeyType=RANGE" \
+  "AttributeName=slug,AttributeType=S AttributeName=version,AttributeType=N"
+
+create_table "${TECHNOLOGIES_TABLE}" \
+  "AttributeName=id,KeyType=HASH" \
+  "AttributeName=id,AttributeType=S"
+
+create_table "${CV_TABLE}" \
+  "AttributeName=section,KeyType=HASH" \
+  "AttributeName=section,AttributeType=S"
+
+echo "All local tables ready."

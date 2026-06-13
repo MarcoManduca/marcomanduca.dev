@@ -1,0 +1,23 @@
+# Copy to terraform.tfvars and adjust. terraform.tfvars is gitignored.
+
+aws_region   = "eu-west-1"
+project_name = "marcomanduca-dev"
+environment  = "prod"
+domain_name  = "marcomanduca.dev"
+
+# false: the hosted zone already exists (Route 53 creates one automatically
+#        when you register the domain through the console).
+# true:  let Terraform create the zone (you must then update the registrar's
+#        name servers with the "name_servers" output).
+create_hosted_zone = false
+
+# Must be globally unique across all AWS accounts.
+cognito_domain_prefix = "marcomanduca-dev-auth"
+
+# Address that receives contact-form submissions.
+contact_email = "marco.manduca@adkaora.com"
+
+# Backend sizing — defaults are the cheapest Fargate combination.
+backend_cpu           = 256
+backend_memory        = 512
+backend_desired_count = 1
