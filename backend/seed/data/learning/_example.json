@@ -1,0 +1,10 @@
+{
+  "title": { "it": "Titolo dell'articolo", "en": "Article Title" },
+  "content_markdown": {
+    "it": "# Titolo\n\nTesto con LaTeX inline $E = mc^2$ e blocchi di codice:\n\n```python\ndef somma(a: int, b: int) -> int:\n    return a + b\n```",
+    "en": "# Title\n\nText with inline LaTeX $E = mc^2$ and code blocks:\n\n```python\ndef add(a: int, b: int) -> int:\n    return a + b\n```"
+  },
+  "category": "SWE",
+  "tags": ["python", "example"],
+  "status": "draft"
+}

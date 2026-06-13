@@ -3,8 +3,9 @@
 #
 #   projects     : pk slug                  — one item per project
 #   learning     : pk slug, sk version (N)  — versioned articles (rollback)
-#   technologies : pk slug                  — skill/technology catalog
-#   cv           : pk id                    — CV documents (e.g. one per locale)
+#   technologies : pk id                    — technology catalog
+#
+# Keys MUST match the backend access layer in backend/src/models/*.py.
 #
 # Point-in-time recovery is enabled everywhere: it is the cheapest backup
 # for tiny tables. Encryption at rest uses the AWS-owned key (free).
@@ -12,8 +13,7 @@
 locals {
   simple_tables = {
     projects     = "slug"
-    technologies = "slug"
-    cv           = "id"
+    technologies = "id"
   }
 }
 

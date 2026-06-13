@@ -144,7 +144,7 @@ DISTRIBUTION_ID=$(terraform -chdir=infra/terraform output -raw cloudfront_distri
 ```
 
 Smoke test: `https://marcomanduca.dev` (SPA) and
-`https://marcomanduca.dev/api/health` (backend).
+`https://marcomanduca.dev/api/v1/health` (backend).
 
 ### 5. Cognito admin user
 
@@ -214,7 +214,7 @@ Backend variable names must match the `Settings` fields in
 | `noreply@<domain>` (convention)              | `SES_SENDER_EMAIL`            | —                             |
 | contact recipient (tfvars `contact_email`)   | `SES_RECIPIENT_EMAIL`         | —                             |
 | `https://<domain>` (convention)              | `CORS_ORIGINS`                | —                             |
-| `https://marcomanduca.dev/api` (convention)  | —                             | `VITE_API_BASE_URL`           |
+| `/api/v1` (relative; CloudFront routes to ALB)| —                            | `VITE_API_BASE_URL`           |
 | region (tfvars `aws_region`)                 | `AWS_REGION`                  | —                             |
 
 ### 8. Cost overview (low-traffic personal site, monthly)

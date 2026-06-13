@@ -45,5 +45,6 @@ Thumbs.db
 # Notebooks — checkpoints
 .ipynb_checkpoints/
 
-# Project Description
+# Project Description & Deploy
 marcomanduca.dev.md
+DEPLOY.md

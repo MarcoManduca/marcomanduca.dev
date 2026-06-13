@@ -49,7 +49,7 @@ export const Projects = () => {
 
   return (
     <>
-      <Seo title={t('projects.title')} description={t('projects.subtitle')} />
+      <Seo description={t('projects.subtitle')} />
       <h1 className="text-3xl font-bold text-heading">{t('projects.title')}</h1>
       <p className="mt-2 text-muted">{t('projects.subtitle')}</p>
       <div className="mt-8">

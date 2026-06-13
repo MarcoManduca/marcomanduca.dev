@@ -23,10 +23,9 @@ describe('ProjectForm', () => {
       screen.getByLabelText('GitHub URL'),
       'https://github.com/x/y',
     )
-    await userEvent.type(
-      screen.getByLabelText('Technologies (comma separated)'),
-      'Python, AWS',
-    )
+    // Technologies are chosen from the chip picker (loaded from the API).
+    await userEvent.click(await screen.findByRole('button', { name: 'Python' }))
+    await userEvent.click(screen.getByRole('button', { name: 'AWS' }))
     await userEvent.click(screen.getByRole('button', { name: 'Save' }))
 
     expect(onSubmit).toHaveBeenCalledTimes(1)

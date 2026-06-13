@@ -13,6 +13,7 @@ export const AdminMedia = () => {
   const { status, key, upload } = useMediaUpload()
   const [prefix, setPrefix] = useState<MediaPrefix>('images/projects/')
   const [file, setFile] = useState<File | null>(null)
+  const accept = prefix === 'cv/' ? 'application/pdf' : 'image/*'
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -32,7 +33,10 @@ export const AdminMedia = () => {
           label={t('admin.media.folder')}
           options={MEDIA_PREFIXES.map((value) => ({ value, label: value }))}
           value={prefix}
-          onChange={(e) => setPrefix(e.target.value as MediaPrefix)}
+          onChange={(e) => {
+            setPrefix(e.target.value as MediaPrefix)
+            setFile(null)
+          }}
         />
         <div className="flex flex-col gap-1.5">
           <label
@@ -42,9 +46,10 @@ export const AdminMedia = () => {
             {t('admin.media.file')}
           </label>
           <input
+            key={prefix}
             id="media-file"
             type="file"
-            accept="image/*"
+            accept={accept}
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             className="text-sm text-body file:mr-3 file:rounded-lg file:border-0 file:bg-accent file:px-4 file:py-2 file:text-sm file:font-medium file:text-white"
           />

@@ -1,4 +1,4 @@
-import type { Technology } from '@/types'
+import type { Technology, TechnologyInput } from '@/types'
 
 import { api } from './api'
 
@@ -8,7 +8,12 @@ export const technologiesApi = api.injectEndpoints({
       query: () => '/technologies',
       providesTags: ['Technology'],
     }),
+    createTechnology: build.mutation<Technology, TechnologyInput>({
+      query: (body) => ({ url: '/technologies', method: 'POST', body }),
+      invalidatesTags: ['Technology'],
+    }),
   }),
 })
 
-export const { useGetTechnologiesQuery } = technologiesApi
+export const { useGetTechnologiesQuery, useCreateTechnologyMutation } =
+  technologiesApi

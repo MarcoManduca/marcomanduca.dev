@@ -75,7 +75,7 @@ module "backend" {
 
   # Environment variables injected into the FastAPI container.
   # Names MUST match the backend Settings fields in backend/src/config.py
-  # (each attribute maps to its upper-case env var, e.g. cv_table_name → CV_TABLE_NAME).
+  # (each attribute maps to its upper-case env var, e.g. projects_table_name → PROJECTS_TABLE_NAME).
   container_environment = {
     APP_ENV                 = var.environment
     AWS_REGION              = var.aws_region
@@ -83,7 +83,6 @@ module "backend" {
     PROJECTS_TABLE_NAME     = module.database.table_names["projects"]
     LEARNING_TABLE_NAME     = module.database.table_names["learning"]
     TECHNOLOGIES_TABLE_NAME = module.database.table_names["technologies"]
-    CV_TABLE_NAME           = module.database.table_names["cv"]
     MEDIA_BUCKET_NAME       = module.storage.media_bucket_name
     COGNITO_USER_POOL_ID    = module.auth.user_pool_id
     COGNITO_CLIENT_ID       = module.auth.client_id

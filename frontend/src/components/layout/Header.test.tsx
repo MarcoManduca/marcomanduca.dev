@@ -1,4 +1,5 @@
 import { screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 
 import { renderWithProviders } from '@/test/utils'
 
@@ -14,5 +15,19 @@ describe('Header', () => {
       '/projects',
     )
     expect(screen.getByRole('group', { name: 'Language' })).toBeInTheDocument()
+  })
+
+  it('opens and closes the mobile menu via the toggle button', async () => {
+    renderWithProviders(<Header />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Open menu' }))
+    expect(
+      screen.getByRole('navigation', { name: 'Mobile' }),
+    ).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Close menu' }))
+    expect(
+      screen.queryByRole('navigation', { name: 'Mobile' }),
+    ).not.toBeInTheDocument()
   })
 })

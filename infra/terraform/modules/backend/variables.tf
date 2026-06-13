@@ -51,7 +51,7 @@ variable "desired_count" {
 variable "health_check_path" {
   description = "ALB target group health check path."
   type        = string
-  default     = "/api/health"
+  default     = "/api/v1/health"
 }
 
 variable "dynamodb_table_arns" {

@@ -75,7 +75,7 @@ variable "backend_desired_count" {
 variable "backend_health_check_path" {
   description = "HTTP path used by the ALB target group health check."
   type        = string
-  default     = "/api/health"
+  default     = "/api/v1/health"
 }
 
 variable "contact_email" {

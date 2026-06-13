@@ -1,0 +1,17 @@
+{
+  "title": { "it": "Titolo del progetto", "en": "Project Title" },
+  "description": {
+    "it": "Descrizione breve mostrata nelle card e nei meta SEO.",
+    "en": "Short description shown on cards and in SEO meta tags."
+  },
+  "content_markdown": {
+    "it": "# Titolo\n\nContenuto in **markdown**. Supporta liste, immagini e codice:\n\n```python\nprint(\"ciao\")\n```",
+    "en": "# Title\n\nContent in **markdown**. Supports lists, images and code:\n\n```python\nprint(\"hello\")\n```"
+  },
+  "technologies": ["python", "fastapi", "react"],
+  "category": "fullstack",
+  "images": [],
+  "github_url": "https://github.com/MarcoManduca/example",
+  "demo_url": null,
+  "status": "draft"
+}

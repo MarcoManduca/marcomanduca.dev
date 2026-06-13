@@ -84,7 +84,7 @@ See [infra/README.md](infra/README.md) for the full AWS deployment guide, includ
 
 ## Documentation
 
-- [SRS](marcomanduca.dev.md) — full requirements specification
+- [DEPLOY.md](DEPLOY.md) — step-by-step deploy guide (frontend, backend, infra, content)
 - [backend/README.md](backend/README.md) — API reference, env vars, testing
 - [frontend/README.md](frontend/README.md) — pages, i18n, theming
-- [infra/README.md](infra/README.md) — Terraform modules, deploy runbook
+- [infra/README.md](infra/README.md) — Terraform modules, first-time provisioning runbook

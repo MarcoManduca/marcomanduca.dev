@@ -8,23 +8,41 @@ const NAV_ITEMS = [
   { to: '/about-me', key: 'nav.aboutMe' },
   { to: '/projects', key: 'nav.projects' },
   { to: '/learning', key: 'nav.learning' },
-  { to: '/cv', key: 'nav.cv' },
   { to: '/contacts', key: 'nav.contacts' },
 ] as const
 
-export const NavBar = () => {
+interface NavBarProps {
+  orientation?: 'horizontal' | 'vertical'
+  label?: string
+  onNavigate?: () => void
+}
+
+export const NavBar = ({
+  orientation = 'horizontal',
+  label = 'Main',
+  onNavigate,
+}: NavBarProps) => {
   const { t } = useTranslation()
+  const vertical = orientation === 'vertical'
 
   return (
-    <nav aria-label="Main" className="flex flex-wrap items-center gap-1">
+    <nav
+      aria-label={label}
+      className={cn(
+        'flex gap-1',
+        vertical ? 'w-full flex-col' : 'flex-wrap items-center',
+      )}
+    >
       {NAV_ITEMS.map(({ to, key }) => (
         <NavLink
           key={to}
           to={to}
           end={to === '/'}
+          onClick={onNavigate}
           className={({ isActive }) =>
             cn(
               'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
+              vertical && 'w-full',
               isActive
                 ? 'bg-surface text-accent-hover'
                 : 'text-body hover:text-heading',

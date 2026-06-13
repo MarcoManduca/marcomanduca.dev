@@ -1,7 +1,9 @@
 import type { FormEvent } from 'react'
+import { useState } from 'react'
 
 import { useTranslation } from 'react-i18next'
 
+import { TagPicker } from '@/components/learning/TagPicker'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
@@ -13,7 +15,6 @@ import type {
   LearningCategory,
 } from '@/types'
 import { LEARNING_CATEGORIES, PROJECT_STATUSES } from '@/types'
-import { parseCsv } from '@/utils/parseList'
 
 interface LearningFormProps {
   initial: LearningArticle | null
@@ -22,7 +23,7 @@ interface LearningFormProps {
   onCancel: () => void
 }
 
-const toInput = (data: FormData): LearningArticleInput => ({
+const toInput = (data: FormData, tags: string[]): LearningArticleInput => ({
   title: { it: String(data.get('titleIt')), en: String(data.get('titleEn')) },
   content_markdown: {
     it: String(data.get('contentIt')),
@@ -30,7 +31,7 @@ const toInput = (data: FormData): LearningArticleInput => ({
   },
   category: String(data.get('category')) as LearningCategory,
   status: String(data.get('status')) as ArticleStatus,
-  tags: parseCsv(String(data.get('tags'))),
+  tags,
 })
 
 export const LearningForm = ({
@@ -40,10 +41,11 @@ export const LearningForm = ({
   onCancel,
 }: LearningFormProps) => {
   const { t } = useTranslation()
+  const [tags, setTags] = useState<string[]>(initial?.tags ?? [])
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    onSubmit(toInput(new FormData(event.currentTarget)))
+    onSubmit(toInput(new FormData(event.currentTarget), tags))
   }
 
   return (
@@ -89,11 +91,7 @@ export const LearningForm = ({
         rows={10}
         defaultValue={initial?.content_markdown.en}
       />
-      <Input
-        label={t('admin.form.tags')}
-        name="tags"
-        defaultValue={initial?.tags.join(', ')}
-      />
+      <TagPicker value={tags} onChange={setTags} />
       <Select
         label={t('admin.form.status')}
         name="status"

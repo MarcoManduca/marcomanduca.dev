@@ -5,7 +5,7 @@ import { useLanguage } from '@/hooks/useLanguage'
 import { SITE_URL } from '@/utils/env'
 
 interface SeoProps {
-  title: string
+  title?: string
   description: string
   type?: 'website' | 'article'
   image?: string
@@ -23,7 +23,7 @@ export const Seo = ({
   const { pathname } = useLocation()
   const { language } = useLanguage()
 
-  const fullTitle = `${title} — ${SITE_NAME}`
+  const fullTitle = title ? `${title} — ${SITE_NAME}` : SITE_NAME
   const canonical = `${SITE_URL}${pathname}`
 
   return (
