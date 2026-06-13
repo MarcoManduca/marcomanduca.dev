@@ -1,0 +1,246 @@
+{
+  "nav": {
+    "home": "Home",
+    "aboutMe": "About me",
+    "projects": "Projects",
+    "learning": "Learning",
+    "contacts": "Contacts",
+    "cv": "CV",
+    "admin": "Admin"
+  },
+  "common": {
+    "loading": "Loading…",
+    "error": "Something went wrong. Please try again.",
+    "retry": "Retry",
+    "viewAll": "View all",
+    "readMore": "Read more"
+  },
+  "home": {
+    "heroGreeting": "Hi, I am",
+    "heroName": "Marco Manduca",
+    "heroRole": "Data & Software Engineer",
+    "heroTagline": "I design data platforms, backend services and clean web interfaces — from cloud infrastructure to the last pixel.",
+    "ctaProjects": "Explore projects",
+    "ctaLearning": "Read the knowledge base",
+    "ctaContacts": "Get in touch",
+    "latestProjects": "Latest projects",
+    "latestArticles": "Latest articles"
+  },
+  "about": {
+    "title": "About me",
+    "subtitle": "Engineer, data practitioner, lifelong learner.",
+    "bio": "I am a data and software engineer based in Italy. I build end-to-end systems: data pipelines and analytics platforms on AWS, backend APIs in Python, and modern frontend applications. I care about simple architectures, readable code and measurable results.",
+    "experienceTitle": "Experience",
+    "skillsTitle": "Skills",
+    "skillGroups": {
+      "tech": "Tech",
+      "analytics": "Analytics",
+      "cloud": "Cloud",
+      "frontend": "Frontend"
+    },
+    "experience": [
+      {
+        "period": "2023 — Present",
+        "role": "Data & Software Engineer",
+        "company": "Digital consulting",
+        "description": "Design and development of data platforms, ETL pipelines and analytics services on AWS for marketing and media clients."
+      },
+      {
+        "period": "2021 — 2023",
+        "role": "Backend Developer",
+        "company": "Software house",
+        "description": "REST APIs with Python and FastAPI, relational and NoSQL data modelling, CI/CD automation."
+      },
+      {
+        "period": "2017 — 2021",
+        "role": "Computer Science studies",
+        "company": "University",
+        "description": "Foundations in computer science, algorithms, databases and applied mathematics."
+      }
+    ],
+    "skills": {
+      "tech": ["Python", "FastAPI", "SQL", "TypeScript", "Docker", "Git"],
+      "analytics": ["Pandas", "DynamoDB", "ETL pipelines", "Data modelling"],
+      "cloud": [
+        "AWS Lambda",
+        "ECS",
+        "S3",
+        "CloudFront",
+        "Cognito",
+        "Terraform"
+      ],
+      "frontend": ["React", "Vite", "Tailwind CSS", "Redux Toolkit"]
+    }
+  },
+  "projects": {
+    "title": "Projects",
+    "subtitle": "A selection of things I have designed and built.",
+    "searchLabel": "Search projects",
+    "searchPlaceholder": "Search by title or description…",
+    "categoryLabel": "Category",
+    "technologyLabel": "Technology",
+    "allCategories": "All categories",
+    "allTechnologies": "All technologies",
+    "empty": "No projects match the current filters.",
+    "github": "GitHub",
+    "demo": "Live demo",
+    "gallery": "Gallery",
+    "backToProjects": "Back to projects"
+  },
+  "projectCategories": {
+    "data": "Data",
+    "backend": "Backend",
+    "frontend": "Frontend",
+    "cloud": "Cloud",
+    "other": "Other"
+  },
+  "learning": {
+    "title": "Learning",
+    "subtitle": "Notes and articles from my technical knowledge base.",
+    "categoryLabel": "Category",
+    "allCategories": "All categories",
+    "empty": "No articles in this category yet.",
+    "backToLearning": "Back to learning",
+    "updatedOn": "Updated on"
+  },
+  "learningCategories": {
+    "CS": "Computer Science",
+    "Data": "Data",
+    "SWE": "Software Engineering",
+    "Cloud": "Cloud",
+    "Math": "Math"
+  },
+  "contacts": {
+    "title": "Contacts",
+    "subtitle": "Have a project in mind or just want to say hi? Drop me a line.",
+    "nameLabel": "Name",
+    "emailLabel": "Email",
+    "messageLabel": "Message",
+    "submit": "Send message",
+    "sending": "Sending…",
+    "success": "Thank you! Your message has been sent.",
+    "error": "Could not send the message. Please try again later."
+  },
+  "cv": {
+    "title": "Curriculum Vitae",
+    "subtitle": "My professional path, generated from structured data.",
+    "downloadIt": "Download PDF (IT)",
+    "downloadEn": "Download PDF (EN)",
+    "empty": "The CV has not been published yet.",
+    "sections": {
+      "summary": "Summary",
+      "experience": "Experience",
+      "education": "Education",
+      "skills": "Skills"
+    }
+  },
+  "notFound": {
+    "title": "404",
+    "message": "The page you are looking for does not exist.",
+    "backHome": "Back to home"
+  },
+  "auth": {
+    "redirecting": "Redirecting to login…",
+    "forbiddenTitle": "Access denied",
+    "forbiddenMessage": "You are signed in but you do not have administrator permissions.",
+    "signOut": "Sign out"
+  },
+  "statuses": {
+    "draft": "Draft",
+    "published": "Published",
+    "archived": "Archived"
+  },
+  "admin": {
+    "title": "Admin panel",
+    "backToSite": "Back to site",
+    "nav": {
+      "dashboard": "Dashboard",
+      "projects": "Projects",
+      "learning": "Learning",
+      "media": "Media",
+      "cv": "CV"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "projects": "Projects",
+      "articles": "Learning articles",
+      "technologies": "Technologies",
+      "cvSections": "CV sections"
+    },
+    "actions": {
+      "new": "New",
+      "edit": "Edit",
+      "delete": "Delete",
+      "save": "Save",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "saved": "Saved"
+    },
+    "table": {
+      "title": "Title",
+      "category": "Category",
+      "status": "Status",
+      "version": "Version",
+      "actions": "Actions"
+    },
+    "projects": {
+      "title": "Manage projects",
+      "newProject": "New project",
+      "editProject": "Edit project"
+    },
+    "learning": {
+      "title": "Manage learning",
+      "newArticle": "New article",
+      "editArticle": "Edit article",
+      "versions": "Versions",
+      "rollback": "Rollback",
+      "versionLabel": "Version {{version}}"
+    },
+    "form": {
+      "slug": "Slug",
+      "titleIt": "Title (IT)",
+      "titleEn": "Title (EN)",
+      "descriptionIt": "Description (IT)",
+      "descriptionEn": "Description (EN)",
+      "summaryIt": "Summary (IT)",
+      "summaryEn": "Summary (EN)",
+      "contentIt": "Content (IT, markdown)",
+      "contentEn": "Content (EN, markdown)",
+      "category": "Category",
+      "status": "Status",
+      "technologies": "Technologies (comma separated)",
+      "tags": "Tags (comma separated)",
+      "githubUrl": "GitHub URL",
+      "demoUrl": "Demo URL",
+      "images": "Image URLs (one per line)"
+    },
+    "media": {
+      "title": "Media upload",
+      "folder": "Destination folder",
+      "file": "File",
+      "upload": "Upload",
+      "uploading": "Uploading…",
+      "success": "File uploaded successfully.",
+      "error": "Upload failed. Please try again.",
+      "objectKey": "Object key"
+    },
+    "cv": {
+      "title": "CV editor",
+      "sectionTitleIt": "Section title (IT)",
+      "sectionTitleEn": "Section title (EN)",
+      "itLabel": "Content (IT, JSON)",
+      "enLabel": "Content (EN, JSON)",
+      "invalidJson": "Invalid JSON.",
+      "saved": "Saved"
+    }
+  },
+  "footer": {
+    "rights": "All rights reserved.",
+    "builtWith": "Built with React, FastAPI and AWS."
+  },
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "it": "Italiano"
+  }
+}

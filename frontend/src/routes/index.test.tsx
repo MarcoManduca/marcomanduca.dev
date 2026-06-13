@@ -1,0 +1,55 @@
+import { screen } from '@testing-library/react'
+
+import type { AuthState } from '@/hooks/useAuth'
+import { renderWithProviders } from '@/test/utils'
+
+import { AppRoutes } from './index'
+
+const mockUseAuth = vi.fn<() => AuthState>()
+
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: () => mockUseAuth(),
+}))
+
+const adminAuth: AuthState = {
+  isLoading: false,
+  isAuthenticated: true,
+  isAdmin: true,
+  userName: 'admin@example.com',
+  signIn: vi.fn(),
+  signOut: vi.fn(),
+}
+
+describe('AppRoutes', () => {
+  it('renders the home page on the root route', () => {
+    mockUseAuth.mockReturnValue(adminAuth)
+    renderWithProviders(<AppRoutes />, { route: '/' })
+
+    expect(
+      screen.getByRole('heading', { name: 'Marco Manduca' }),
+    ).toBeInTheDocument()
+  })
+
+  it('renders the not found page on an unknown route', () => {
+    mockUseAuth.mockReturnValue(adminAuth)
+    renderWithProviders(<AppRoutes />, { route: '/nope' })
+
+    expect(screen.getByText('404')).toBeInTheDocument()
+  })
+
+  it('renders the admin dashboard for an administrator', () => {
+    mockUseAuth.mockReturnValue(adminAuth)
+    renderWithProviders(<AppRoutes />, { route: '/admin' })
+
+    expect(
+      screen.getByRole('navigation', { name: 'Admin' }),
+    ).toBeInTheDocument()
+  })
+
+  it('blocks the admin area for non-admins', () => {
+    mockUseAuth.mockReturnValue({ ...adminAuth, isAdmin: false })
+    renderWithProviders(<AppRoutes />, { route: '/admin' })
+
+    expect(screen.getByText('Access denied')).toBeInTheDocument()
+  })
+})
