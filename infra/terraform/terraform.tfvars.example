@@ -15,6 +15,7 @@ create_hosted_zone = false
 cognito_domain_prefix = "marcomanduca-dev-auth"
 
 # Address that receives contact-form submissions.
+# In the SES sandbox this address must be a verified identity.
 contact_email = "you@example.com"
 
 # Backend sizing — defaults are the cheapest Fargate combination.
