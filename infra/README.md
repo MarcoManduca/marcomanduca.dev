@@ -56,7 +56,7 @@ infra/
         ├── dns/               # Route 53 hosted zone (create or look up)
         ├── acm/               # us-east-1 certificate + DNS validation
         ├── storage/           # S3 frontend + media buckets
-        ├── database/          # 4 DynamoDB tables (PAY_PER_REQUEST)
+        ├── database/          # 3 DynamoDB tables (PAY_PER_REQUEST)
         ├── auth/              # Cognito user pool, SPA client, hosted UI, group
         ├── email/             # SES domain identity + DKIM records
         ├── backend/           # ECR, ECS Fargate, ALB, IAM, CloudWatch logs
@@ -183,7 +183,7 @@ verified addresses.
 Option A — verify the destination address (fine for a personal contact form):
 
 ```bash
-aws ses verify-email-identity --email-address you@example.com
+aws ses verify-email-identity --email-address marco.manduca95@gmail.com
 # click the link in the verification email AWS sends
 ```
 
@@ -206,7 +206,6 @@ Backend variable names must match the `Settings` fields in
 | `dynamodb_table_names["projects"]`           | `PROJECTS_TABLE_NAME`         | —                             |
 | `dynamodb_table_names["learning"]`           | `LEARNING_TABLE_NAME`         | —                             |
 | `dynamodb_table_names["technologies"]`       | `TECHNOLOGIES_TABLE_NAME`     | —                             |
-| `dynamodb_table_names["cv"]`                 | `CV_TABLE_NAME`               | —                             |
 | `media_bucket_name`                          | `MEDIA_BUCKET_NAME`           | —                             |
 | `cognito_user_pool_id`                       | `COGNITO_USER_POOL_ID`        | `VITE_COGNITO_USER_POOL_ID`   |
 | `cognito_client_id`                          | `COGNITO_CLIENT_ID`           | `VITE_COGNITO_CLIENT_ID`      |
@@ -251,7 +250,7 @@ docker compose up --build
 
 Notes:
 
-- `dynamodb-init` runs once, creates the 4 tables (in-memory, recreated on
+- `dynamodb-init` runs once, creates the 3 tables (in-memory, recreated on
   every `up`) and exits — exit code 0 is normal.
 - For frontend work prefer the Vite dev server (`cd frontend && npm run dev`)
   for hot reload; the compose `frontend` service builds the production

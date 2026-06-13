@@ -1,6 +1,6 @@
 # marcomanduca.dev
 
-Personal professional website: technical portfolio, professional showcase (CV, experience, skills) and technical knowledge base (Learning).
+Personal professional website: technical portfolio, an "About me" showcase (experience, skills, downloadable CV) and a technical knowledge base (Learning).
 
 Public, bilingual (IT/EN), SEO-optimized, with a protected admin panel.
 
@@ -18,7 +18,7 @@ Browser → CloudFront → /api ───────┘
 | State    | Redux Toolkit + RTK Query                        |
 | Backend  | FastAPI (Python 3.12)                            |
 | Database | AWS DynamoDB                                     |
-| Storage  | AWS S3 (project/learning images, CV exports)     |
+| Storage  | AWS S3 (project/learning images, downloadable CV PDF) |
 | Auth     | AWS Cognito (Administrators group)               |
 | Hosting  | AWS ECS Fargate (backend), S3 + CloudFront (SPA) |
 | DNS/TLS  | Route 53 + ACM                                   |
@@ -88,3 +88,13 @@ See [infra/README.md](infra/README.md) for the full AWS deployment guide, includ
 - [backend/README.md](backend/README.md) — API reference, env vars, testing
 - [frontend/README.md](frontend/README.md) — pages, i18n, theming
 - [infra/README.md](infra/README.md) — Terraform modules, first-time provisioning runbook
+
+## License
+
+The **source code** is released under the [MIT License](LICENSE) — feel free to
+read, learn from and reuse it.
+
+All **personal content** is **not** covered by that license and remains
+© 2026 Marco Manduca, all rights reserved. This includes the written copy,
+the CV, photos, the personal branding and the portfolio/Learning content.
+Please do not republish the site as your own; reuse the code, not the persona.

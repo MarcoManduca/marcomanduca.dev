@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Create the four DynamoDB tables against DynamoDB Local.
+# Create the three DynamoDB tables against DynamoDB Local.
 #
 # Used by the docker-compose "dynamodb-init" service, but can also be run
 # manually against a local endpoint:
@@ -16,11 +16,10 @@ ENDPOINT_URL="${DYNAMODB_ENDPOINT_URL:-http://dynamodb-local:8000}"
 
 # Table names mirror the backend Settings defaults (and may be overridden by
 # the same environment variables the backend reads). DynamoDB requires names
-# of at least 3 characters, so short names like "cv" are not valid.
+# of at least 3 characters, so the project prefix keeps them valid.
 PROJECTS_TABLE="${PROJECTS_TABLE_NAME:-portfolio-projects}"
 LEARNING_TABLE="${LEARNING_TABLE_NAME:-portfolio-learning}"
 TECHNOLOGIES_TABLE="${TECHNOLOGIES_TABLE_NAME:-portfolio-technologies}"
-CV_TABLE="${CV_TABLE_NAME:-portfolio-cv}"
 
 # DynamoDB Local accepts any credentials, but the AWS CLI requires them.
 export AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID:-local}"
@@ -66,9 +65,5 @@ create_table "${LEARNING_TABLE}" \
 create_table "${TECHNOLOGIES_TABLE}" \
   "AttributeName=id,KeyType=HASH" \
   "AttributeName=id,AttributeType=S"
-
-create_table "${CV_TABLE}" \
-  "AttributeName=section,KeyType=HASH" \
-  "AttributeName=section,AttributeType=S"
 
 echo "All local tables ready."

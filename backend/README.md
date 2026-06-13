@@ -1,10 +1,10 @@
 # marcomanduca.dev — Backend
 
 FastAPI backend for the personal portfolio website. It serves projects,
-a versioned learning knowledge base, a dynamic bilingual CV (with PDF
-export) and a contact form. Public endpoints are read-only; write
-endpoints require an AWS Cognito access token belonging to the
-`Administrators` group.
+a versioned learning knowledge base, technologies and a contact form, plus
+presigned S3 URLs for media (including the downloadable CV PDF). Public
+endpoints are read-only; write endpoints require an AWS Cognito access token
+belonging to the `Administrators` group.
 
 ## Architecture
 
@@ -35,9 +35,6 @@ endpoints require an AWS Cognito access token belonging to the
 | GET | `/api/v1/technologies` | public | List technologies |
 | POST | `/api/v1/technologies` | admin | Register technology |
 | DELETE | `/api/v1/technologies/{id}` | admin | Delete technology |
-| GET | `/api/v1/cv?lang=it\|en` | public | Structured CV |
-| GET | `/api/v1/cv/pdf?lang=it\|en` | public | Generated PDF |
-| PUT | `/api/v1/cv/{section}` | admin | Replace CV section |
 | POST | `/api/v1/contact` | public | Contact form (honeypot + rate limit) |
 | POST | `/api/v1/media/presign` | admin | Presigned S3 PUT URL |
 | GET | `/api/v1/media/url?key=...` | public | Presigned S3 GET URL |
@@ -54,7 +51,6 @@ See `.env.example` for the full annotated list.
 | `PROJECTS_TABLE_NAME` | DynamoDB Projects table | `portfolio-projects` |
 | `LEARNING_TABLE_NAME` | DynamoDB Learning table | `portfolio-learning` |
 | `TECHNOLOGIES_TABLE_NAME` | DynamoDB Technologies table | `portfolio-technologies` |
-| `CV_TABLE_NAME` | DynamoDB CV table | `portfolio-cv` |
 | `DYNAMODB_ENDPOINT_URL` | Optional DynamoDB Local endpoint | unset |
 | `MEDIA_BUCKET_NAME` | S3 bucket for media | `marcomanduca-dev-media` |
 | `PRESIGN_EXPIRATION_SECONDS` | Presigned URL validity | `900` |
@@ -78,7 +74,7 @@ cp .env.example .env  # adjust values
 # Optional: DynamoDB Local
 docker run -d -p 8001:8000 amazon/dynamodb-local
 # then set DYNAMODB_ENDPOINT_URL=http://localhost:8001 in .env
-# and create the four tables (slug / slug+version / id / section keys).
+# and create the three tables (projects: slug / learning: slug+version / technologies: id).
 
 uvicorn src.main:app --reload --port 8000
 ```
@@ -126,8 +122,6 @@ Runtime (kept minimal on purpose):
 - **boto3** — AWS SDK for DynamoDB, S3 presigning and SES.
 - **PyJWT[crypto]** — Cognito JWT verification with RS256 (the
   `crypto` extra pulls `cryptography` for signature checks).
-- **reportlab** — pure-Python PDF generation for the CV export; no
-  system binaries (unlike WeasyPrint/wkhtmltopdf), small surface.
 
 Notably avoided: `email-validator` (a lightweight regex is enough for
 a contact form; SES is the real gatekeeper) and any rate-limit library
