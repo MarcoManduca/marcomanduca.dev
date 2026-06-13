@@ -2,7 +2,7 @@
 #
 #   execution role : used by the ECS agent to pull the image and ship logs.
 #   task role      : used by the application code. Strictly scoped to the
-#                    four DynamoDB tables, the media bucket and SES sending.
+#                    three DynamoDB tables, the media bucket and SES sending.
 
 data "aws_iam_policy_document" "ecs_assume" {
   statement {
