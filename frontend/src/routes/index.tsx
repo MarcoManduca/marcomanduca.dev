@@ -12,6 +12,7 @@ import { Home } from '@/pages/Home'
 import { Learning } from '@/pages/Learning'
 import { LearningDetail } from '@/pages/LearningDetail'
 import { NotFound } from '@/pages/NotFound'
+import { PrivacyPolicy } from '@/pages/PrivacyPolicy'
 import { ProjectDetail } from '@/pages/ProjectDetail'
 import { Projects } from '@/pages/Projects'
 
@@ -29,6 +30,7 @@ export const AppRoutes = () => (
       <Route path="/learning" element={<Learning />} />
       <Route path="/learning/:slug" element={<LearningDetail />} />
       <Route path="/contacts" element={<Contacts />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="*" element={<NotFound />} />
     </Route>
     <Route element={<ProtectedRoute />}>

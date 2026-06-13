@@ -12,9 +12,20 @@ const fillForm = async () => {
   await userEvent.type(screen.getByLabelText('Name'), 'Alice')
   await userEvent.type(screen.getByLabelText('Email'), 'alice@example.com')
   await userEvent.type(screen.getByLabelText('Message'), 'Hello Marco!')
+  await userEvent.click(screen.getByRole('checkbox'))
 }
 
 describe('Contacts', () => {
+  it('keeps submit disabled until the privacy consent is given', async () => {
+    renderWithProviders(<Contacts />)
+
+    const submit = screen.getByRole('button', { name: 'Send message' })
+    expect(submit).toBeDisabled()
+
+    await userEvent.click(screen.getByRole('checkbox'))
+    expect(submit).toBeEnabled()
+  })
+
   it('shows a success message after a successful submit', async () => {
     renderWithProviders(<Contacts />)
 

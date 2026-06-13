@@ -155,7 +155,56 @@
     "submit": "Invia messaggio",
     "sending": "Invio in corso…",
     "success": "Grazie! Il tuo messaggio è stato inviato.",
-    "error": "Impossibile inviare il messaggio. Riprova più tardi."
+    "error": "Impossibile inviare il messaggio. Riprova più tardi.",
+    "consent": "Ho letto e accetto la <privacy>Privacy Policy</privacy> e acconsento al trattamento dei miei dati per ricevere una risposta."
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "subtitle": "Come vengono trattati i tuoi dati personali quando usi questo sito.",
+    "lastUpdated": "Ultimo aggiornamento: 13 giugno 2026",
+    "sections": [
+      {
+        "heading": "Titolare del trattamento",
+        "body": "Il titolare del trattamento dei dati personali raccolti tramite questo sito è Marco Manduca. Puoi contattare il titolare per qualsiasi questione relativa alla privacy all'indirizzo marco.manduca95@gmail.com."
+      },
+      {
+        "heading": "Quali dati raccolgo",
+        "body": "Raccolgo soltanto i dati che fornisci volontariamente tramite il modulo di contatto: nome, indirizzo email e il contenuto del messaggio. Non raccolgo altri dati personali e non utilizzo tecnologie di profilazione o tracciamento."
+      },
+      {
+        "heading": "Perché tratto i dati e su quale base",
+        "body": "I tuoi dati vengono trattati esclusivamente per leggere il tuo messaggio e risponderti. La base giuridica è il tuo consenso, prestato spuntando la casella nel modulo di contatto (art. 6, par. 1, lett. a, GDPR). Il conferimento dei dati è facoltativo, ma senza di essi non posso risponderti."
+      },
+      {
+        "heading": "Chi tratta i dati",
+        "body": "I messaggi di contatto vengono trasmessi e recapitati tramite Amazon Web Services (Amazon SES), che agisce come responsabile del trattamento. L'email è trattata all'interno dell'Unione Europea (Irlanda, regione eu-west-1). Nessun dato viene venduto o condiviso con terzi per finalità di marketing."
+      },
+      {
+        "heading": "Per quanto tempo li conservo",
+        "body": "Il tuo messaggio viene conservato solo come email per il tempo necessario a gestire la tua richiesta e l'eventuale corrispondenza successiva, dopodiché viene eliminato. Il sito non memorizza i messaggi di contatto in alcun database."
+      },
+      {
+        "heading": "I tuoi diritti",
+        "body": "In base al GDPR hai il diritto di:",
+        "items": [
+          "accedere ai tuoi dati personali e ottenerne una copia",
+          "chiedere la rettifica dei dati inesatti",
+          "chiedere la cancellazione dei tuoi dati",
+          "chiedere la limitazione del trattamento od opporti ad esso",
+          "richiedere la portabilità dei dati",
+          "revocare il consenso in qualsiasi momento",
+          "proporre reclamo al Garante per la protezione dei dati personali"
+        ]
+      },
+      {
+        "heading": "Cookie e archiviazione locale",
+        "body": "Questo sito non utilizza cookie di profilazione o di tracciamento di terze parti. Utilizza solo l'archiviazione locale tecnica strettamente necessaria al funzionamento del sito, come la memorizzazione della lingua preferita."
+      },
+      {
+        "heading": "Modifiche a questa policy",
+        "body": "Questa policy può essere aggiornata nel tempo. Eventuali modifiche saranno pubblicate in questa pagina con una data di \"ultimo aggiornamento\" rivista."
+      }
+    ]
   },
   "notFound": {
     "title": "404",
@@ -254,7 +303,8 @@
     }
   },
   "footer": {
-    "rights": "Tutti i diritti riservati."
+    "rights": "Tutti i diritti riservati.",
+    "privacy": "Privacy Policy"
   },
   "language": {
     "label": "Lingua",
