@@ -215,7 +215,10 @@
     "redirecting": "Reindirizzamento al login…",
     "forbiddenTitle": "Accesso negato",
     "forbiddenMessage": "Sei autenticato ma non hai i permessi di amministratore.",
-    "signOut": "Esci"
+    "signOut": "Esci",
+    "errorTitle": "Accesso non riuscito",
+    "errorMessage": "Si è verificato un problema durante l'accesso. Riprova.",
+    "retry": "Riprova"
   },
   "statuses": {
     "draft": "Bozza",

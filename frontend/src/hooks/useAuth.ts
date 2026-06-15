@@ -22,6 +22,7 @@ export interface AuthState {
   isLoading: boolean
   isAuthenticated: boolean
   isAdmin: boolean
+  error: Error | null
   userName: string | null
   signIn: () => void
   signOut: () => void
@@ -43,6 +44,7 @@ export const useAuth = (): AuthState => {
     isLoading: auth.isLoading,
     isAuthenticated: auth.isAuthenticated,
     isAdmin: groups.includes(ADMIN_GROUP),
+    error: auth.error ?? null,
     userName:
       (auth.user?.profile.email as string | undefined) ??
       auth.user?.profile.sub ??

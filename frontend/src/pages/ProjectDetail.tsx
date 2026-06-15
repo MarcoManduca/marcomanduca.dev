@@ -8,6 +8,7 @@ import { Spinner } from '@/components/ui/Spinner'
 import { Tag } from '@/components/ui/Tag'
 import { useLanguage } from '@/hooks/useLanguage'
 import { useGetProjectBySlugQuery } from '@/services/projectsApi'
+import { safeExternalUrl } from '@/utils/safeUrl'
 
 import { NotFound } from './NotFound'
 
@@ -19,6 +20,9 @@ export const ProjectDetail = () => {
 
   if (isLoading) return <Spinner />
   if (isError || !project) return <NotFound />
+
+  const githubUrl = safeExternalUrl(project.github_url)
+  const demoUrl = safeExternalUrl(project.demo_url)
 
   return (
     <article>
@@ -47,9 +51,9 @@ export const ProjectDetail = () => {
         ))}
       </div>
       <div className="mt-4 flex gap-4 text-sm">
-        {project.github_url && (
+        {githubUrl && (
           <a
-            href={project.github_url}
+            href={githubUrl}
             target="_blank"
             rel="noreferrer"
             className="text-accent hover:text-accent-hover"
@@ -57,9 +61,9 @@ export const ProjectDetail = () => {
             {t('projects.github')} ↗
           </a>
         )}
-        {project.demo_url && (
+        {demoUrl && (
           <a
-            href={project.demo_url}
+            href={demoUrl}
             target="_blank"
             rel="noreferrer"
             className="text-accent hover:text-accent-hover"

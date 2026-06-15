@@ -16,6 +16,7 @@ const authState = (overrides: Partial<AuthState>): AuthState => ({
   isLoading: false,
   isAuthenticated: false,
   isAdmin: false,
+  error: null,
   userName: null,
   signIn: vi.fn(),
   signOut: vi.fn(),
