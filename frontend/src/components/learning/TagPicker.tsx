@@ -58,7 +58,7 @@ export const TagPicker = ({ value, onChange }: TagPickerProps) => {
             className={cn(
               'rounded-full border px-3 py-1 text-sm transition-colors',
               value.includes(tag)
-                ? 'border-accent bg-accent text-white'
+                ? 'border-accent bg-accent text-background'
                 : 'border-edge text-body hover:border-accent hover:text-heading',
             )}
           >

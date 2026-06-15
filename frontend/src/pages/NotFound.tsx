@@ -15,7 +15,7 @@ export const NotFound = () => {
       <p className="text-muted">{t('notFound.message')}</p>
       <Link
         to="/"
-        className="rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-hover"
+        className="rounded-lg bg-warm px-5 py-2.5 text-sm font-medium text-background hover:bg-warm-hover"
       >
         {t('notFound.backHome')}
       </Link>
