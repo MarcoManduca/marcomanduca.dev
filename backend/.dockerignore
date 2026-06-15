@@ -1,0 +1,21 @@
+# Secrets — never ship into the build context
+.env
+.env.*
+!.env.example
+
+# Python caches and local artifacts
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# Tests and docs not needed at runtime
+tests/
+
+# OS
+.DS_Store

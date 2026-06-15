@@ -5,6 +5,12 @@ server {
     root /usr/share/nginx/html;
     index index.html;
 
+    # Baseline security headers (production parity; in the deployed stack the
+    # SPA is served by CloudFront, which applies the canonical policy).
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
     gzip on;
     gzip_types text/css application/javascript application/json image/svg+xml;
 
