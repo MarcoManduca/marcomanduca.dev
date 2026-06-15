@@ -57,7 +57,11 @@ export const Hero = () => {
         >
           <div
             aria-hidden
-            className="absolute -inset-3 rounded-[2.25rem] bg-accent/20 blur-2xl"
+            className="absolute -left-8 -top-8 h-60 w-60 rounded-[2.5rem] bg-accent/60 blur-2xl lg:h-64 lg:w-64"
+          />
+          <div
+            aria-hidden
+            className="absolute -bottom-8 -right-8 h-60 w-60 rounded-[2.5rem] bg-warm/55 blur-2xl lg:h-64 lg:w-64"
           />
           <img
             src={heroImage}
