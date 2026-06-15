@@ -24,6 +24,54 @@ data "aws_cloudfront_origin_request_policy" "all_viewer_except_host" {
   name = "Managed-AllViewerExceptHostHeader"
 }
 
+# Security headers applied to every SPA response at the edge. The SPA is
+# served from S3, so these cannot live in an origin web server — CloudFront
+# is the only place that sees every viewer response.
+resource "aws_cloudfront_response_headers_policy" "security" {
+  name = "${var.project_name}-security-headers"
+
+  security_headers_config {
+    content_type_options {
+      override = true
+    }
+
+    frame_options {
+      frame_option = "DENY"
+      override     = true
+    }
+
+    referrer_policy {
+      referrer_policy = "strict-origin-when-cross-origin"
+      override        = true
+    }
+
+    strict_transport_security {
+      access_control_max_age_sec = 63072000 # 2 years
+      include_subdomains         = true
+      preload                    = true
+      override                   = true
+    }
+
+    content_security_policy {
+      # Pragmatic policy: no inline scripts (Vite emits hashed bundles),
+      # inline styles allowed for KaTeX, images from S3/CloudFront over https,
+      # and cross-origin fetches (Cognito token exchange) over https.
+      content_security_policy = join("; ", [
+        "default-src 'self'",
+        "img-src 'self' data: https:",
+        "font-src 'self' data:",
+        "style-src 'self' 'unsafe-inline'",
+        "script-src 'self'",
+        "connect-src 'self' https:",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "frame-ancestors 'none'",
+      ])
+      override = true
+    }
+  }
+}
+
 resource "aws_cloudfront_origin_access_control" "frontend" {
   name                              = "${var.project_name}-frontend"
   description                       = "OAC for the private frontend bucket"
@@ -89,12 +137,13 @@ resource "aws_cloudfront_distribution" "this" {
   }
 
   default_cache_behavior {
-    target_origin_id       = "frontend-s3"
-    viewer_protocol_policy = "redirect-to-https"
-    allowed_methods        = ["GET", "HEAD"]
-    cached_methods         = ["GET", "HEAD"]
-    cache_policy_id        = data.aws_cloudfront_cache_policy.caching_optimized.id
-    compress               = true
+    target_origin_id           = "frontend-s3"
+    viewer_protocol_policy     = "redirect-to-https"
+    allowed_methods            = ["GET", "HEAD"]
+    cached_methods             = ["GET", "HEAD"]
+    cache_policy_id            = data.aws_cloudfront_cache_policy.caching_optimized.id
+    response_headers_policy_id = aws_cloudfront_response_headers_policy.security.id
+    compress                   = true
 
     function_association {
       event_type   = "viewer-request"

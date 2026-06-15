@@ -27,7 +27,9 @@ Design decisions:
   hostname `api-origin.marcomanduca.dev` (regional ACM certificate). The ALB
   additionally requires a secret `X-Origin-Verify` header that only
   CloudFront knows, and its security group only accepts CloudFront's
-  origin-facing IP ranges — the backend cannot be reached directly.
+  origin-facing IP ranges. The ALB is internet-facing (to pull from ECR
+  without a NAT gateway), so it is reachable at the TCP level from within
+  those ranges, but it answers 403 to any request missing the secret header.
 - **No NAT gateway.** Fargate tasks run in the default-VPC public subnets
   with a public IP (ingress locked to the ALB security group). A NAT gateway
   would cost more than the rest of the site combined.

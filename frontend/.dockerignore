@@ -1,0 +1,15 @@
+# Secrets — never ship into the build context
+.env
+.env.*
+!.env.example
+
+# Dependencies and build output (reinstalled/rebuilt inside the image)
+node_modules/
+dist/
+coverage/
+
+# Tooling caches
+.eslintcache
+
+# OS
+.DS_Store
