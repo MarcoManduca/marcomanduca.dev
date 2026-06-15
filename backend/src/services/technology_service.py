@@ -4,8 +4,10 @@ from typing import Any
 
 from src.models.technologies_table import TechnologiesTable
 from src.schemas.technology import TechnologyCreate
-from src.services.errors import ConflictError, NotFoundError
+from src.services.errors import ConflictError, InvalidInputError, NotFoundError
 from src.utils.slugify import slugify
+
+_EMPTY_SLUG_MESSAGE = "Name must contain at least one alphanumeric character."
 
 
 class TechnologyService:
@@ -29,7 +31,7 @@ class TechnologyService:
             Every technology item.
         """
         items = self._table.scan_all()
-        return sorted(items, key=lambda item: item["name"].lower())
+        return sorted(items, key=lambda item: str(item.get("name", "")).lower())
 
     def create_technology(self, payload: TechnologyCreate) -> dict[str, Any]:
         """Register a technology; the id derives from the name.
@@ -48,8 +50,12 @@ class TechnologyService:
         ------
         ConflictError
             When the derived id already exists.
+        InvalidInputError
+            When the name yields an empty id.
         """
         tech_id = slugify(payload.name)
+        if not tech_id:
+            raise InvalidInputError(_EMPTY_SLUG_MESSAGE)
         item = payload.model_dump(mode="json") | {"id": tech_id}
         if not self._table.put_if_absent(item):
             raise ConflictError(f"Technology '{tech_id}' already exists.")
