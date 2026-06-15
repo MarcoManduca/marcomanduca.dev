@@ -2,7 +2,7 @@ import type { ButtonHTMLAttributes, ReactNode } from 'react'
 
 import { cn } from '@/utils/cn'
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
+type ButtonVariant = 'primary' | 'cta' | 'secondary' | 'ghost' | 'danger'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant
@@ -10,7 +10,10 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
-  primary: 'bg-accent text-white hover:bg-accent-hover',
+  // Deep teal solid (readable with white text) brightening to cyan on hover.
+  primary: 'bg-accent-deep text-white hover:bg-accent',
+  // Warm accent for the primary conversion action; dark text for contrast.
+  cta: 'bg-warm text-background hover:bg-warm-hover',
   secondary:
     'border border-edge bg-surface text-heading hover:border-accent hover:text-accent-hover',
   ghost: 'text-body hover:bg-surface hover:text-heading',
