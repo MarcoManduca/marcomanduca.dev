@@ -215,7 +215,10 @@
     "redirecting": "Redirecting to login…",
     "forbiddenTitle": "Access denied",
     "forbiddenMessage": "You are signed in but you do not have administrator permissions.",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "errorTitle": "Sign-in failed",
+    "errorMessage": "Something went wrong while signing you in. Please try again.",
+    "retry": "Try again"
   },
   "statuses": {
     "draft": "Draft",

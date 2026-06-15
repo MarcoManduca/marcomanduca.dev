@@ -16,6 +16,7 @@ const authState = (overrides: Partial<AuthState>): AuthState => ({
   isLoading: false,
   isAuthenticated: false,
   isAdmin: false,
+  error: null,
   userName: null,
   signIn: vi.fn(),
   signOut: vi.fn(),
@@ -47,5 +48,19 @@ describe('AuthCallback', () => {
     renderCallback()
 
     expect(screen.getByText('Admin area')).toBeInTheDocument()
+  })
+
+  it('shows an error with a retry action instead of redirecting on failure', () => {
+    const signIn = vi.fn()
+    mockUseAuth.mockReturnValue(
+      authState({ error: new Error('exchange failed'), signIn }),
+    )
+
+    renderCallback()
+
+    expect(screen.queryByText('Admin area')).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /try again|riprova/i }),
+    ).toBeInTheDocument()
   })
 })
