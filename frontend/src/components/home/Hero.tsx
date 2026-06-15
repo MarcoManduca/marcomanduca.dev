@@ -28,7 +28,7 @@ export const Hero = () => {
           <h1 className="text-4xl font-bold text-heading sm:text-6xl">
             {t('home.heroName')}
           </h1>
-          <h2 className="text-xl font-medium text-accent-hover sm:text-2xl">
+          <h2 className="text-xl font-medium text-accent sm:text-2xl">
             {t('home.heroRole')}
           </h2>
           <p className="max-w-2xl text-body">{t('home.heroTagline')}</p>

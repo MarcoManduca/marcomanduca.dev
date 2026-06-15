@@ -32,7 +32,7 @@ export const AdminLayout = () => {
                   cn(
                     'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
                     isActive
-                      ? 'bg-raised text-accent-hover'
+                      ? 'bg-raised text-accent'
                       : 'text-body hover:text-heading',
                   )
                 }
