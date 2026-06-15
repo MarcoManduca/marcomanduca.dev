@@ -21,9 +21,10 @@ describe('ProjectDetail', () => {
       await screen.findByRole('heading', { level: 1, name: 'Data pipeline' }),
     ).toBeInTheDocument()
 
-    // Markdown content: "# Pipeline" heading and bold "AWS Lambda"
+    // Markdown content (code-split, loaded async): "# Pipeline" heading and
+    // bold "AWS Lambda".
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Pipeline' }),
+      await screen.findByRole('heading', { level: 1, name: 'Pipeline' }),
     ).toBeInTheDocument()
     expect(screen.getByText('AWS Lambda')).toBeInTheDocument()
 

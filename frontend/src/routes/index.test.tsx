@@ -15,6 +15,7 @@ const adminAuth: AuthState = {
   isLoading: false,
   isAuthenticated: true,
   isAdmin: true,
+  error: null,
   userName: 'admin@example.com',
   signIn: vi.fn(),
   signOut: vi.fn(),
@@ -37,12 +38,12 @@ describe('AppRoutes', () => {
     expect(screen.getByText('404')).toBeInTheDocument()
   })
 
-  it('renders the admin dashboard for an administrator', () => {
+  it('renders the admin dashboard for an administrator', async () => {
     mockUseAuth.mockReturnValue(adminAuth)
     renderWithProviders(<AppRoutes />, { route: '/admin' })
 
     expect(
-      screen.getByRole('navigation', { name: 'Admin' }),
+      await screen.findByRole('navigation', { name: 'Admin' }),
     ).toBeInTheDocument()
   })
 
