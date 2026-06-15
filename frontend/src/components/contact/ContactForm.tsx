@@ -92,6 +92,7 @@ export const ContactForm = () => {
       )}
       <Button
         type="submit"
+        variant="cta"
         disabled={isLoading || !consent}
         className="self-start"
       >
