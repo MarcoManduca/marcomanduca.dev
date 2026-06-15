@@ -18,7 +18,7 @@ export const ExperienceTimeline = ({ entries }: ExperienceTimelineProps) => (
         <span className="absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-full bg-highlight" />
         <p className="font-mono text-xs text-muted">{period}</p>
         <h3 className="mt-1 font-semibold text-heading">
-          {role} · <span className="text-accent-hover">{company}</span>
+          {role} · <span className="text-accent">{company}</span>
         </h3>
         {description && <p className="mt-1 text-sm">{description}</p>}
         {highlights.length > 0 && (

@@ -11,7 +11,7 @@ interface BadgeProps {
 }
 
 const TONE_CLASSES: Record<BadgeTone, string> = {
-  blue: 'bg-accent/15 text-accent-hover',
+  blue: 'bg-accent/15 text-accent',
   green: 'bg-emerald-500/15 text-emerald-400',
   gray: 'bg-slate-500/15 text-slate-400',
   amber: 'bg-highlight/15 text-highlight',
