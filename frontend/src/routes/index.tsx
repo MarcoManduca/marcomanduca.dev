@@ -1,12 +1,10 @@
+import { lazy, Suspense } from 'react'
+
 import { Route, Routes } from 'react-router-dom'
 
-import { AdminLayout } from '@/components/layout/AdminLayout'
 import { PublicLayout } from '@/components/layout/PublicLayout'
+import { Spinner } from '@/components/ui/Spinner'
 import { AboutMe } from '@/pages/AboutMe'
-import { AdminDashboard } from '@/pages/admin/AdminDashboard'
-import { AdminLearning } from '@/pages/admin/AdminLearning'
-import { AdminMedia } from '@/pages/admin/AdminMedia'
-import { AdminProjects } from '@/pages/admin/AdminProjects'
 import { Contacts } from '@/pages/Contacts'
 import { Home } from '@/pages/Home'
 import { Learning } from '@/pages/Learning'
@@ -18,6 +16,32 @@ import { Projects } from '@/pages/Projects'
 
 import { AuthCallback } from './AuthCallback'
 import { ProtectedRoute } from './ProtectedRoute'
+
+// The admin area (forms, pickers, media uploader) is only reached by the
+// owner, so it is code-split out of the public bundle and loaded on demand.
+const AdminLayout = lazy(() =>
+  import('@/components/layout/AdminLayout').then((m) => ({
+    default: m.AdminLayout,
+  })),
+)
+const AdminDashboard = lazy(() =>
+  import('@/pages/admin/AdminDashboard').then((m) => ({
+    default: m.AdminDashboard,
+  })),
+)
+const AdminProjects = lazy(() =>
+  import('@/pages/admin/AdminProjects').then((m) => ({
+    default: m.AdminProjects,
+  })),
+)
+const AdminLearning = lazy(() =>
+  import('@/pages/admin/AdminLearning').then((m) => ({
+    default: m.AdminLearning,
+  })),
+)
+const AdminMedia = lazy(() =>
+  import('@/pages/admin/AdminMedia').then((m) => ({ default: m.AdminMedia })),
+)
 
 export const AppRoutes = () => (
   <Routes>
@@ -34,7 +58,13 @@ export const AppRoutes = () => (
       <Route path="*" element={<NotFound />} />
     </Route>
     <Route element={<ProtectedRoute />}>
-      <Route element={<AdminLayout />}>
+      <Route
+        element={
+          <Suspense fallback={<Spinner className="min-h-screen" />}>
+            <AdminLayout />
+          </Suspense>
+        }
+      >
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/projects" element={<AdminProjects />} />
         <Route path="/admin/learning" element={<AdminLearning />} />
