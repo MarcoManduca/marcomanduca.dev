@@ -11,7 +11,12 @@ from fastapi.responses import JSONResponse
 
 from src.config import get_settings
 from src.routers import contact, health, learning, media, projects, technologies
-from src.services.errors import ConflictError, InvalidInputError, NotFoundError
+from src.services.errors import (
+    ConflictError,
+    EmailDeliveryError,
+    InvalidInputError,
+    NotFoundError,
+)
 
 API_PREFIX = "/api/v1"
 
@@ -33,9 +38,9 @@ def create_app() -> FastAPI:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origin_list,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_credentials=False,
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allow_headers=["Authorization", "Content-Type"],
     )
     _register_routers(app)
     _register_error_handlers(app)
@@ -75,6 +80,15 @@ def _register_error_handlers(app: FastAPI) -> None:
     ) -> JSONResponse:
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST, content={"detail": str(exc)}
+        )
+
+    @app.exception_handler(EmailDeliveryError)
+    async def handle_email_delivery(
+        request: Request, exc: EmailDeliveryError
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={"detail": str(exc)},
         )
 
 
