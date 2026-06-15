@@ -2,12 +2,13 @@
 
 from collections.abc import Callable
 from typing import Any
+from unittest.mock import MagicMock
 
 import pytest
 
 from src.models.learning_table import LearningTable
 from src.schemas.learning import ArticleCreate, ArticleUpdate, LearningCategory
-from src.services.errors import ConflictError, NotFoundError
+from src.services.errors import ConflictError, InvalidInputError, NotFoundError
 from src.services.learning_service import LearningService
 
 
@@ -43,6 +44,34 @@ def test_create_article_raises_conflict_on_duplicate_slug(
     # Act / Assert
     with pytest.raises(ConflictError):
         service.create_article(payload)
+
+
+def test_create_article_raises_invalid_input_on_empty_slug(
+    service: LearningService,
+    article_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange
+    overrides = article_payload_factory(title={"it": "中文", "en": "!!!"})
+    payload = ArticleCreate(**overrides)
+
+    # Act / Assert
+    with pytest.raises(InvalidInputError):
+        service.create_article(payload)
+
+
+def test_update_article_raises_conflict_when_version_is_contended(
+    article_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange: a table whose conditional write always loses the race.
+    table = MagicMock()
+    table.get_latest.return_value = {"version": 1, "created_at": "t"}
+    table.put_version_if_absent.return_value = False
+    service = LearningService(table)
+    update = ArticleUpdate(**article_payload_factory())
+
+    # Act / Assert
+    with pytest.raises(ConflictError):
+        service.update_article("demo-article", update)
 
 
 def test_update_article_writes_a_new_version(

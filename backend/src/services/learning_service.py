@@ -5,11 +5,13 @@ from typing import Any
 from src.models.learning_table import LearningTable
 from src.schemas.common import PublicationStatus
 from src.schemas.learning import ArticleCreate, ArticleUpdate, LearningCategory
-from src.services.errors import ConflictError, NotFoundError
+from src.services.errors import ConflictError, InvalidInputError, NotFoundError
 from src.services.timestamps import utc_now_iso
 from src.utils.slugify import slugify
 
 _FIRST_VERSION = 1
+_MAX_WRITE_RETRIES = 5
+_EMPTY_SLUG_MESSAGE = "Title must contain at least one alphanumeric character."
 
 
 class LearningService:
@@ -68,7 +70,7 @@ class LearningService:
             items = [item for item in items if item.get("category") == category.value]
         if tag:
             items = [item for item in items if tag in item.get("tags", [])]
-        return sorted(items, key=lambda item: item["updated_at"], reverse=True)
+        return sorted(items, key=lambda item: item.get("updated_at", ""), reverse=True)
 
     def get_article(
         self, slug: str, *, include_unpublished: bool = False
@@ -140,8 +142,12 @@ class LearningService:
         ------
         ConflictError
             When the derived slug already exists.
+        InvalidInputError
+            When the English title yields an empty slug.
         """
         slug = slugify(payload.title.en)
+        if not slug:
+            raise InvalidInputError(_EMPTY_SLUG_MESSAGE)
         now = utc_now_iso()
         item = payload.model_dump(mode="json") | {
             "slug": slug,
@@ -172,18 +178,22 @@ class LearningService:
         ------
         NotFoundError
             When the article does not exist.
+        ConflictError
+            When concurrent writers keep claiming the next version.
         """
-        latest = self._table.get_latest(slug)
-        if latest is None:
-            raise NotFoundError(f"Article '{slug}' not found.")
-        item = payload.model_dump(mode="json") | {
-            "slug": slug,
-            "version": latest["version"] + 1,
-            "created_at": latest["created_at"],
-            "updated_at": utc_now_iso(),
-        }
-        self._table.put_version(item)
-        return item
+        for _ in range(_MAX_WRITE_RETRIES):
+            latest = self._table.get_latest(slug)
+            if latest is None:
+                raise NotFoundError(f"Article '{slug}' not found.")
+            item = payload.model_dump(mode="json") | {
+                "slug": slug,
+                "version": latest["version"] + 1,
+                "created_at": latest["created_at"],
+                "updated_at": utc_now_iso(),
+            }
+            if self._table.put_version_if_absent(item):
+                return item
+        raise ConflictError(f"Article '{slug}' is being updated concurrently.")
 
     def rollback_article(self, slug: str, version: int) -> dict[str, Any]:
         """Restore an old version as a new latest version.
@@ -204,19 +214,23 @@ class LearningService:
         ------
         NotFoundError
             When the article or the requested version does not exist.
+        ConflictError
+            When concurrent writers keep claiming the next version.
         """
         target = self._table.get_version(slug, version)
         if target is None:
             raise NotFoundError(f"Version {version} of article '{slug}' not found.")
-        latest = self._table.get_latest(slug)
-        if latest is None:
-            raise NotFoundError(f"Article '{slug}' not found.")
-        item = dict(target) | {
-            "version": latest["version"] + 1,
-            "updated_at": utc_now_iso(),
-        }
-        self._table.put_version(item)
-        return item
+        for _ in range(_MAX_WRITE_RETRIES):
+            latest = self._table.get_latest(slug)
+            if latest is None:
+                raise NotFoundError(f"Article '{slug}' not found.")
+            item = dict(target) | {
+                "version": latest["version"] + 1,
+                "updated_at": utc_now_iso(),
+            }
+            if self._table.put_version_if_absent(item):
+                return item
+        raise ConflictError(f"Article '{slug}' is being updated concurrently.")
 
     def delete_article(self, slug: str) -> None:
         """Delete every version of an article.

@@ -5,9 +5,11 @@ from typing import Any
 from src.models.projects_table import ProjectsTable
 from src.schemas.common import PublicationStatus
 from src.schemas.project import ProjectCreate, ProjectUpdate
-from src.services.errors import ConflictError, NotFoundError
+from src.services.errors import ConflictError, InvalidInputError, NotFoundError
 from src.services.timestamps import utc_now_iso
 from src.utils.slugify import slugify
+
+_EMPTY_SLUG_MESSAGE = "Title must contain at least one alphanumeric character."
 
 
 class ProjectService:
@@ -65,7 +67,7 @@ class ProjectService:
             ]
         if search:
             items = [item for item in items if _matches_search(item, search)]
-        return sorted(items, key=lambda item: item["created_at"], reverse=True)
+        return sorted(items, key=lambda item: item.get("created_at", ""), reverse=True)
 
     def get_project(
         self, slug: str, *, include_unpublished: bool = False
@@ -114,8 +116,12 @@ class ProjectService:
         ------
         ConflictError
             When the derived slug already exists.
+        InvalidInputError
+            When the English title yields an empty slug.
         """
         slug = slugify(payload.title.en)
+        if not slug:
+            raise InvalidInputError(_EMPTY_SLUG_MESSAGE)
         now = utc_now_iso()
         item = payload.model_dump(mode="json") | {
             "slug": slug,

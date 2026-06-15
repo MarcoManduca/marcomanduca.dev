@@ -4,7 +4,7 @@ import pytest
 
 from src.models.technologies_table import TechnologiesTable
 from src.schemas.technology import TechnologyCreate
-from src.services.errors import ConflictError, NotFoundError
+from src.services.errors import ConflictError, InvalidInputError, NotFoundError
 from src.services.technology_service import TechnologyService
 
 
@@ -37,6 +37,17 @@ def test_create_technology_raises_conflict_on_duplicate_id(
 
     # Act / Assert
     with pytest.raises(ConflictError):
+        service.create_technology(payload)
+
+
+def test_create_technology_raises_invalid_input_on_empty_id(
+    service: TechnologyService,
+) -> None:
+    # Arrange
+    payload = TechnologyCreate(name="!!!", icon="x.svg", category="backend")
+
+    # Act / Assert
+    with pytest.raises(InvalidInputError):
         service.create_technology(payload)
 
 

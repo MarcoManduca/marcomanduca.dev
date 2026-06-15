@@ -7,7 +7,7 @@ import pytest
 
 from src.models.projects_table import ProjectsTable
 from src.schemas.project import ProjectCreate, ProjectUpdate
-from src.services.errors import ConflictError, NotFoundError
+from src.services.errors import ConflictError, InvalidInputError, NotFoundError
 from src.services.project_service import ProjectService
 
 
@@ -43,6 +43,36 @@ def test_create_project_raises_conflict_on_duplicate_slug(
     # Act / Assert
     with pytest.raises(ConflictError):
         service.create_project(payload)
+
+
+def test_create_project_raises_invalid_input_on_empty_slug(
+    service: ProjectService,
+    project_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange
+    overrides = project_payload_factory(title={"it": "中文", "en": "!!!"})
+    payload = ProjectCreate(**overrides)
+
+    # Act / Assert
+    with pytest.raises(InvalidInputError):
+        service.create_project(payload)
+
+
+def test_list_projects_tolerates_items_without_created_at(
+    service: ProjectService,
+    project_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange: a legacy item stored without a created_at timestamp.
+    service.create_project(ProjectCreate(**project_payload_factory()))
+    service._table.put(
+        {"slug": "legacy", "status": "published", "title": {"it": "L", "en": "L"}}
+    )
+
+    # Act
+    items = service.list_projects(include_unpublished=True)
+
+    # Assert
+    assert {item["slug"] for item in items} == {"demo-project", "legacy"}
 
 
 def test_get_project_returns_stored_item(
