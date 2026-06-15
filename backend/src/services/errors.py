@@ -11,3 +11,7 @@ class ConflictError(Exception):
 
 class InvalidInputError(Exception):
     """Raised when a semantically invalid value is supplied (HTTP 400)."""
+
+
+class EmailDeliveryError(Exception):
+    """Raised when an outbound email cannot be delivered (HTTP 503)."""

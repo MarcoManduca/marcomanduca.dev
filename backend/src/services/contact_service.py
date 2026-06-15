@@ -1,9 +1,15 @@
 """Contact form email delivery via AWS SES."""
 
+import logging
+
 import boto3
+from botocore.exceptions import BotoCoreError, ClientError
 
 from src.config import get_settings
 from src.schemas.contact import ContactRequest
+from src.services.errors import EmailDeliveryError
+
+logger = logging.getLogger(__name__)
 
 
 class ContactService:
@@ -25,6 +31,11 @@ class ContactService:
         ----------
         payload : ContactRequest
             Validated, non-spam contact submission.
+
+        Raises
+        ------
+        EmailDeliveryError
+            When SES rejects or fails to accept the message.
         """
         body = (
             f"New contact message from marcomanduca.dev\n\n"
@@ -32,15 +43,20 @@ class ContactService:
             f"Email: {payload.email}\n\n"
             f"{payload.message}\n"
         )
-        self._client.send_email(
-            Source=self._sender,
-            Destination={"ToAddresses": [self._recipient]},
-            ReplyToAddresses=[payload.email],
-            Message={
-                "Subject": {"Data": f"[Portfolio] Message from {payload.name}"},
-                "Body": {"Text": {"Data": body}},
-            },
-        )
+        try:
+            self._client.send_email(
+                Source=self._sender,
+                Destination={"ToAddresses": [self._recipient]},
+                ReplyToAddresses=[payload.email],
+                Message={
+                    "Subject": {"Data": f"[Portfolio] Message from {payload.name}"},
+                    "Body": {"Text": {"Data": body}},
+                },
+            )
+        except (ClientError, BotoCoreError) as exc:
+            logger.error("ses_send_failed", extra={"error_type": type(exc).__name__})
+            message = "Unable to deliver the message right now."
+            raise EmailDeliveryError(message) from exc
 
 
 def get_contact_service() -> ContactService:
