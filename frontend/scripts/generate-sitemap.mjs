@@ -19,7 +19,6 @@ const STATIC_ROUTES = [
   { path: '/projects', priority: '0.9' },
   { path: '/learning', priority: '0.9' },
   { path: '/contacts', priority: '0.6' },
-  { path: '/cv', priority: '0.7' },
 ]
 
 const today = new Date().toISOString().split('T')[0]
