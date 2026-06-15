@@ -8,10 +8,9 @@ sort key; the latest version is resolved by querying with
 from typing import Any
 
 from boto3.dynamodb.conditions import Key
-from botocore.exceptions import ClientError
 
 from src.config import get_settings
-from src.models.base import get_dynamodb_resource, to_native
+from src.models.base import get_dynamodb_resource, put_if_absent, scan_all, to_native
 
 
 class LearningTable:
@@ -21,18 +20,13 @@ class LearningTable:
         settings = get_settings()
         self._table = get_dynamodb_resource().Table(settings.learning_table_name)
 
-    def put_version(self, item: dict[str, Any]) -> None:
-        """Write an article version item.
-
-        Parameters
-        ----------
-        item : dict[str, Any]
-            Full article item with ``slug`` and ``version`` keys.
-        """
-        self._table.put_item(Item=item)
-
     def put_version_if_absent(self, item: dict[str, Any]) -> bool:
         """Write a version only if the (slug, version) pair is free.
+
+        The conditional write is the concurrency guard for both the
+        first version and every subsequent one: two writers that compute
+        the same next ``version`` cannot both succeed, preventing lost
+        updates.
 
         Parameters
         ----------
@@ -44,16 +38,7 @@ class LearningTable:
         bool
             ``True`` on success, ``False`` when the item already exists.
         """
-        try:
-            self._table.put_item(
-                Item=item,
-                ConditionExpression="attribute_not_exists(slug)",
-            )
-        except ClientError as exc:
-            if exc.response["Error"]["Code"] == "ConditionalCheckFailedException":
-                return False
-            raise
-        return True
+        return put_if_absent(self._table, item, "slug")
 
     def get_latest(self, slug: str) -> dict[str, Any] | None:
         """Fetch the highest-version item for a slug.
@@ -141,13 +126,4 @@ class LearningTable:
         list[dict[str, Any]]
             All items in the table.
         """
-        items: list[dict[str, Any]] = []
-        kwargs: dict[str, Any] = {}
-        while True:
-            response = self._table.scan(**kwargs)
-            items.extend(response.get("Items", []))
-            last_key = response.get("LastEvaluatedKey")
-            if not last_key:
-                break
-            kwargs["ExclusiveStartKey"] = last_key
-        return [to_native(item) for item in items]
+        return scan_all(self._table)

@@ -4,6 +4,7 @@ from decimal import Decimal
 from typing import Any
 
 import boto3
+from botocore.exceptions import ClientError
 
 from src.config import get_settings
 
@@ -68,3 +69,57 @@ def to_dynamodb(value: Any) -> Any:
     if isinstance(value, float):
         return Decimal(str(value))
     return value
+
+
+def scan_all(table: Any) -> list[dict[str, Any]]:
+    """Return every item in a table, following pagination.
+
+    Parameters
+    ----------
+    table : Any
+        A boto3 DynamoDB ``Table`` resource.
+
+    Returns
+    -------
+    list[dict[str, Any]]
+        All items, with numeric types converted to native Python.
+    """
+    items: list[dict[str, Any]] = []
+    kwargs: dict[str, Any] = {}
+    while True:
+        response = table.scan(**kwargs)
+        items.extend(response.get("Items", []))
+        last_key = response.get("LastEvaluatedKey")
+        if not last_key:
+            break
+        kwargs["ExclusiveStartKey"] = last_key
+    return [to_native(item) for item in items]
+
+
+def put_if_absent(table: Any, item: dict[str, Any], key_name: str) -> bool:
+    """Write an item only when its key attribute is not already present.
+
+    Parameters
+    ----------
+    table : Any
+        A boto3 DynamoDB ``Table`` resource.
+    item : dict[str, Any]
+        Full item to store.
+    key_name : str
+        Name of the key attribute guarded by the conditional write.
+
+    Returns
+    -------
+    bool
+        ``True`` on success, ``False`` when the item already exists.
+    """
+    try:
+        table.put_item(
+            Item=item,
+            ConditionExpression=f"attribute_not_exists({key_name})",
+        )
+    except ClientError as exc:
+        if exc.response["Error"]["Code"] == "ConditionalCheckFailedException":
+            return False
+        raise
+    return True

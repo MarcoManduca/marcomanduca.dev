@@ -2,10 +2,8 @@
 
 from typing import Any
 
-from botocore.exceptions import ClientError
-
 from src.config import get_settings
-from src.models.base import get_dynamodb_resource, to_native
+from src.models.base import get_dynamodb_resource, put_if_absent, scan_all, to_native
 
 
 class TechnologiesTable:
@@ -28,16 +26,7 @@ class TechnologiesTable:
         bool
             ``True`` on success, ``False`` when the id already exists.
         """
-        try:
-            self._table.put_item(
-                Item=item,
-                ConditionExpression="attribute_not_exists(id)",
-            )
-        except ClientError as exc:
-            if exc.response["Error"]["Code"] == "ConditionalCheckFailedException":
-                return False
-            raise
-        return True
+        return put_if_absent(self._table, item, "id")
 
     def get(self, tech_id: str) -> dict[str, Any] | None:
         """Fetch a technology by id.
@@ -74,13 +63,4 @@ class TechnologiesTable:
         list[dict[str, Any]]
             All items in the table.
         """
-        items: list[dict[str, Any]] = []
-        kwargs: dict[str, Any] = {}
-        while True:
-            response = self._table.scan(**kwargs)
-            items.extend(response.get("Items", []))
-            last_key = response.get("LastEvaluatedKey")
-            if not last_key:
-                break
-            kwargs["ExclusiveStartKey"] = last_key
-        return [to_native(item) for item in items]
+        return scan_all(self._table)
