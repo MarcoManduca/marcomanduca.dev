@@ -39,7 +39,7 @@ export const Hero = () => {
                 to={to}
                 className={
                   primary
-                    ? 'rounded-lg bg-accent px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-hover'
+                    ? 'rounded-lg bg-highlight px-5 py-2.5 text-sm font-medium text-background transition-colors hover:bg-highlight/85'
                     : 'rounded-lg border border-edge px-5 py-2.5 text-sm font-medium text-heading transition-colors hover:border-accent hover:text-accent-hover'
                 }
               >

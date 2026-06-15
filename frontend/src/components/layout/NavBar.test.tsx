@@ -26,7 +26,7 @@ describe('NavBar', () => {
     renderWithProviders(<NavBar />, { route: '/projects' })
 
     expect(screen.getByRole('link', { name: 'Projects' })).toHaveClass(
-      'text-accent-hover',
+      'bg-highlight/80',
     )
   })
 })
