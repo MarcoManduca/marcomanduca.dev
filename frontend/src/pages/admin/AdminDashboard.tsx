@@ -26,7 +26,7 @@ export const AdminDashboard = () => {
         {counts.map(({ key, value }) => (
           <Card key={key}>
             <p className="text-sm text-muted">{t(key)}</p>
-            <p className="mt-2 font-mono text-3xl font-bold text-accent-hover">
+            <p className="mt-2 font-mono text-3xl font-bold text-accent">
               {value ?? '—'}
             </p>
           </Card>

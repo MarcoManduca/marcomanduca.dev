@@ -1,21 +1,32 @@
 /** @type {import('tailwindcss').Config} */
+
+// Brand palette (dark theme):
+//   #03728B blu pastello   #03A9C1 azzurro pastello   #F4DF6D giallo pastello
+//   #F38C30 arancione       #F4F0F0 bianco tortora
+// Neutrals (background/surface/raised/edge/muted) are derived, tinted toward
+// teal for cohesion. `warm` is the CTA accent, `highlight` is for badges/tags.
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {
       colors: {
-        background: '#0B1120',
-        surface: '#111A2E',
-        raised: '#16213B',
-        edge: '#1E2A45',
+        background: '#052730',
+        surface: '#07323D',
+        raised: '#0A3F4C',
+        edge: '#14515F',
         accent: {
-          DEFAULT: '#3B82F6',
-          hover: '#60A5FA',
-          deep: '#1D4ED8',
+          DEFAULT: '#03A9C1', // bright cyan: reads well on dark backgrounds
+          hover: '#2FC3D6',
+          deep: '#03728B',
         },
-        body: '#CBD5E1',
-        heading: '#F1F5F9',
-        muted: '#64748B',
+        warm: {
+          DEFAULT: '#F38C30',
+          hover: '#F7A455',
+        },
+        highlight: '#F4DF6D',
+        body: '#D6E2E5',
+        heading: '#F4F0F0',
+        muted: '#6E8A92',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

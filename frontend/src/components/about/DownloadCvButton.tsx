@@ -17,12 +17,7 @@ export const DownloadCvButton = () => {
   }
 
   return (
-    <Button
-      type="button"
-      variant="secondary"
-      onClick={handleDownload}
-      disabled={isFetching}
-    >
+    <Button type="button" onClick={handleDownload} disabled={isFetching}>
       {t('about.downloadCv')}
     </Button>
   )
