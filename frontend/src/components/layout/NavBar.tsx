@@ -44,7 +44,7 @@ export const NavBar = ({
               'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
               vertical && 'w-full',
               isActive
-                ? 'bg-surface text-accent-hover'
+                ? 'bg-highlight/80 text-background'
                 : 'text-body hover:text-heading',
             )
           }
