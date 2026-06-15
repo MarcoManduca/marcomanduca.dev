@@ -27,6 +27,9 @@ node_modules/
 dist/
 coverage/
 
+# Local-only design assets (logo versions, not built/deployed)
+frontend/design/
+
 # Terraform
 .terraform/
 *.tfstate
