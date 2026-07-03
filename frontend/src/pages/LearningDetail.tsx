@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom'
 import { MarkdownRenderer } from '@/components/markdown/MarkdownRenderer'
 import { Seo } from '@/components/seo/Seo'
 import { Badge } from '@/components/ui/Badge'
+import { Prose } from '@/components/ui/Prose'
 import { Spinner } from '@/components/ui/Spinner'
 import { Tag } from '@/components/ui/Tag'
 import { useLanguage } from '@/hooks/useLanguage'
@@ -52,9 +53,9 @@ export const LearningDetail = () => {
           <Tag key={tag} label={tag} />
         ))}
       </div>
-      <div className="mt-8">
+      <Prose className="mt-8">
         <MarkdownRenderer content={localize(article.content_markdown)} />
-      </div>
+      </Prose>
     </article>
   )
 }

@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 
 import { Seo } from '@/components/seo/Seo'
+import { Prose } from '@/components/ui/Prose'
 
 interface PrivacySection {
   heading: string
@@ -21,10 +22,10 @@ export const PrivacyPolicy = () => {
       <p className="mt-2 text-muted">{t('privacy.subtitle')}</p>
       <p className="mt-1 text-xs text-muted">{t('privacy.lastUpdated')}</p>
 
-      <div className="mt-8 max-w-3xl space-y-8">
+      <Prose className="mt-8 space-y-8">
         {sections.map((section) => (
           <section key={section.heading}>
-            <h2 className="text-xl font-semibold text-heading">
+            <h2 className="text-left text-xl font-semibold text-heading">
               {section.heading}
             </h2>
             <p className="mt-2 leading-relaxed text-body">{section.body}</p>
@@ -37,7 +38,7 @@ export const PrivacyPolicy = () => {
             )}
           </section>
         ))}
-      </div>
+      </Prose>
     </>
   )
 }
