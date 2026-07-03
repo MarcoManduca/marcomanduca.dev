@@ -45,7 +45,6 @@ export const ProjectDetail = () => {
         </h1>
         <Badge>{t(`projectCategories.${project.category}`)}</Badge>
       </div>
-      <p className="mt-3 text-muted">{localize(project.description)}</p>
       <div className="mt-4 flex flex-wrap gap-1.5">
         {project.technologies.map((tech) => (
           <Tag key={tech} label={tech} />
