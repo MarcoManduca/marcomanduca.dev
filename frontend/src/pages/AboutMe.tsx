@@ -11,6 +11,7 @@ import {
 } from '@/components/about/ExperienceTimeline'
 import { Seo } from '@/components/seo/Seo'
 import { Card } from '@/components/ui/Card'
+import { Prose } from '@/components/ui/Prose'
 import { Tag } from '@/components/ui/Tag'
 
 const SKILL_GROUPS = [
@@ -36,7 +37,9 @@ export const AboutMe = () => {
       <Seo description={t('about.subtitle')} />
       <h1 className="text-3xl font-bold text-heading">{t('about.title')}</h1>
       <p className="mt-2 text-muted">{t('about.subtitle')}</p>
-      <p className="mt-6 max-w-3xl leading-relaxed">{t('about.bio')}</p>
+      <Prose className="mt-6 leading-relaxed">
+        <p>{t('about.bio')}</p>
+      </Prose>
 
       <div className="mt-6">
         <DownloadCvButton />
@@ -45,12 +48,16 @@ export const AboutMe = () => {
       <h2 className="mt-12 text-2xl font-semibold text-heading">
         {t('about.experienceTitle')}
       </h2>
-      <ExperienceTimeline entries={experience} />
+      <Prose>
+        <ExperienceTimeline entries={experience} />
+      </Prose>
 
       <h2 className="mt-8 text-2xl font-semibold text-heading">
         {t('about.educationTitle')}
       </h2>
-      <EducationTimeline entries={education} />
+      <Prose>
+        <EducationTimeline entries={education} />
+      </Prose>
 
       <h2 className="mt-8 text-2xl font-semibold text-heading">
         {t('about.skillsTitle')}

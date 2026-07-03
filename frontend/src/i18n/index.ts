@@ -25,4 +25,13 @@ void i18n
     },
   })
 
+// Keep <html lang> in sync so CSS auto-hyphenation uses the right dictionary
+// (and for accessibility / SEO).
+const syncHtmlLang = (lng: string) => {
+  document.documentElement.lang = lng.startsWith('it') ? 'it' : 'en'
+}
+
+syncHtmlLang(i18n.language)
+i18n.on('languageChanged', syncHtmlLang)
+
 export default i18n

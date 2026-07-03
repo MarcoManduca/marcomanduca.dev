@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom'
 import { MarkdownRenderer } from '@/components/markdown/MarkdownRenderer'
 import { Seo } from '@/components/seo/Seo'
 import { Badge } from '@/components/ui/Badge'
+import { Prose } from '@/components/ui/Prose'
 import { Spinner } from '@/components/ui/Spinner'
 import { Tag } from '@/components/ui/Tag'
 import { useLanguage } from '@/hooks/useLanguage'
@@ -72,9 +73,9 @@ export const ProjectDetail = () => {
           </a>
         )}
       </div>
-      <div className="mt-8">
+      <Prose className="mt-8">
         <MarkdownRenderer content={localize(project.content_markdown)} />
-      </div>
+      </Prose>
       {project.images.length > 0 && (
         <section className="mt-10">
           <h2 className="mb-4 text-xl font-semibold text-heading">
