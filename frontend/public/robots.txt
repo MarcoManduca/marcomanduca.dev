@@ -1,5 +1,4 @@
-# AI crawlers, scrapers and on-demand fetchers — opt out of training and
-# scraping. Advisory only: reputable AI bots honor this, spoofers ignore it.
+# AI crawlers, scrapers and on-demand fetchers — opt out of training and scraping.
 User-agent: GPTBot
 User-agent: OAI-SearchBot
 User-agent: ChatGPT-User
@@ -26,7 +25,7 @@ User-agent: Timpibot
 User-agent: DuckAssistBot
 Disallow: /
 
-# Everyone else (search engines) — full access except the admin area.
+# Everyone else (search engines) have full access except the admin area.
 User-agent: *
 Allow: /
 Disallow: /admin
