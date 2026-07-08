@@ -33,13 +33,12 @@ variable "frontend_bucket_regional_domain" {
   type        = string
 }
 
-variable "api_origin_domain" {
-  description = "Hostname of the ALB origin for /api/* (e.g. api-origin.marcomanduca.dev)."
+variable "backend_function_url_host" {
+  description = "Hostname of the backend Lambda Function URL (origin for /api/*)."
   type        = string
 }
 
-variable "origin_verify_secret_value" {
-  description = "Shared secret sent to the ALB in the X-Origin-Verify header."
+variable "backend_function_name" {
+  description = "Backend Lambda function name (for the CloudFront invoke permission)."
   type        = string
-  sensitive   = true
 }
