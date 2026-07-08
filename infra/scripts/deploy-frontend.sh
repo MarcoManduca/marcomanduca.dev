@@ -2,7 +2,8 @@
 #
 # Build the SPA and deploy it to S3 + CloudFront.
 #
-# Steps: npm ci -> npm run build -> aws s3 sync -> CloudFront invalidation.
+# Steps: npm ci -> npm run build -> aws s3 sync (assets) -> upload index.html
+#        with no-cache -> CloudFront invalidation.
 #
 # Configuration (override via environment, values come from terraform output):
 #   FRONTEND_BUCKET    terraform output -raw frontend_bucket_name
@@ -28,11 +29,24 @@ cd "${FRONTEND_DIR}"
 npm ci
 npm run build
 
-echo "Syncing dist/ to s3://${FRONTEND_BUCKET}..."
+echo "Syncing assets to s3://${FRONTEND_BUCKET}..."
 # --delete removes assets from previous deploys (S3 versioning keeps a copy).
+# index.html is handled separately below so it can carry a different header;
+# assets are content-hashed, so their default (heuristic) caching is safe.
 aws s3 sync dist/ "s3://${FRONTEND_BUCKET}/" \
   --region "${AWS_REGION}" \
-  --delete
+  --delete \
+  --exclude index.html
+
+# The SPA entrypoint must never be cached by the browser: no-cache forces a
+# revalidation on every load, so a new deploy (with new hashed asset names) is
+# picked up immediately instead of serving a stale index that points at
+# deleted assets.
+echo "Uploading index.html with Cache-Control: no-cache..."
+aws s3 cp dist/index.html "s3://${FRONTEND_BUCKET}/index.html" \
+  --region "${AWS_REGION}" \
+  --cache-control "no-cache" \
+  --content-type "text/html"
 
 echo "Invalidating CloudFront cache..."
 aws cloudfront create-invalidation \
