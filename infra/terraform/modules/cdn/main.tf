@@ -1,7 +1,7 @@
 # CloudFront distribution serving the whole site:
 #
 #   default behavior : SPA assets from the private frontend bucket (OAC)
-#   /api/*           : FastAPI on the Lambda Function URL (secret header)
+#   /api/*           : FastAPI via the API Gateway HTTP API (secret header)
 #
 # Extras:
 #   - 403/404 from S3 are rewritten to /index.html so client-side routing
@@ -120,7 +120,7 @@ resource "aws_cloudfront_distribution" "this" {
 
   origin {
     origin_id   = "backend-lambda"
-    domain_name = var.backend_function_url_host
+    domain_name = var.backend_origin_host
 
     custom_origin_config {
       http_port              = 80

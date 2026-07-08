@@ -100,7 +100,7 @@ module "cdn" {
   frontend_bucket_arn             = module.storage.frontend_bucket_arn
   frontend_bucket_regional_domain = module.storage.frontend_bucket_regional_domain
 
-  # /api/* origin: the backend Lambda Function URL, guarded by a secret header.
-  backend_function_url_host  = module.backend.function_url_host
+  # /api/* origin: the backend API Gateway HTTP API, guarded by a secret header.
+  backend_origin_host        = module.backend.api_origin_host
   origin_verify_secret_value = module.backend.origin_verify_secret_value
 }

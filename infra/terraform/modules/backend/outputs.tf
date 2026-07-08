@@ -8,9 +8,9 @@ output "function_name" {
   value       = aws_lambda_function.backend.function_name
 }
 
-output "function_url_host" {
-  description = "Hostname of the Lambda Function URL, used as the CloudFront /api/* origin."
-  value       = trimsuffix(trimprefix(aws_lambda_function_url.backend.function_url, "https://"), "/")
+output "api_origin_host" {
+  description = "Hostname of the API Gateway HTTP API, used as the CloudFront /api/* origin."
+  value       = trimprefix(aws_apigatewayv2_api.backend.api_endpoint, "https://")
 }
 
 output "origin_verify_secret_value" {

@@ -1,27 +1,32 @@
-# Backend runtime: the FastAPI container running on AWS Lambda.
+# Backend runtime: the FastAPI container running on AWS Lambda, fronted by an
+# API Gateway HTTP API.
 #
 # Traffic path:
-#   CloudFront /api/*  ──(OAC, sigv4)──>  Lambda Function URL  ──>  handler
+#   CloudFront /api/*  ──HTTPS──>  API Gateway HTTP API  ──proxy──>  Lambda
 #
 # Why Lambda instead of ECS Fargate + ALB:
-#   - Scale-to-zero, pay-per-request. At personal-site traffic the compute
-#     falls inside the perpetual Lambda free tier (~$0), versus an always-on
+#   - Scale-to-zero, pay-per-request. At personal-site traffic both the Lambda
+#     and the HTTP API fall inside their free tiers (~$0), versus an always-on
 #     Fargate task + ALB + public IPv4 addresses (~$35/month combined).
 #   - The same image runs unchanged: the AWS Lambda Web Adapter (baked into
 #     the image, see backend/Dockerfile) bridges the Lambda runtime to the
 #     Uvicorn server, so there is no ALB, no VPC, no NAT and no public IP.
 #
+# Why API Gateway rather than a Lambda Function URL:
+#   - This account blocks public (AuthType NONE) Function URLs, and an IAM-auth
+#     Function URL behind CloudFront OAC would sigv4-sign the Authorization
+#     header and clobber the Cognito Bearer token admin routes rely on. An HTTP
+#     API forwards Authorization untouched and needs no public Function URL.
+#
 # Security model:
-#   - The Function URL is public (AuthType NONE) but CloudFront injects a
-#     secret X-Origin-Verify header that the app checks (see
-#     backend/src/utils/origin_verify.py); direct hits without the header get a
-#     403. IAM auth is deliberately NOT used: it would sign the Authorization
-#     header via sigv4 and clobber the Cognito Bearer token that admin routes
-#     rely on. Rotating the secret is a plain apply after tainting:
+#   - The HTTP API is public, but CloudFront injects a secret X-Origin-Verify
+#     header that the app checks (backend/src/utils/origin_verify.py); direct
+#     hits on the execute-api endpoint without the header get a 403. Rotate the
+#     secret with:
 #     terraform apply -replace=module.backend.random_password.origin_verify
 #
 # Files in this module:
-#   main.tf   — Lambda function, Function URL, origin-verify secret, log group
+#   main.tf   — Lambda function, HTTP API, origin-verify secret, log group
 #   ecr.tf    — container registry
 #   iam.tf    — Lambda execution role (least-privilege)
 #
@@ -69,16 +74,39 @@ resource "aws_lambda_function" "backend" {
   depends_on = [aws_iam_role_policy_attachment.logs]
 }
 
-resource "aws_lambda_function_url" "backend" {
-  function_name      = aws_lambda_function.backend.function_name
-  authorization_type = "NONE"
+# --- API Gateway HTTP API: the public entry point CloudFront forwards to -----
+
+resource "aws_apigatewayv2_api" "backend" {
+  name          = "${var.project_name}-backend"
+  protocol_type = "HTTP"
 }
 
-# AuthType NONE requires an explicit public-invoke permission.
-resource "aws_lambda_permission" "public_url" {
-  statement_id           = "AllowPublicFunctionUrl"
-  action                 = "lambda:InvokeFunctionUrl"
-  function_name          = aws_lambda_function.backend.function_name
-  principal              = "*"
-  function_url_auth_type = "NONE"
+# AWS_PROXY: pass the raw request to Lambda (LWA turns it back into HTTP).
+resource "aws_apigatewayv2_integration" "backend" {
+  api_id                 = aws_apigatewayv2_api.backend.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.backend.invoke_arn
+  payload_format_version = "2.0"
+}
+
+# Catch-all: every method and path goes to the single FastAPI handler.
+resource "aws_apigatewayv2_route" "backend" {
+  api_id    = aws_apigatewayv2_api.backend.id
+  route_key = "$default"
+  target    = "integrations/${aws_apigatewayv2_integration.backend.id}"
+}
+
+# Default stage, auto-deployed, no path prefix (paths reach the app verbatim).
+resource "aws_apigatewayv2_stage" "backend" {
+  api_id      = aws_apigatewayv2_api.backend.id
+  name        = "$default"
+  auto_deploy = true
+}
+
+resource "aws_lambda_permission" "apigw" {
+  statement_id  = "AllowApiGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.backend.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.backend.execution_arn}/*/*"
 }

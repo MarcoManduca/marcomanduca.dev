@@ -33,8 +33,8 @@ variable "frontend_bucket_regional_domain" {
   type        = string
 }
 
-variable "backend_function_url_host" {
-  description = "Hostname of the backend Lambda Function URL (origin for /api/*)."
+variable "backend_origin_host" {
+  description = "Hostname of the backend API Gateway HTTP API (origin for /api/*)."
   type        = string
 }
 
