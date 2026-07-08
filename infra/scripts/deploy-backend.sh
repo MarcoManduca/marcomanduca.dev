@@ -32,8 +32,12 @@ aws ecr get-login-password --region "${AWS_REGION}" \
   | docker login --username AWS --password-stdin "${ECR_REGISTRY}"
 
 echo "Building image (linux/arm64 for Lambda Graviton)..."
+# --provenance/--sbom false: Lambda rejects the OCI image index + attestation
+# manifest buildx emits by default; it needs a single-platform image manifest.
 docker build \
   --platform linux/arm64 \
+  --provenance=false \
+  --sbom=false \
   --tag "${ECR_REPOSITORY_URL}:${GIT_SHA}" \
   --tag "${ECR_REPOSITORY_URL}:latest" \
   "${REPO_ROOT}/backend"
