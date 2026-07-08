@@ -1,17 +1,24 @@
 /**
- * Static sitemap generator for marcomanduca.dev.
+ * Sitemap generator for marcomanduca.dev.
  *
- * Covers the public static routes of the SPA. Dynamic slug routes
- * (/projects/:slug, /learning/:slug) are intentionally excluded: they
- * require the backend at build time and can be appended by the deploy
- * pipeline if needed.
+ * Covers the public static routes plus the dynamic project and learning
+ * detail pages, fetched from the live API at build time (through CloudFront,
+ * which injects the origin-verify header). The API returns only published
+ * public content, so drafts and the admin area are never included.
+ *
+ * The API call degrades gracefully: if the backend is unreachable the build
+ * still succeeds with the static routes only.
  *
  * Usage: node scripts/generate-sitemap.mjs
+ * Env:
+ *   SITE_URL  public origin (default https://marcomanduca.dev)
+ *   API_URL   API base      (default `${SITE_URL}/api/v1`)
  */
 import { writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
 const SITE_URL = process.env.SITE_URL ?? 'https://marcomanduca.dev'
+const API_URL = process.env.API_URL ?? `${SITE_URL}/api/v1`
 
 const STATIC_ROUTES = [
   { path: '/', priority: '1.0' },
@@ -23,13 +30,56 @@ const STATIC_ROUTES = [
 
 const today = new Date().toISOString().split('T')[0]
 
-const urls = STATIC_ROUTES.map(
-  ({ path, priority }) => `  <url>
+/** ISO timestamp -> YYYY-MM-DD, falling back to today. */
+const dateOf = (value) => (value ? String(value).split('T')[0] : today)
+
+/** Fetch a public collection; return [] on any failure so the build never breaks. */
+async function fetchCollection(path) {
+  try {
+    const response = await fetch(`${API_URL}${path}`)
+    if (!response.ok) throw new Error(`HTTP ${response.status}`)
+    const items = await response.json()
+    return Array.isArray(items) ? items : []
+  } catch (error) {
+    console.warn(
+      `Sitemap: could not fetch ${path} (${error.message}); skipping those URLs.`,
+    )
+    return []
+  }
+}
+
+const [projects, articles] = await Promise.all([
+  fetchCollection('/projects'),
+  fetchCollection('/learning'),
+])
+
+const dynamicRoutes = [
+  ...projects.map((item) => ({
+    path: `/projects/${item.slug}`,
+    priority: '0.7',
+    lastmod: dateOf(item.updated_at),
+  })),
+  ...articles.map((item) => ({
+    path: `/learning/${item.slug}`,
+    priority: '0.7',
+    lastmod: dateOf(item.updated_at),
+  })),
+]
+
+const routes = [
+  ...STATIC_ROUTES.map((route) => ({ ...route, lastmod: today })),
+  ...dynamicRoutes,
+]
+
+const urls = routes
+  .map(
+    ({ path, priority, lastmod }) => `  <url>
     <loc>${SITE_URL}${path}</loc>
-    <lastmod>${today}</lastmod>
+    <lastmod>${lastmod}</lastmod>
     <priority>${priority}</priority>
   </url>`,
-).join('\n')
+  )
+  .join('\n')
 
 const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -39,4 +89,7 @@ ${urls}
 
 const target = resolve(import.meta.dirname, '../public/sitemap.xml')
 writeFileSync(target, xml)
-console.log(`Sitemap written to ${target} (${STATIC_ROUTES.length} routes)`)
+console.log(
+  `Sitemap written to ${target} ` +
+    `(${routes.length} URLs: ${STATIC_ROUTES.length} static, ${dynamicRoutes.length} dynamic)`,
+)
