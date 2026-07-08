@@ -63,6 +63,7 @@ See `.env.example` for the full annotated list.
 | `SES_SENDER_EMAIL` | Verified SES sender | `noreply@marcomanduca.dev` |
 | `SES_RECIPIENT_EMAIL` | Contact form recipient | `owner@marcomanduca.dev` |
 | `CORS_ORIGINS` | Comma-separated origins | `http://localhost:5173` |
+| `ORIGIN_VERIFY_SECRET` | CloudFront `X-Origin-Verify` secret (empty disables the check) | empty |
 | `CONTACT_RATE_LIMIT_MAX_REQUESTS` | Requests per window per IP | `5` |
 | `CONTACT_RATE_LIMIT_WINDOW_SECONDS` | Window length | `900` |
 

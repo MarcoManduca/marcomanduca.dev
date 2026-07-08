@@ -9,7 +9,7 @@ development stack.
                          ┌────────────────────────────────────────────┐
  Browser ──HTTPS──> CloudFront (marcomanduca.dev + www)               │
                          │  default ──OAC──> S3 frontend bucket (SPA) │
-                         │  /api/*  ──OAC/sigv4──> Lambda Function URL │
+                         │  /api/*  ──secret header──> Lambda Fn URL   │
                          └───────────────────────┬────────────────────┘
                                                  │
                                   AWS Lambda (FastAPI container image)
@@ -28,11 +28,13 @@ Design decisions:
   removes the ALB (~17 USD/mo), the always-on task (~10 USD/mo) and the public
   IPv4 charges (~11 USD/mo), and scales to zero. The trade-off is an occasional
   ~1–2 s cold start, acceptable for a personal site.
-- **Origin protection.** The Function URL uses IAM auth. CloudFront reaches it
-  through an Origin Access Control that sigv4-signs every request, and a
-  resource policy (in the `cdn` module) allows only this distribution to
-  invoke it. Direct hits on the Function URL get a 403 — no secret header to
-  manage or rotate.
+- **Origin protection.** The Function URL is public (AuthType `NONE`), but
+  CloudFront injects a secret `X-Origin-Verify` header that the app checks
+  (`backend/src/utils/origin_verify.py`); direct hits without it get a 403.
+  IAM auth is deliberately avoided: it signs the `Authorization` header via
+  sigv4, which would clobber the Cognito Bearer token that admin routes rely
+  on. Rotate the secret with
+  `terraform apply -replace=module.backend.random_password.origin_verify`.
 - **No VPC.** The function talks only to public AWS APIs (DynamoDB, S3, SES,
   Cognito JWKS), so it runs outside a VPC: no subnets, no NAT gateway, no
   public IP to pay for.
@@ -64,8 +66,8 @@ infra/
         ├── database/          # 4 DynamoDB tables (PAY_PER_REQUEST)
         ├── auth/              # Cognito user pool, SPA client, hosted UI, group
         ├── email/             # SES domain identity + DKIM records
-        ├── backend/           # ECR, Lambda + Function URL, IAM, CloudWatch logs
-        └── cdn/               # CloudFront distribution + aliases + OAC + invoke perm
+        ├── backend/           # ECR, Lambda + Function URL, origin secret, IAM, logs
+        └── cdn/               # CloudFront distribution + aliases + OAC (S3) + secret header
 ```
 
 ---
