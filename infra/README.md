@@ -9,10 +9,10 @@ development stack.
                          ┌────────────────────────────────────────────┐
  Browser ──HTTPS──> CloudFront (marcomanduca.dev + www)               │
                          │  default ──OAC──> S3 frontend bucket (SPA) │
-                         │  /api/*  ──HTTPS + secret header──> ALB    │
+                         │  /api/*  ──OAC/sigv4──> Lambda Function URL │
                          └───────────────────────┬────────────────────┘
                                                  │
-                                  ECS Fargate (FastAPI container)
+                                  AWS Lambda (FastAPI container image)
                                                  │
                               DynamoDB · S3 media · Cognito · SES
 ```
@@ -20,19 +20,22 @@ development stack.
 Design decisions:
 
 - **Single domain, single public certificate.** The API is served from the
-  same CloudFront distribution under `/api/*` (origin = ALB) instead of a
-  dedicated `api.` subdomain: one certificate, one DNS name, no CORS between
-  site and API.
-- **TLS end to end.** CloudFront reaches the ALB over HTTPS via the internal
-  hostname `api-origin.marcomanduca.dev` (regional ACM certificate). The ALB
-  additionally requires a secret `X-Origin-Verify` header that only
-  CloudFront knows, and its security group only accepts CloudFront's
-  origin-facing IP ranges. The ALB is internet-facing (to pull from ECR
-  without a NAT gateway), so it is reachable at the TCP level from within
-  those ranges, but it answers 403 to any request missing the secret header.
-- **No NAT gateway.** Fargate tasks run in the default-VPC public subnets
-  with a public IP (ingress locked to the ALB security group). A NAT gateway
-  would cost more than the rest of the site combined.
+  same CloudFront distribution under `/api/*` (origin = Lambda Function URL)
+  instead of a dedicated `api.` subdomain: one certificate, one DNS name, no
+  CORS between site and API.
+- **Serverless backend.** The FastAPI container runs on Lambda (via the AWS
+  Lambda Web Adapter), not on an always-on Fargate task behind an ALB. This
+  removes the ALB (~17 USD/mo), the always-on task (~10 USD/mo) and the public
+  IPv4 charges (~11 USD/mo), and scales to zero. The trade-off is an occasional
+  ~1–2 s cold start, acceptable for a personal site.
+- **Origin protection.** The Function URL uses IAM auth. CloudFront reaches it
+  through an Origin Access Control that sigv4-signs every request, and a
+  resource policy (in the `cdn` module) allows only this distribution to
+  invoke it. Direct hits on the Function URL get a 403 — no secret header to
+  manage or rotate.
+- **No VPC.** The function talks only to public AWS APIs (DynamoDB, S3, SES,
+  Cognito JWKS), so it runs outside a VPC: no subnets, no NAT gateway, no
+  public IP to pay for.
 - **SPA routing caveat.** CloudFront rewrites 403/404 responses to
   `/index.html` with status 200 so deep links work. This applies to `/api/*`
   too: the backend should convey "not found" inside response bodies the SPA
@@ -47,7 +50,7 @@ infra/
 ├── scripts/
 │   ├── create-local-tables.sh # DynamoDB Local table bootstrap
 │   ├── deploy-frontend.sh     # build + s3 sync + CloudFront invalidation
-│   └── deploy-backend.sh      # docker build/push + ECS rollout
+│   └── deploy-backend.sh      # docker build/push + lambda update-function-code
 └── terraform/
     ├── main.tf                # module wiring
     ├── providers.tf           # default region + us-east-1 alias (ACM/CloudFront)
@@ -58,11 +61,11 @@ infra/
         ├── dns/               # Route 53 hosted zone (create or look up)
         ├── acm/               # us-east-1 certificate + DNS validation
         ├── storage/           # S3 frontend + media buckets
-        ├── database/          # 3 DynamoDB tables (PAY_PER_REQUEST)
+        ├── database/          # 4 DynamoDB tables (PAY_PER_REQUEST)
         ├── auth/              # Cognito user pool, SPA client, hosted UI, group
         ├── email/             # SES domain identity + DKIM records
-        ├── backend/           # ECR, ECS Fargate, ALB, IAM, CloudWatch logs
-        └── cdn/               # CloudFront distribution + aliases + OAC policy
+        ├── backend/           # ECR, Lambda + Function URL, IAM, CloudWatch logs
+        └── cdn/               # CloudFront distribution + aliases + OAC + invoke perm
 ```
 
 ---
@@ -109,21 +112,39 @@ cd infra/terraform
 cp terraform.tfvars.example terraform.tfvars   # then edit
 
 terraform init
-terraform plan      # review: ~60 resources
+terraform plan      # review: ~50 resources
+```
+
+A container-image Lambda cannot be created before its (arm64) image exists in
+ECR, so the very first apply is two-phase:
+
+```bash
+# 1. Create the ECR repository first...
+terraform apply -target=module.backend.aws_ecr_repository.backend
+
+# 2. ...build and push an arm64 image into it (the deploy script's final
+#    update-function-code step can't run yet, so push directly here)...
+ECR=$(terraform output -raw ecr_repository_url)
+aws ecr get-login-password --region eu-west-1 \
+  | docker login --username AWS --password-stdin "${ECR%%/*}"
+docker build --platform linux/arm64 -t "$ECR:latest" ../../backend
+docker push "$ECR:latest"
+
+# 3. ...then apply everything else.
 terraform apply
 ```
 
-The first apply takes ~10–15 minutes (CloudFront is the slow part). The ECS
-service will report failing tasks until step 4 pushes the first image —
-that is expected.
+The full apply takes ~10–15 minutes (CloudFront is the slow part). On
+subsequent deploys the Lambda already exists, so `deploy-backend.sh` alone
+ships backend changes — no Terraform needed.
 
 ### 3. ACM certificate (automatic)
 
 Nothing manual. Terraform:
 
 1. Requests a certificate in **us-east-1** for `marcomanduca.dev` +
-   `www.marcomanduca.dev` (CloudFront requirement) and a regional one for
-   `api-origin.marcomanduca.dev` (ALB).
+   `www.marcomanduca.dev` (CloudFront requirement). The backend needs no
+   certificate of its own — the Lambda Function URL is HTTPS out of the box.
 2. Writes the DNS validation CNAMEs into the hosted zone.
 3. Waits until ACM validates them (usually < 5 minutes).
 
@@ -133,10 +154,9 @@ one actually attached to the registered domain (matching NS records).
 ### 4. First deploys
 
 ```bash
-# Backend: build, push to ECR, roll the ECS service
+# Backend: build, push to ECR, update the Lambda function
 ECR_REPOSITORY_URL=$(terraform -chdir=infra/terraform output -raw ecr_repository_url) \
-ECS_CLUSTER=$(terraform -chdir=infra/terraform output -raw ecs_cluster_name) \
-ECS_SERVICE=$(terraform -chdir=infra/terraform output -raw ecs_service_name) \
+FUNCTION_NAME=$(terraform -chdir=infra/terraform output -raw backend_function_name) \
 ./infra/scripts/deploy-backend.sh
 
 # Frontend: build, sync to S3, invalidate CloudFront
@@ -196,7 +216,7 @@ low volume"). Approval usually takes ~24 h.
 
 ### 7. Environment variable mapping
 
-The ECS task definition already injects every backend variable below —
+The Lambda function already injects every backend variable below —
 this table is for running the backend **outside** Docker or building the
 frontend `.env.production`.
 
@@ -208,6 +228,7 @@ Backend variable names must match the `Settings` fields in
 | `dynamodb_table_names["projects"]`           | `PROJECTS_TABLE_NAME`         | —                             |
 | `dynamodb_table_names["learning"]`           | `LEARNING_TABLE_NAME`         | —                             |
 | `dynamodb_table_names["technologies"]`       | `TECHNOLOGIES_TABLE_NAME`     | —                             |
+| `dynamodb_table_names["ratelimit"]`          | `RATELIMIT_TABLE_NAME`        | —                             |
 | `media_bucket_name`                          | `MEDIA_BUCKET_NAME`           | —                             |
 | `cognito_user_pool_id`                       | `COGNITO_USER_POOL_ID`        | `VITE_COGNITO_USER_POOL_ID`   |
 | `cognito_client_id`                          | `COGNITO_CLIENT_ID`           | `VITE_COGNITO_CLIENT_ID`      |
@@ -215,7 +236,7 @@ Backend variable names must match the `Settings` fields in
 | `noreply@<domain>` (convention)              | `SES_SENDER_EMAIL`            | —                             |
 | contact recipient (tfvars `contact_email`)   | `SES_RECIPIENT_EMAIL`         | —                             |
 | `https://<domain>` (convention)              | `CORS_ORIGINS`                | —                             |
-| `/api/v1` (relative; CloudFront routes to ALB)| —                            | `VITE_API_BASE_URL`           |
+| `/api/v1` (relative; CloudFront routes to Lambda)| —                         | `VITE_API_BASE_URL`           |
 | region (tfvars `aws_region`)                 | `AWS_REGION`                  | —                             |
 
 ### 8. Cost overview (low-traffic personal site, monthly)
@@ -223,19 +244,19 @@ Backend variable names must match the `Settings` fields in
 | Service                  | Estimate (USD) | Notes                                   |
 |--------------------------|---------------:|-----------------------------------------|
 | Route 53                 | ~0.90          | hosted zone 0.50 + queries; +14/year domain |
-| ECS Fargate (1 task, 0.25 vCPU / 512 MB) | ~10 | the main fixed cost          |
-| Application Load Balancer| ~17            | fixed hourly + minimal LCU              |
+| Lambda (backend)         | ~0             | free tier: 1M requests + 400k GB-s/mo   |
 | CloudFront               | ~0–1           | free tier covers personal traffic       |
 | S3 (2 buckets)           | < 1            | a few GB of assets                      |
-| DynamoDB (on-demand)     | < 1            | pennies at this scale                   |
+| DynamoDB (on-demand)     | < 1            | pennies at this scale (incl. rate-limit table) |
 | Cognito                  | 0              | free tier: 10k MAU                      |
 | SES                      | ~0             | 0.10 per 1 000 emails                   |
-| ECR + CloudWatch logs    | < 1            | 10-image cap, 30-day log retention      |
-| **Total**                | **~30**        | ALB + Fargate dominate                  |
+| ECR + CloudWatch logs    | < 1            | 10-image cap, 14-day log retention      |
+| **Total**                | **~1–2**       | dominated by the Route 53 hosted zone   |
 
-Cheaper alternatives if ~30 USD/month is too much: replace ECS+ALB with
-Lambda + API Gateway (near zero at this traffic), or App Runner. The current
-setup was chosen for a standard, container-based workflow.
+The backend used to run on ECS Fargate behind an ALB (~30 USD/mo once the
+always-on task, the ALB and public IPv4 charges are added up). Moving it to a
+Lambda container image (same code, Lambda Web Adapter) cut that to roughly the
+cost of the hosted zone. The trade-off is an occasional ~1–2 s cold start.
 
 ### 9. Local development
 
@@ -267,6 +288,5 @@ Notes:
 |----------------------------|--------------------------------------------------------------------|
 | Deploy backend             | `./infra/scripts/deploy-backend.sh` (env vars from terraform output) |
 | Deploy frontend            | `./infra/scripts/deploy-frontend.sh` (env vars from terraform output) |
-| Tail backend logs          | `aws logs tail /ecs/marcomanduca-dev-backend --follow`             |
-| Rotate origin secret       | `terraform apply -replace=module.backend.random_password.origin_verify` |
+| Tail backend logs          | `aws logs tail /aws/lambda/marcomanduca-dev-backend --follow`      |
 | Infrastructure change      | edit Terraform → `terraform plan` → `terraform apply`              |
