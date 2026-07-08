@@ -54,3 +54,23 @@ resource "aws_dynamodb_table" "learning" {
     enabled = true
   }
 }
+
+# Contact-form rate limiting. Holds one counter item per client+window; the
+# backend reads/increments it atomically (see backend/src/utils/rate_limit.py).
+# TTL lets DynamoDB purge expired windows for free, so the table stays tiny.
+# No PITR: the data is ephemeral and worthless to back up.
+resource "aws_dynamodb_table" "ratelimit" {
+  name         = "${var.project_name}-ratelimit"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key     = "pk"
+
+  attribute {
+    name = "pk"
+    type = "S"
+  }
+
+  ttl {
+    attribute_name = "expires_at"
+    enabled        = true
+  }
+}

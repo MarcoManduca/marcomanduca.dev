@@ -4,6 +4,7 @@ output "table_names" {
     projects     = aws_dynamodb_table.simple["projects"].name
     technologies = aws_dynamodb_table.simple["technologies"].name
     learning     = aws_dynamodb_table.learning.name
+    ratelimit    = aws_dynamodb_table.ratelimit.name
   }
 }
 
@@ -13,5 +14,6 @@ output "table_arns" {
     aws_dynamodb_table.simple["projects"].arn,
     aws_dynamodb_table.simple["technologies"].arn,
     aws_dynamodb_table.learning.arn,
+    aws_dynamodb_table.ratelimit.arn,
   ]
 }
