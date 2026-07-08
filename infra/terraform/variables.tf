@@ -61,7 +61,6 @@ variable "backend_timeout_s" {
 }
 
 variable "contact_email" {
-  description = "Address that receives contact-form emails (passed to the backend container)."
+  description = "Address that receives contact-form emails. Set it in terraform.tfvars (no default: the infra is not tied to a personal address)."
   type        = string
-  default     = "marco.manduca95@gmail.com"
 }

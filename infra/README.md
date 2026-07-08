@@ -211,7 +211,7 @@ verified addresses.
 Option A — verify the destination address (fine for a personal contact form):
 
 ```bash
-aws ses verify-email-identity --email-address marco.manduca95@gmail.com
+aws ses verify-email-identity --email-address you@example.com  # your contact_email
 # click the link in the verification email AWS sends
 ```
 
