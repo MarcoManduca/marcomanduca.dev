@@ -17,6 +17,7 @@ from src.services.errors import (
     InvalidInputError,
     NotFoundError,
 )
+from src.utils.origin_verify import OriginVerifyMiddleware
 
 API_PREFIX = "/api/v1"
 
@@ -42,6 +43,8 @@ def create_app() -> FastAPI:
         allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         allow_headers=["Authorization", "Content-Type"],
     )
+    # Added last so it runs first: reject non-CDN traffic before anything else.
+    app.add_middleware(OriginVerifyMiddleware, secret=settings.origin_verify_secret)
     _register_routers(app)
     _register_error_handlers(app)
     return app

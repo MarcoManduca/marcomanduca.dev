@@ -34,6 +34,11 @@ class Settings(BaseSettings):
 
     cors_origins: str = "http://localhost:5173"
 
+    # Shared secret CloudFront injects in the X-Origin-Verify header so the
+    # Lambda Function URL (public) only serves requests that came through the
+    # CDN. Empty disables the check (local development).
+    origin_verify_secret: str = ""
+
     contact_rate_limit_max_requests: int = 5
     contact_rate_limit_window_seconds: int = 900
 
