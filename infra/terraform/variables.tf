@@ -43,39 +43,21 @@ variable "cognito_domain_prefix" {
 }
 
 variable "backend_image_tag" {
-  description = "Tag of the backend image in ECR used by the ECS task definition. The deploy script pushes immutable git-sha tags and moves 'latest'."
+  description = "Tag of the backend image in ECR used by the Lambda function. The deploy script pushes immutable git-sha tags and moves 'latest'."
   type        = string
   default     = "latest"
 }
 
-variable "backend_container_port" {
-  description = "Port the FastAPI container listens on."
-  type        = number
-  default     = 8000
-}
-
-variable "backend_cpu" {
-  description = "Fargate task CPU units (256 = 0.25 vCPU)."
-  type        = number
-  default     = 256
-}
-
-variable "backend_memory" {
-  description = "Fargate task memory in MiB."
+variable "backend_memory_mb" {
+  description = "Lambda memory in MiB (also scales CPU). 512 is plenty for this API."
   type        = number
   default     = 512
 }
 
-variable "backend_desired_count" {
-  description = "Number of backend tasks to run. 1 is enough for a low-traffic personal site."
+variable "backend_timeout_s" {
+  description = "Lambda timeout in seconds."
   type        = number
-  default     = 1
-}
-
-variable "backend_health_check_path" {
-  description = "HTTP path used by the ALB target group health check."
-  type        = string
-  default     = "/api/v1/health"
+  default     = 30
 }
 
 variable "contact_email" {
