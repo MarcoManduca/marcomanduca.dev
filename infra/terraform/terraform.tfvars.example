@@ -18,7 +18,6 @@ cognito_domain_prefix = "marcomanduca-dev-auth"
 # In the SES sandbox this address must be a verified identity.
 contact_email = "you@example.com"
 
-# Backend sizing — defaults are the cheapest Fargate combination.
-backend_cpu           = 256
-backend_memory        = 512
-backend_desired_count = 1
+# Backend sizing — the FastAPI app runs on Lambda (container image).
+backend_memory_mb = 512
+backend_timeout_s = 30

@@ -8,7 +8,7 @@ Public, bilingual (IT/EN), SEO-optimized, with a protected admin panel.
 
 ```
 Browser → CloudFront → React (S3) ─┐
-                                   ├→ FastAPI (ECS Fargate) → DynamoDB / S3 / Cognito / SES
+                                   ├→ FastAPI (Lambda) → DynamoDB / S3 / Cognito / SES
 Browser → CloudFront → /api ───────┘
 ```
 
@@ -16,11 +16,11 @@ Browser → CloudFront → /api ───────┘
 |----------|-------------------------------------------------|
 | Frontend | React + Vite + TypeScript + Tailwind CSS         |
 | State    | Redux Toolkit + RTK Query                        |
-| Backend  | FastAPI (Python 3.12)                            |
+| Backend  | FastAPI (Python 3.12) on AWS Lambda (container image) |
 | Database | AWS DynamoDB                                     |
 | Storage  | AWS S3 (project/learning images, downloadable CV PDF) |
 | Auth     | AWS Cognito (Administrators group)               |
-| Hosting  | AWS ECS Fargate (backend), S3 + CloudFront (SPA) |
+| Hosting  | AWS Lambda + Function URL (backend), S3 + CloudFront (SPA) |
 | DNS/TLS  | Route 53 + ACM                                   |
 | IaC      | Terraform                                        |
 
@@ -28,7 +28,7 @@ Browser → CloudFront → /api ───────┘
 
 ```
 .
-├── backend/     # FastAPI application (routers, services, schemas, models, utils)
+├── backend/     # FastAPI application (routers, services, schemas, models, utils); runs on Lambda
 ├── frontend/    # React SPA (components, pages, hooks, services, store, i18n)
 ├── infra/       # Terraform modules + deployment guide
 ├── docker-compose.yml
@@ -80,7 +80,7 @@ See [infra/README.md](infra/README.md) for the full AWS deployment guide, includ
 1. Registering `marcomanduca.dev` on Route 53
 2. Issuing the ACM certificate (us-east-1 for CloudFront)
 3. Provisioning all resources with Terraform
-4. Deploying backend (ECS) and frontend (S3 + CloudFront invalidation)
+4. Deploying backend (Lambda) and frontend (S3 + CloudFront invalidation)
 
 ## Documentation
 

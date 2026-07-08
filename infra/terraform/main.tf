@@ -3,9 +3,8 @@
 # Dependency flow:
 #   dns ──> acm (us-east-1 cert) ──> cdn
 #   dns ──> email (SES DNS records)
-#   dns ──> backend (origin certificate validation + origin record)
 #   storage / database / auth ──> backend (IAM scoping + env vars)
-#   storage + backend + acm ──> cdn (origins, certificate, aliases)
+#   storage + backend + acm ──> cdn (origins, certificate, aliases, invoke perm)
 
 module "dns" {
   source = "./modules/dns"
@@ -56,19 +55,13 @@ module "email" {
 module "backend" {
   source = "./modules/backend"
 
-  project_name      = var.project_name
-  aws_region        = var.aws_region
-  zone_id           = module.dns.zone_id
-  api_origin_domain = "api-origin.${var.domain_name}"
+  project_name = var.project_name
 
-  image_tag         = var.backend_image_tag
-  container_port    = var.backend_container_port
-  cpu               = var.backend_cpu
-  memory            = var.backend_memory
-  desired_count     = var.backend_desired_count
-  health_check_path = var.backend_health_check_path
+  image_tag = var.backend_image_tag
+  memory_mb = var.backend_memory_mb
+  timeout_s = var.backend_timeout_s
 
-  # Least-privilege IAM scoping for the task role.
+  # Least-privilege IAM scoping for the execution role.
   dynamodb_table_arns = module.database.table_arns
   media_bucket_arn    = module.storage.media_bucket_arn
   ses_identity_arn    = module.email.identity_arn
@@ -83,6 +76,7 @@ module "backend" {
     PROJECTS_TABLE_NAME     = module.database.table_names["projects"]
     LEARNING_TABLE_NAME     = module.database.table_names["learning"]
     TECHNOLOGIES_TABLE_NAME = module.database.table_names["technologies"]
+    RATELIMIT_TABLE_NAME    = module.database.table_names["ratelimit"]
     MEDIA_BUCKET_NAME       = module.storage.media_bucket_name
     COGNITO_USER_POOL_ID    = module.auth.user_pool_id
     COGNITO_CLIENT_ID       = module.auth.client_id
@@ -105,7 +99,7 @@ module "cdn" {
   frontend_bucket_arn             = module.storage.frontend_bucket_arn
   frontend_bucket_regional_domain = module.storage.frontend_bucket_regional_domain
 
-  # /api/* origin: ALB over HTTPS, guarded by a shared secret header.
-  api_origin_domain          = module.backend.api_origin_domain
-  origin_verify_secret_value = module.backend.origin_verify_secret_value
+  # /api/* origin: the backend Lambda Function URL, reached via OAC (sigv4).
+  backend_function_url_host = module.backend.function_url_host
+  backend_function_name     = module.backend.function_name
 }
