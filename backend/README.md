@@ -8,12 +8,15 @@ belonging to the `Administrators` group.
 
 ## Architecture
 
-- **API**: FastAPI under `/api/v1`, app factory in `src/main.py`.
+- **API**: FastAPI under `/api/v1`, app factory in `src/main.py`. In
+  production it runs on AWS Lambda (container image + Lambda Web Adapter); the
+  same image runs locally via Uvicorn with no code changes.
 - **Storage**: DynamoDB (on-demand) for content, S3 for media.
 - **Auth**: Cognito JWT validation (JWKS, PyJWT) in `src/utils/auth.py`.
 - **Email**: AWS SES for contact form delivery.
-- **Anti-spam**: honeypot field + in-memory per-IP sliding-window rate
-  limit (per instance; production can move this to API Gateway/WAF).
+- **Anti-spam**: honeypot field + per-IP fixed-window rate limit backed by a
+  DynamoDB TTL table (`src/utils/rate_limit.py`), so the limit is shared
+  across Lambda invocations and survives cold starts.
 
 ## Endpoints
 
@@ -51,6 +54,7 @@ See `.env.example` for the full annotated list.
 | `PROJECTS_TABLE_NAME` | DynamoDB Projects table | `portfolio-projects` |
 | `LEARNING_TABLE_NAME` | DynamoDB Learning table | `portfolio-learning` |
 | `TECHNOLOGIES_TABLE_NAME` | DynamoDB Technologies table | `portfolio-technologies` |
+| `RATELIMIT_TABLE_NAME` | DynamoDB contact rate-limit table | `portfolio-ratelimit` |
 | `DYNAMODB_ENDPOINT_URL` | Optional DynamoDB Local endpoint | unset |
 | `MEDIA_BUCKET_NAME` | S3 bucket for media | `marcomanduca-dev-media` |
 | `PRESIGN_EXPIRATION_SECONDS` | Presigned URL validity | `900` |
@@ -74,7 +78,7 @@ cp .env.example .env  # adjust values
 # Optional: DynamoDB Local
 docker run -d -p 8001:8000 amazon/dynamodb-local
 # then set DYNAMODB_ENDPOINT_URL=http://localhost:8001 in .env
-# and create the three tables (projects: slug / learning: slug+version / technologies: id).
+# and create the tables (projects: slug / learning: slug+version / technologies: id / ratelimit: pk).
 
 uvicorn src.main:app --reload --port 8000
 ```
@@ -125,7 +129,8 @@ Runtime (kept minimal on purpose):
 
 Notably avoided: `email-validator` (a lightweight regex is enough for
 a contact form; SES is the real gatekeeper) and any rate-limit library
-(a ~40-line sliding window covers the need).
+(a small DynamoDB fixed-window counter with TTL covers the need and works
+across Lambda invocations).
 
 Dev only: **pytest**, **pytest-cov**, **pytest-asyncio**, **httpx**
 (ASGI test client), **moto** (AWS mocks), **ruff** (format + lint).
