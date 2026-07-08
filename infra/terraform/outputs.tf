@@ -36,19 +36,9 @@ output "ecr_repository_url" {
   value       = module.backend.ecr_repository_url
 }
 
-output "ecs_cluster_name" {
-  description = "ECS cluster name, used by deploy-backend.sh."
-  value       = module.backend.cluster_name
-}
-
-output "ecs_service_name" {
-  description = "ECS service name, used by deploy-backend.sh."
-  value       = module.backend.service_name
-}
-
-output "alb_dns_name" {
-  description = "ALB DNS name (internal detail; public traffic goes through CloudFront)."
-  value       = module.backend.alb_dns_name
+output "backend_function_name" {
+  description = "Backend Lambda function name, used by deploy-backend.sh."
+  value       = module.backend.function_name
 }
 
 output "cognito_user_pool_id" {
