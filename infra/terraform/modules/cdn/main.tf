@@ -1,7 +1,7 @@
 # CloudFront distribution serving the whole site:
 #
 #   default behavior : SPA assets from the private frontend bucket (OAC)
-#   /api/*           : FastAPI on the Lambda Function URL (OAC, sigv4)
+#   /api/*           : FastAPI on the Lambda Function URL (secret header)
 #
 # Extras:
 #   - 403/404 from S3 are rewritten to /index.html so client-side routing
@@ -80,17 +80,6 @@ resource "aws_cloudfront_origin_access_control" "frontend" {
   signing_protocol                  = "sigv4"
 }
 
-# OAC for the backend Lambda Function URL: CloudFront sigv4-signs every
-# /api/* request so the IAM-authed Function URL accepts it (and rejects
-# anything that did not come through this distribution).
-resource "aws_cloudfront_origin_access_control" "backend" {
-  name                              = "${var.project_name}-backend"
-  description                       = "OAC for the backend Lambda Function URL"
-  origin_access_control_origin_type = "lambda"
-  signing_behavior                  = "always"
-  signing_protocol                  = "sigv4"
-}
-
 # Redirect www -> apex at the edge (viewer-request).
 resource "aws_cloudfront_function" "www_redirect" {
   name    = "${var.project_name}-www-redirect"
@@ -130,15 +119,20 @@ resource "aws_cloudfront_distribution" "this" {
   }
 
   origin {
-    origin_id                = "backend-lambda"
-    domain_name              = var.backend_function_url_host
-    origin_access_control_id = aws_cloudfront_origin_access_control.backend.id
+    origin_id   = "backend-lambda"
+    domain_name = var.backend_function_url_host
 
     custom_origin_config {
       http_port              = 80
       https_port             = 443
       origin_protocol_policy = "https-only"
       origin_ssl_protocols   = ["TLSv1.2"]
+    }
+
+    # Proves to the app that the request came through CloudFront.
+    custom_header {
+      name  = "X-Origin-Verify"
+      value = var.origin_verify_secret_value
     }
   }
 
@@ -192,18 +186,6 @@ resource "aws_cloudfront_distribution" "this" {
     ssl_support_method       = "sni-only"
     minimum_protocol_version = "TLSv1.2_2021"
   }
-}
-
-# Allow only this distribution to invoke the backend Function URL. Lives here
-# (not in the backend module) to avoid a dependency cycle: it needs both the
-# function name and the distribution ARN.
-resource "aws_lambda_permission" "cloudfront" {
-  statement_id           = "AllowCloudFrontInvoke"
-  action                 = "lambda:InvokeFunctionUrl"
-  function_name          = var.backend_function_name
-  principal              = "cloudfront.amazonaws.com"
-  source_arn             = aws_cloudfront_distribution.this.arn
-  function_url_auth_type = "AWS_IAM"
 }
 
 # Only this distribution may read the frontend bucket.

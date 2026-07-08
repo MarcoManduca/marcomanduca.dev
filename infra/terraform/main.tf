@@ -69,10 +69,11 @@ module "backend" {
   # Environment variables injected into the FastAPI container.
   # Names MUST match the backend Settings fields in backend/src/config.py
   # (each attribute maps to its upper-case env var, e.g. projects_table_name → PROJECTS_TABLE_NAME).
+  # AWS_REGION / AWS_DEFAULT_REGION are reserved on Lambda (the runtime injects
+  # them automatically), so they must not appear here — boto3 and the app read
+  # them from the runtime environment.
   container_environment = {
     APP_ENV                 = var.environment
-    AWS_REGION              = var.aws_region
-    AWS_DEFAULT_REGION      = var.aws_region
     PROJECTS_TABLE_NAME     = module.database.table_names["projects"]
     LEARNING_TABLE_NAME     = module.database.table_names["learning"]
     TECHNOLOGIES_TABLE_NAME = module.database.table_names["technologies"]
@@ -99,7 +100,7 @@ module "cdn" {
   frontend_bucket_arn             = module.storage.frontend_bucket_arn
   frontend_bucket_regional_domain = module.storage.frontend_bucket_regional_domain
 
-  # /api/* origin: the backend Lambda Function URL, reached via OAC (sigv4).
-  backend_function_url_host = module.backend.function_url_host
-  backend_function_name     = module.backend.function_name
+  # /api/* origin: the backend Lambda Function URL, guarded by a secret header.
+  backend_function_url_host  = module.backend.function_url_host
+  origin_verify_secret_value = module.backend.origin_verify_secret_value
 }

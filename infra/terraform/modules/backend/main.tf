@@ -12,13 +12,16 @@
 #     Uvicorn server, so there is no ALB, no VPC, no NAT and no public IP.
 #
 # Security model:
-#   - The Function URL uses IAM auth. CloudFront reaches it through an Origin
-#     Access Control that sigv4-signs every request; the resource policy that
-#     allows only this distribution to invoke lives in the cdn module (it owns
-#     the distribution ARN). Direct hits on the Function URL get a 403.
+#   - The Function URL is public (AuthType NONE) but CloudFront injects a
+#     secret X-Origin-Verify header that the app checks (see
+#     backend/src/utils/origin_verify.py); direct hits without the header get a
+#     403. IAM auth is deliberately NOT used: it would sign the Authorization
+#     header via sigv4 and clobber the Cognito Bearer token that admin routes
+#     rely on. Rotating the secret is a plain apply after tainting:
+#     terraform apply -replace=module.backend.random_password.origin_verify
 #
 # Files in this module:
-#   main.tf   — Lambda function, Function URL, log group
+#   main.tf   — Lambda function, Function URL, origin-verify secret, log group
 #   ecr.tf    — container registry
 #   iam.tf    — Lambda execution role (least-privilege)
 #
@@ -34,6 +37,13 @@ resource "aws_cloudwatch_log_group" "backend" {
   retention_in_days = 14
 }
 
+# Shared secret between CloudFront and the app. Only CloudFront knows it and
+# sends it in X-Origin-Verify; the function rejects requests without it.
+resource "random_password" "origin_verify" {
+  length  = 32
+  special = false
+}
+
 resource "aws_lambda_function" "backend" {
   function_name = "${var.project_name}-backend"
   role          = aws_iam_role.backend.arn
@@ -44,7 +54,11 @@ resource "aws_lambda_function" "backend" {
   timeout       = var.timeout_s
 
   environment {
-    variables = var.container_environment
+    # AWS_REGION / AWS_DEFAULT_REGION are reserved on Lambda, so they are not
+    # set here — the runtime injects them and boto3/pydantic-settings read them.
+    variables = merge(var.container_environment, {
+      ORIGIN_VERIFY_SECRET = random_password.origin_verify.result
+    })
   }
 
   logging_config {
@@ -57,5 +71,14 @@ resource "aws_lambda_function" "backend" {
 
 resource "aws_lambda_function_url" "backend" {
   function_name      = aws_lambda_function.backend.function_name
-  authorization_type = "AWS_IAM"
+  authorization_type = "NONE"
+}
+
+# AuthType NONE requires an explicit public-invoke permission.
+resource "aws_lambda_permission" "public_url" {
+  statement_id           = "AllowPublicFunctionUrl"
+  action                 = "lambda:InvokeFunctionUrl"
+  function_name          = aws_lambda_function.backend.function_name
+  principal              = "*"
+  function_url_auth_type = "NONE"
 }

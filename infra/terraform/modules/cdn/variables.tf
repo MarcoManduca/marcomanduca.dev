@@ -38,7 +38,8 @@ variable "backend_function_url_host" {
   type        = string
 }
 
-variable "backend_function_name" {
-  description = "Backend Lambda function name (for the CloudFront invoke permission)."
+variable "origin_verify_secret_value" {
+  description = "Shared secret sent to the Function URL in the X-Origin-Verify header."
   type        = string
+  sensitive   = true
 }
