@@ -9,10 +9,11 @@ development stack.
                          ┌────────────────────────────────────────────┐
  Browser ──HTTPS──> CloudFront (marcomanduca.dev + www)               │
                          │  default ──OAC──> S3 frontend bucket (SPA) │
-                         │  /api/*  ──secret header──> Lambda Fn URL   │
+                         │  /api/*  ──secret header──> API Gateway     │
                          └───────────────────────┬────────────────────┘
                                                  │
-                                  AWS Lambda (FastAPI container image)
+                                  API Gateway HTTP API ──> AWS Lambda
+                                       (FastAPI container image)
                                                  │
                               DynamoDB · S3 media · Cognito · SES
 ```
@@ -20,7 +21,7 @@ development stack.
 Design decisions:
 
 - **Single domain, single public certificate.** The API is served from the
-  same CloudFront distribution under `/api/*` (origin = Lambda Function URL)
+  same CloudFront distribution under `/api/*` (origin = API Gateway HTTP API)
   instead of a dedicated `api.` subdomain: one certificate, one DNS name, no
   CORS between site and API.
 - **Serverless backend.** The FastAPI container runs on Lambda (via the AWS
@@ -28,12 +29,15 @@ Design decisions:
   removes the ALB (~17 USD/mo), the always-on task (~10 USD/mo) and the public
   IPv4 charges (~11 USD/mo), and scales to zero. The trade-off is an occasional
   ~1–2 s cold start, acceptable for a personal site.
-- **Origin protection.** The Function URL is public (AuthType `NONE`), but
-  CloudFront injects a secret `X-Origin-Verify` header that the app checks
-  (`backend/src/utils/origin_verify.py`); direct hits without it get a 403.
-  IAM auth is deliberately avoided: it signs the `Authorization` header via
-  sigv4, which would clobber the Cognito Bearer token that admin routes rely
-  on. Rotate the secret with
+- **API Gateway, not a Function URL.** This account blocks public (AuthType
+  `NONE`) Lambda Function URLs, and an IAM-auth Function URL behind CloudFront
+  OAC would sigv4-sign the `Authorization` header and clobber the Cognito
+  Bearer token admin routes rely on. An HTTP API forwards `Authorization`
+  untouched and needs no public Function URL.
+- **Origin protection.** The HTTP API is public, but CloudFront injects a
+  secret `X-Origin-Verify` header that the app checks
+  (`backend/src/utils/origin_verify.py`); direct hits on the execute-api
+  endpoint without it get a 403. Rotate the secret with
   `terraform apply -replace=module.backend.random_password.origin_verify`.
 - **No VPC.** The function talks only to public AWS APIs (DynamoDB, S3, SES,
   Cognito JWKS), so it runs outside a VPC: no subnets, no NAT gateway, no
@@ -66,7 +70,7 @@ infra/
         ├── database/          # 4 DynamoDB tables (PAY_PER_REQUEST)
         ├── auth/              # Cognito user pool, SPA client, hosted UI, group
         ├── email/             # SES domain identity + DKIM records
-        ├── backend/           # ECR, Lambda + Function URL, origin secret, IAM, logs
+        ├── backend/           # ECR, Lambda + API Gateway HTTP API, origin secret, IAM, logs
         └── cdn/               # CloudFront distribution + aliases + OAC (S3) + secret header
 ```
 
@@ -146,7 +150,7 @@ Nothing manual. Terraform:
 
 1. Requests a certificate in **us-east-1** for `marcomanduca.dev` +
    `www.marcomanduca.dev` (CloudFront requirement). The backend needs no
-   certificate of its own — the Lambda Function URL is HTTPS out of the box.
+   certificate of its own — the API Gateway HTTP API is HTTPS out of the box.
 2. Writes the DNS validation CNAMEs into the hosted zone.
 3. Waits until ACM validates them (usually < 5 minutes).
 
@@ -238,7 +242,7 @@ Backend variable names must match the `Settings` fields in
 | `noreply@<domain>` (convention)              | `SES_SENDER_EMAIL`            | —                             |
 | contact recipient (tfvars `contact_email`)   | `SES_RECIPIENT_EMAIL`         | —                             |
 | `https://<domain>` (convention)              | `CORS_ORIGINS`                | —                             |
-| `/api/v1` (relative; CloudFront routes to Lambda)| —                         | `VITE_API_BASE_URL`           |
+| `/api/v1` (relative; CloudFront routes to API Gateway)| —                    | `VITE_API_BASE_URL`           |
 | region (tfvars `aws_region`)                 | `AWS_REGION`                  | —                             |
 
 ### 8. Cost overview (low-traffic personal site, monthly)
@@ -247,6 +251,7 @@ Backend variable names must match the `Settings` fields in
 |--------------------------|---------------:|-----------------------------------------|
 | Route 53                 | ~0.90          | hosted zone 0.50 + queries; +14/year domain |
 | Lambda (backend)         | ~0             | free tier: 1M requests + 400k GB-s/mo   |
+| API Gateway (HTTP API)   | ~0             | 1.00 per million requests; free tier 1M/mo first year |
 | CloudFront               | ~0–1           | free tier covers personal traffic       |
 | S3 (2 buckets)           | < 1            | a few GB of assets                      |
 | DynamoDB (on-demand)     | < 1            | pennies at this scale (incl. rate-limit table) |

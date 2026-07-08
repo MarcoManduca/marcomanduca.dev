@@ -20,7 +20,7 @@ Browser → CloudFront → /api ───────┘
 | Database | AWS DynamoDB                                     |
 | Storage  | AWS S3 (project/learning images, downloadable CV PDF) |
 | Auth     | AWS Cognito (Administrators group)               |
-| Hosting  | AWS Lambda + Function URL (backend), S3 + CloudFront (SPA) |
+| Hosting  | AWS Lambda + API Gateway (backend), S3 + CloudFront (SPA) |
 | DNS/TLS  | Route 53 + ACM                                   |
 | IaC      | Terraform                                        |
 
