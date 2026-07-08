@@ -33,6 +33,7 @@ services:
       PROJECTS_TABLE_NAME: portfolio-projects
       LEARNING_TABLE_NAME: portfolio-learning
       TECHNOLOGIES_TABLE_NAME: portfolio-technologies
+      RATELIMIT_TABLE_NAME: portfolio-ratelimit
     depends_on:
       - dynamodb-local
 
@@ -59,6 +60,7 @@ services:
       PROJECTS_TABLE_NAME: portfolio-projects
       LEARNING_TABLE_NAME: portfolio-learning
       TECHNOLOGIES_TABLE_NAME: portfolio-technologies
+      RATELIMIT_TABLE_NAME: portfolio-ratelimit
     volumes:
       - ./infra/scripts:/scripts:ro
     depends_on:
