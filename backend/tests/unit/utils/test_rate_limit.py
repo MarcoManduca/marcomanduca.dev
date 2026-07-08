@@ -1,11 +1,32 @@
-"""Unit tests for the sliding-window rate limiter."""
+"""Unit tests for the DynamoDB-backed rate limiter."""
 
-from src.utils.rate_limit import SlidingWindowRateLimiter
+from typing import Any
+
+import boto3
+from moto import mock_aws
+
+from src.utils.rate_limit import DynamoRateLimiter
+
+_REGION = "eu-west-1"
+_TABLE = "test-ratelimit"
 
 
+def _make_table() -> Any:
+    """Create the rate-limit table in moto and return the Table resource."""
+    dynamodb = boto3.resource("dynamodb", region_name=_REGION)
+    dynamodb.create_table(
+        TableName=_TABLE,
+        KeySchema=[{"AttributeName": "pk", "KeyType": "HASH"}],
+        AttributeDefinitions=[{"AttributeName": "pk", "AttributeType": "S"}],
+        BillingMode="PAY_PER_REQUEST",
+    )
+    return dynamodb.Table(_TABLE)
+
+
+@mock_aws
 def test_is_allowed_accepts_requests_under_the_limit() -> None:
     # Arrange
-    limiter = SlidingWindowRateLimiter(max_requests=2, window_seconds=60)
+    limiter = DynamoRateLimiter(_make_table(), max_requests=2, window_seconds=60)
 
     # Act
     first = limiter.is_allowed("1.2.3.4", now=0.0)
@@ -16,9 +37,10 @@ def test_is_allowed_accepts_requests_under_the_limit() -> None:
     assert second is True
 
 
+@mock_aws
 def test_is_allowed_blocks_requests_over_the_limit() -> None:
     # Arrange
-    limiter = SlidingWindowRateLimiter(max_requests=2, window_seconds=60)
+    limiter = DynamoRateLimiter(_make_table(), max_requests=2, window_seconds=60)
     limiter.is_allowed("1.2.3.4", now=0.0)
     limiter.is_allowed("1.2.3.4", now=1.0)
 
@@ -29,9 +51,10 @@ def test_is_allowed_blocks_requests_over_the_limit() -> None:
     assert third is False
 
 
-def test_is_allowed_accepts_again_after_window_expiry() -> None:
+@mock_aws
+def test_is_allowed_accepts_again_in_a_new_window() -> None:
     # Arrange
-    limiter = SlidingWindowRateLimiter(max_requests=1, window_seconds=60)
+    limiter = DynamoRateLimiter(_make_table(), max_requests=1, window_seconds=60)
     limiter.is_allowed("1.2.3.4", now=0.0)
 
     # Act
@@ -41,9 +64,10 @@ def test_is_allowed_accepts_again_after_window_expiry() -> None:
     assert after_window is True
 
 
+@mock_aws
 def test_is_allowed_tracks_keys_independently() -> None:
     # Arrange
-    limiter = SlidingWindowRateLimiter(max_requests=1, window_seconds=60)
+    limiter = DynamoRateLimiter(_make_table(), max_requests=1, window_seconds=60)
     limiter.is_allowed("1.1.1.1", now=0.0)
 
     # Act
@@ -53,14 +77,16 @@ def test_is_allowed_tracks_keys_independently() -> None:
     assert other_key is True
 
 
-def test_reset_clears_recorded_hits() -> None:
-    # Arrange
-    limiter = SlidingWindowRateLimiter(max_requests=1, window_seconds=60)
-    limiter.is_allowed("1.2.3.4", now=0.0)
+@mock_aws
+def test_is_allowed_fails_open_when_dynamodb_errors() -> None:
+    # Arrange: the table is never created, so update_item raises a ClientError.
+    dynamodb = boto3.resource("dynamodb", region_name=_REGION)
+    limiter = DynamoRateLimiter(
+        dynamodb.Table("missing-table"), max_requests=1, window_seconds=60
+    )
 
     # Act
-    limiter.reset()
-    after_reset = limiter.is_allowed("1.2.3.4", now=1.0)
+    allowed = limiter.is_allowed("1.2.3.4", now=0.0)
 
     # Assert
-    assert after_reset is True
+    assert allowed is True

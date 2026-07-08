@@ -25,6 +25,7 @@ _TEST_ENV = {
     "PROJECTS_TABLE_NAME": "test-projects",
     "LEARNING_TABLE_NAME": "test-learning",
     "TECHNOLOGIES_TABLE_NAME": "test-technologies",
+    "RATELIMIT_TABLE_NAME": "test-ratelimit",
     "MEDIA_BUCKET_NAME": "test-media-bucket",
     "COGNITO_USER_POOL_ID": "eu-west-1_testpool",
     "COGNITO_CLIENT_ID": "test-client-id",
@@ -166,6 +167,12 @@ def _create_tables() -> None:
         TableName=os.environ["TECHNOLOGIES_TABLE_NAME"],
         KeySchema=[{"AttributeName": "id", "KeyType": "HASH"}],
         AttributeDefinitions=[{"AttributeName": "id", "AttributeType": "S"}],
+        BillingMode="PAY_PER_REQUEST",
+    )
+    dynamodb.create_table(
+        TableName=os.environ["RATELIMIT_TABLE_NAME"],
+        KeySchema=[{"AttributeName": "pk", "KeyType": "HASH"}],
+        AttributeDefinitions=[{"AttributeName": "pk", "AttributeType": "S"}],
         BillingMode="PAY_PER_REQUEST",
     )
 
