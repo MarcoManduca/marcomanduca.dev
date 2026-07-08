@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     projects_table_name: str = "portfolio-projects"
     learning_table_name: str = "portfolio-learning"
     technologies_table_name: str = "portfolio-technologies"
+    ratelimit_table_name: str = "portfolio-ratelimit"
 
     media_bucket_name: str = "marcomanduca-dev-media"
     presign_expiration_seconds: int = 900
