@@ -3,28 +3,12 @@ output "ecr_repository_url" {
   value       = aws_ecr_repository.backend.repository_url
 }
 
-output "cluster_name" {
-  description = "ECS cluster name."
-  value       = aws_ecs_cluster.this.name
+output "function_name" {
+  description = "Lambda function name, used by deploy-backend.sh and the CloudFront invoke permission."
+  value       = aws_lambda_function.backend.function_name
 }
 
-output "service_name" {
-  description = "ECS service name."
-  value       = aws_ecs_service.backend.name
-}
-
-output "alb_dns_name" {
-  description = "ALB DNS name."
-  value       = aws_lb.this.dns_name
-}
-
-output "api_origin_domain" {
-  description = "Hostname CloudFront must use as the /api/* origin."
-  value       = aws_route53_record.api_origin.fqdn
-}
-
-output "origin_verify_secret_value" {
-  description = "Shared secret CloudFront must send in the X-Origin-Verify header."
-  value       = random_password.origin_verify.result
-  sensitive   = true
+output "function_url_host" {
+  description = "Hostname of the Lambda Function URL, used as the CloudFront /api/* origin."
+  value       = trimsuffix(trimprefix(aws_lambda_function_url.backend.function_url, "https://"), "/")
 }

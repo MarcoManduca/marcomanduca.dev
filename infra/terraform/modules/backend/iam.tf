@@ -1,40 +1,35 @@
-# IAM roles for the Fargate task.
+# IAM role for the backend Lambda.
 #
-#   execution role : used by the ECS agent to pull the image and ship logs.
-#   task role      : used by the application code. Strictly scoped to the
-#                    three DynamoDB tables, the media bucket and SES sending.
+# One execution role, used by both the Lambda service (to ship logs) and the
+# application code. Strictly scoped to the DynamoDB tables, the media bucket
+# and SES sending. Container images are pulled by the Lambda service itself,
+# so no ECR permissions are needed here.
 
-data "aws_iam_policy_document" "ecs_assume" {
+data "aws_iam_policy_document" "lambda_assume" {
   statement {
     actions = ["sts:AssumeRole"]
 
     principals {
       type        = "Service"
-      identifiers = ["ecs-tasks.amazonaws.com"]
+      identifiers = ["lambda.amazonaws.com"]
     }
   }
 }
 
-# --- Execution role -------------------------------------------------------
-
-resource "aws_iam_role" "execution" {
-  name               = "${var.project_name}-backend-execution"
-  assume_role_policy = data.aws_iam_policy_document.ecs_assume.json
+resource "aws_iam_role" "backend" {
+  name               = "${var.project_name}-backend"
+  assume_role_policy = data.aws_iam_policy_document.lambda_assume.json
 }
 
-resource "aws_iam_role_policy_attachment" "execution" {
-  role       = aws_iam_role.execution.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+# CloudWatch Logs (CreateLogStream / PutLogEvents on the function's group).
+resource "aws_iam_role_policy_attachment" "logs" {
+  role       = aws_iam_role.backend.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
-# --- Task role ------------------------------------------------------------
+# --- Application permissions ----------------------------------------------
 
-resource "aws_iam_role" "task" {
-  name               = "${var.project_name}-backend-task"
-  assume_role_policy = data.aws_iam_policy_document.ecs_assume.json
-}
-
-data "aws_iam_policy_document" "task" {
+data "aws_iam_policy_document" "backend" {
   statement {
     sid = "DynamoDBCrud"
     actions = [
@@ -47,6 +42,7 @@ data "aws_iam_policy_document" "task" {
       "dynamodb:BatchGetItem",
       "dynamodb:BatchWriteItem",
     ]
+    # Includes the rate-limit table (passed in dynamodb_table_arns).
     resources = var.dynamodb_table_arns
   }
 
@@ -83,8 +79,8 @@ data "aws_iam_policy_document" "task" {
   }
 }
 
-resource "aws_iam_role_policy" "task" {
-  name   = "${var.project_name}-backend-task"
-  role   = aws_iam_role.task.id
-  policy = data.aws_iam_policy_document.task.json
+resource "aws_iam_role_policy" "backend" {
+  name   = "${var.project_name}-backend"
+  role   = aws_iam_role.backend.id
+  policy = data.aws_iam_policy_document.backend.json
 }
