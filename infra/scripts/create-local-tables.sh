@@ -20,6 +20,7 @@ ENDPOINT_URL="${DYNAMODB_ENDPOINT_URL:-http://dynamodb-local:8000}"
 PROJECTS_TABLE="${PROJECTS_TABLE_NAME:-portfolio-projects}"
 LEARNING_TABLE="${LEARNING_TABLE_NAME:-portfolio-learning}"
 TECHNOLOGIES_TABLE="${TECHNOLOGIES_TABLE_NAME:-portfolio-technologies}"
+RATELIMIT_TABLE="${RATELIMIT_TABLE_NAME:-portfolio-ratelimit}"
 
 # DynamoDB Local accepts any credentials, but the AWS CLI requires them.
 export AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID:-local}"
@@ -65,5 +66,11 @@ create_table "${LEARNING_TABLE}" \
 create_table "${TECHNOLOGIES_TABLE}" \
   "AttributeName=id,KeyType=HASH" \
   "AttributeName=id,AttributeType=S"
+
+# contact-form rate limiting: one counter item per client+window (pk).
+# TTL is a no-op on DynamoDB Local but the schema stays identical to AWS.
+create_table "${RATELIMIT_TABLE}" \
+  "AttributeName=pk,KeyType=HASH" \
+  "AttributeName=pk,AttributeType=S"
 
 echo "All local tables ready."
