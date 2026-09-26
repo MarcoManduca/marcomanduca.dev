@@ -1,6 +1,10 @@
 import { useTranslation } from 'react-i18next'
 
-import heroImage from '@/assets/hero-512.webp'
+import portrait420 from '@/assets/portrait-card-420.webp'
+import portrait680 from '@/assets/portrait-card-680.webp'
+
+// Card width: full column on phones (minus page gutter and foil), 404px on lg.
+const PORTRAIT_SIZES = '(min-width: 1024px) 404px, calc(100vw - 48px)'
 
 /** Full-art front: portrait, role, name and level. */
 export const CardFront = () => {
@@ -9,10 +13,12 @@ export const CardFront = () => {
   return (
     <>
       <img
-        src={heroImage}
+        src={portrait420}
+        srcSet={`${portrait420} 420w, ${portrait680} 680w`}
+        sizes={PORTRAIT_SIZES}
         alt={t('home.card.portraitAlt')}
-        width={512}
-        height={512}
+        width={420}
+        height={588}
         loading="eager"
         decoding="async"
         className="absolute inset-0 h-full w-full object-cover object-top"
