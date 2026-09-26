@@ -51,7 +51,7 @@ export const QuestTabs = ({ selected, counts, onSelect }: QuestTabsProps) => {
       role="tablist"
       aria-label={t('home.quests.tablist')}
       onKeyDown={handleKeyDown}
-      className="flex overflow-x-auto border-b-2 border-edge pt-1.5"
+      className="flex overflow-x-auto border-b-2 border-edge pl-2 pt-1.5"
     >
       {TABS.map((tab) => {
         const isSelected = tab === selected
@@ -69,8 +69,8 @@ export const QuestTabs = ({ selected, counts, onSelect }: QuestTabsProps) => {
             tabIndex={isSelected ? 0 : -1}
             onClick={() => onSelect(tab)}
             className={cn(
-              '-mb-0.5 flex items-center gap-2 whitespace-nowrap border-b-4 pb-3 font-display text-lg font-extrabold uppercase transition-colors min-[400px]:text-xl sm:gap-3 sm:text-[34px]',
-              tab === 'active' ? 'pr-3 sm:pr-5' : 'px-3 sm:px-5',
+              '-mb-0.5 flex items-center gap-1.5 whitespace-nowrap border-b-4 pb-3 font-display text-lg font-extrabold uppercase transition-colors min-[400px]:text-xl sm:gap-3 sm:text-[34px]',
+              tab === 'active' ? 'pr-2 sm:pr-5' : 'px-2 sm:px-5',
               isSelected
                 ? 'border-warm text-heading'
                 : 'border-transparent text-muted hover:text-heading',

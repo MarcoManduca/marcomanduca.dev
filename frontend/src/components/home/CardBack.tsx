@@ -14,7 +14,8 @@ interface CardSkill {
 }
 
 const SECTION_TITLE =
-  'font-display text-sm font-extrabold uppercase tracking-[0.12em] text-highlight'
+  // Light theme swaps the accent between section titles and skill names.
+  'font-display text-sm font-extrabold uppercase tracking-[0.12em] text-heading dark:text-highlight'
 
 /** Back of the card, in the quest-card palette: skills and description. */
 export const CardBack = () => {
@@ -41,7 +42,7 @@ export const CardBack = () => {
                 {SKILL_TOKENS[index % SKILL_TOKENS.length].icon}
               </span>
               <span className="flex flex-col">
-                <span className="font-display text-lg font-bold uppercase leading-tight text-heading">
+                <span className="font-display text-lg font-bold uppercase leading-tight text-highlight dark:text-heading">
                   {title}
                 </span>
                 <span className="text-sm text-muted">{items}</span>
