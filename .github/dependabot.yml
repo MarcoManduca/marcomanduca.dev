@@ -1,19 +1,44 @@
-# Weekly dependency updates. GitHub Actions are pinned to commit SHAs in
-# ci.yml; Dependabot bumps the SHA and the "# vX.Y.Z" comment together.
+# Monthly dependency updates, one grouped PR per ecosystem.
+#
+# GitHub Actions are pinned to commit SHAs in ci.yml; Dependabot bumps the SHA
+# and the "# vX.Y.Z" comment together. Action majors are included (deprecated
+# runners otherwise break CI unnoticed); npm/pip majors are ignored and done by
+# hand, since they need real migrations (e.g. Tailwind 4, @types/node tracks
+# the Node runtime major).
+#
+# Security updates are separate: enable them in Settings → Code security.
+# They are not grouped or delayed by this file.
 
 version: 2
 updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
 
   - package-ecosystem: pip
     directory: /backend
     schedule:
-      interval: weekly
+      interval: monthly
+    groups:
+      python:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: npm
     directory: /frontend
     schedule:
-      interval: weekly
+      interval: monthly
+    groups:
+      npm:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
