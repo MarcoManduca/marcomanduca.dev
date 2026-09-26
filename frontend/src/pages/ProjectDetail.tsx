@@ -2,13 +2,16 @@ import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router-dom'
 
 import { MarkdownRenderer } from '@/components/markdown/MarkdownRenderer'
+import { ProjectGallery } from '@/components/projects/ProjectGallery'
 import { Seo } from '@/components/seo/Seo'
 import { Badge } from '@/components/ui/Badge'
+import { ErrorState } from '@/components/ui/ErrorState'
 import { Prose } from '@/components/ui/Prose'
 import { Spinner } from '@/components/ui/Spinner'
 import { Tag } from '@/components/ui/Tag'
 import { useLanguage } from '@/hooks/useLanguage'
 import { useGetProjectBySlugQuery } from '@/services/projectsApi'
+import { isNotFoundError } from '@/utils/isNotFoundError'
 import { safeExternalUrl } from '@/utils/safeUrl'
 
 import { NotFound } from './NotFound'
@@ -17,10 +20,19 @@ export const ProjectDetail = () => {
   const { t } = useTranslation()
   const { localize } = useLanguage()
   const { slug = '' } = useParams()
-  const { data: project, isLoading, isError } = useGetProjectBySlugQuery(slug)
+  const {
+    data: project,
+    error,
+    isLoading,
+    isError,
+    refetch,
+  } = useGetProjectBySlugQuery(slug)
 
   if (isLoading) return <Spinner />
-  if (isError || !project) return <NotFound />
+  if (isError && !isNotFoundError(error)) {
+    return <ErrorState onRetry={() => void refetch()} />
+  }
+  if (!project) return <NotFound />
 
   const githubUrl = safeExternalUrl(project.github_url)
   const demoUrl = safeExternalUrl(project.demo_url)
@@ -75,24 +87,7 @@ export const ProjectDetail = () => {
       <Prose className="mt-8">
         <MarkdownRenderer content={localize(project.content_markdown)} />
       </Prose>
-      {project.images.length > 0 && (
-        <section className="mt-10">
-          <h2 className="mb-4 text-xl font-semibold text-heading">
-            {t('projects.gallery')}
-          </h2>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {project.images.map((src) => (
-              <img
-                key={src}
-                src={src}
-                alt={localize(project.title)}
-                loading="lazy"
-                className="rounded-lg border border-edge"
-              />
-            ))}
-          </div>
-        </section>
-      )}
+      <ProjectGallery title={localize(project.title)} images={project.images} />
     </article>
   )
 }

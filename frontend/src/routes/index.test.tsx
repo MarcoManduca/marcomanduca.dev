@@ -38,6 +38,24 @@ describe('AppRoutes', () => {
     expect(screen.getByText('404')).toBeInTheDocument()
   })
 
+  it('lazy-loads the public detail pages', async () => {
+    mockUseAuth.mockReturnValue(adminAuth)
+    renderWithProviders(<AppRoutes />, { route: '/projects/data-pipeline' })
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Data pipeline' }),
+    ).toBeInTheDocument()
+  })
+
+  it('lazy-loads the privacy policy page', async () => {
+    mockUseAuth.mockReturnValue(adminAuth)
+    renderWithProviders(<AppRoutes />, { route: '/privacy-policy' })
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Privacy Policy' }),
+    ).toBeInTheDocument()
+  })
+
   it('renders the admin dashboard for an administrator', async () => {
     mockUseAuth.mockReturnValue(adminAuth)
     renderWithProviders(<AppRoutes />, { route: '/admin' })

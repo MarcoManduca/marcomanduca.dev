@@ -5,19 +5,19 @@ plus a protected admin panel backed by the FastAPI REST API (`/api/v1`).
 
 ## Stack
 
-| Concern    | Technology                                                   |
-| ---------- | ------------------------------------------------------------ |
-| Framework  | React 18 + Vite + TypeScript                                 |
-| Styling    | Tailwind CSS (dark blue theme, `cn()` helper)                |
-| State/Data | Redux Toolkit + RTK Query (single injected API slice)        |
-| Routing    | React Router                                                 |
-| Animations | Framer Motion (light page/element transitions)               |
-| i18n       | i18next + react-i18next + browser language detector          |
-| Auth       | react-oidc-context (OIDC against AWS Cognito hosted UI)      |
-| Markdown   | react-markdown + rehype-highlight + remark-math/rehype-katex |
-| SEO        | react-helmet-async                                           |
-| Fonts      | @fontsource/inter, @fontsource/jetbrains-mono (self-hosted)  |
-| Tests      | Vitest + React Testing Library + MSW (jsdom)                 |
+| Concern    | Technology                                                     |
+| ---------- | -------------------------------------------------------------- |
+| Framework  | React 18 + Vite + TypeScript                                   |
+| Styling    | Tailwind CSS (dark blue theme, `cn()` helper)                  |
+| State/Data | Redux Toolkit + RTK Query (single injected API slice)          |
+| Routing    | React Router                                                   |
+| Animations | Tailwind keyframes, `motion-safe:` only (reduced-motion aware) |
+| i18n       | i18next + react-i18next + browser language detector            |
+| Auth       | react-oidc-context (OIDC against AWS Cognito hosted UI)        |
+| Markdown   | react-markdown + rehype-highlight + remark-math/rehype-katex   |
+| SEO        | react-helmet-async                                             |
+| Fonts      | @fontsource/inter, @fontsource/jetbrains-mono (self-hosted)    |
+| Tests      | Vitest + React Testing Library + MSW (jsdom)                   |
 
 No dependencies beyond the agreed list. `oidc-client-ts` is the peer
 dependency required by `react-oidc-context`; `highlight.js` and `katex` are
@@ -48,6 +48,7 @@ Copy `.env.example` to `.env` (never committed):
 | `VITE_COGNITO_AUTHORITY`    | Cognito user-pool OIDC issuer URL             |
 | `VITE_COGNITO_CLIENT_ID`    | Cognito app client id                         |
 | `VITE_COGNITO_REDIRECT_URI` | Redirect URI after login (e.g. `/admin`)      |
+| `VITE_COGNITO_DOMAIN`       | Cognito hosted UI origin (sign-out redirect)  |
 
 ## Structure
 
@@ -102,20 +103,33 @@ src/
 
 ## Docker
 
-Multi-stage image: `node:20-slim` build → `nginx:1.27-alpine` serve.
-nginx does the SPA fallback to `index.html` and proxies `/api/` to the
-backend; the upstream is templated via the `BACKEND_UPSTREAM` env var
-(default `http://backend:8000`), so it works out of the box with compose.
+Multi-stage image: `node:20-slim` build → `nginxinc/nginx-unprivileged:1.27-alpine`
+serve (non-root, listens on **8080**). nginx does the SPA fallback to
+`index.html` and proxies `/api/` to the backend; the upstream is templated via
+the `BACKEND_UPSTREAM` env var (default `http://backend:8000`), so it works out
+of the box with compose. Security headers (CSP, Permissions-Policy,
+Referrer-Policy, …) live in `nginx/security-headers.conf`, mirroring the
+CloudFront policy.
+
+Vite inlines `VITE_*` variables at build time, so they are build args
+(`VITE_API_BASE_URL`, `VITE_COGNITO_AUTHORITY`, `VITE_COGNITO_CLIENT_ID`,
+`VITE_COGNITO_REDIRECT_URI`, `VITE_COGNITO_DOMAIN`):
 
 ```bash
-docker build -t marcomanduca-frontend .
-docker run -p 8080:80 -e BACKEND_UPSTREAM=http://backend:8000 marcomanduca-frontend
+docker build -t marcomanduca-frontend \
+  --build-arg VITE_COGNITO_CLIENT_ID=your-client-id .
+docker run -p 8080:8080 -e BACKEND_UPSTREAM=http://backend:8000 marcomanduca-frontend
 ```
 
 ## SEO
 
-- `Seo` component sets title, description, canonical and OpenGraph tags per
-  page; detail pages use slug-based URLs.
+- `index.html` ships static default meta (description, canonical, OpenGraph,
+  Twitter card, `public/og-image.png`) for crawlers that do not run JS; they
+  carry `data-rh` so `Seo` replaces rather than duplicates them.
+- `Seo` component sets title, description, canonical, OpenGraph
+  (`en_GB`/`it_IT` locales) and optional `noindex` per page; 404 pages are
+  `noindex`. Detail pages use slug-based URLs.
 - `public/robots.txt` allows everything except `/admin`.
 - `npm run generate:sitemap` writes `public/sitemap.xml` for the static
-  routes (run automatically in the Docker build).
+  routes plus published project/learning pages (run automatically by
+  `npm run build`).

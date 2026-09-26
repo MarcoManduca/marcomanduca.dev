@@ -8,14 +8,26 @@ import { AboutMe } from '@/pages/AboutMe'
 import { Contacts } from '@/pages/Contacts'
 import { Home } from '@/pages/Home'
 import { Learning } from '@/pages/Learning'
-import { LearningDetail } from '@/pages/LearningDetail'
 import { NotFound } from '@/pages/NotFound'
-import { PrivacyPolicy } from '@/pages/PrivacyPolicy'
-import { ProjectDetail } from '@/pages/ProjectDetail'
 import { Projects } from '@/pages/Projects'
 
 import { AuthCallback } from './AuthCallback'
 import { ProtectedRoute } from './ProtectedRoute'
+
+// Public detail pages pull in the markdown renderer and are rarely the entry
+// point, so they are split out too. PublicLayout wraps its outlet in a
+// Suspense boundary with a Spinner fallback.
+const ProjectDetail = lazy(() =>
+  import('@/pages/ProjectDetail').then((m) => ({ default: m.ProjectDetail })),
+)
+const LearningDetail = lazy(() =>
+  import('@/pages/LearningDetail').then((m) => ({
+    default: m.LearningDetail,
+  })),
+)
+const PrivacyPolicy = lazy(() =>
+  import('@/pages/PrivacyPolicy').then((m) => ({ default: m.PrivacyPolicy })),
+)
 
 // The admin area (forms, pickers, media uploader) is only reached by the
 // owner, so it is code-split out of the public bundle and loaded on demand.

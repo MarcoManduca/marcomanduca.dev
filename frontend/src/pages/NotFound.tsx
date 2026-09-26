@@ -8,7 +8,11 @@ export const NotFound = () => {
 
   return (
     <div className="flex flex-col items-center gap-4 py-20 text-center">
-      <Seo title={t('notFound.title')} description={t('notFound.message')} />
+      <Seo
+        title={t('notFound.title')}
+        description={t('notFound.message')}
+        noindex
+      />
       <h1 className="font-mono text-6xl font-bold text-accent">
         {t('notFound.title')}
       </h1>

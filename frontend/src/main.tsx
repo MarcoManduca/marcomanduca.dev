@@ -7,6 +7,7 @@ import { Provider } from 'react-redux'
 import { BrowserRouter } from 'react-router-dom'
 
 import App from '@/App'
+import { ROUTER_FUTURE_FLAGS } from '@/routes/routerFutureFlags'
 import { store } from '@/store'
 import {
   COGNITO_AUTHORITY,
@@ -34,7 +35,7 @@ createRoot(document.getElementById('root')!).render(
     <HelmetProvider>
       <AuthProvider {...oidcConfig}>
         <Provider store={store}>
-          <BrowserRouter>
+          <BrowserRouter future={ROUTER_FUTURE_FLAGS}>
             <App />
           </BrowserRouter>
         </Provider>

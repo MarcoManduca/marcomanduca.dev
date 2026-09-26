@@ -38,7 +38,9 @@ describe('MarkdownRenderer', () => {
   it('does not render raw HTML embedded in the markdown', async () => {
     const { container } = render(
       <MarkdownRenderer
-        content={'Hello <script>window.x=1</script><img src=x onerror=alert(1)>'}
+        content={
+          'Hello <script>window.x=1</script><img src=x onerror=alert(1)>'
+        }
       />,
     )
 

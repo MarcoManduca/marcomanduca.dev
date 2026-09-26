@@ -1,8 +1,9 @@
-import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
-import heroImage from '@/assets/hero.png'
+import { cn } from '@/utils/cn'
+
+import { HeroPortrait } from './HeroPortrait'
 
 const CTA_LINKS = [
   { to: '/projects', key: 'home.ctaProjects', primary: true },
@@ -16,12 +17,7 @@ export const Hero = () => {
   return (
     <section className="py-12 sm:py-20">
       <div className="flex flex-col items-start gap-10 md:flex-row md:items-center md:justify-between md:gap-12">
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: 'easeOut' }}
-          className="flex flex-col gap-5"
-        >
+        <div className="flex flex-col gap-5 motion-safe:animate-fade-in-up">
           <p className="font-mono text-sm text-accent">
             {t('home.heroGreeting')}
           </p>
@@ -37,38 +33,20 @@ export const Hero = () => {
               <Link
                 key={to}
                 to={to}
-                className={
+                className={cn(
+                  'rounded-lg px-5 py-2.5 text-sm font-medium transition-colors',
                   primary
-                    ? 'rounded-lg bg-warm px-5 py-2.5 text-sm font-medium text-background transition-colors hover:bg-warm-hover'
-                    : 'rounded-lg border border-edge px-5 py-2.5 text-sm font-medium text-heading transition-colors hover:border-accent hover:text-accent-hover'
-                }
+                    ? 'bg-warm text-background hover:bg-warm-hover'
+                    : 'border border-edge text-heading hover:border-accent hover:text-accent-hover',
+                )}
               >
                 {t(key)}
               </Link>
             ))}
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, scale: 0.96 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
-          className="relative hidden shrink-0 md:block"
-        >
-          <div
-            aria-hidden
-            className="absolute -left-8 -top-8 h-60 w-60 rounded-[2.5rem] bg-accent/60 blur-2xl lg:h-64 lg:w-64"
-          />
-          <div
-            aria-hidden
-            className="absolute -bottom-8 -right-8 h-60 w-60 rounded-[2.5rem] bg-warm/55 blur-2xl lg:h-64 lg:w-64"
-          />
-          <img
-            src={heroImage}
-            alt={t('home.heroName')}
-            className="relative h-60 w-60 rounded-[2rem] border border-edge object-cover object-top shadow-xl lg:h-64 lg:w-64"
-          />
-        </motion.div>
+        <HeroPortrait />
       </div>
     </section>
   )

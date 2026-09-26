@@ -1,15 +1,14 @@
 server {
-    listen 80;
+    # nginx-unprivileged runs as a non-root user, so it cannot bind to :80.
+    listen 8080;
     server_name _;
 
     root /usr/share/nginx/html;
     index index.html;
 
-    # Baseline security headers (production parity; in the deployed stack the
-    # SPA is served by CloudFront, which applies the canonical policy).
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header X-Frame-Options "DENY" always;
-    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    # Security headers (production parity; in the deployed stack the SPA is
+    # served by CloudFront, which applies the canonical policy).
+    include /etc/nginx/snippets/security-headers.conf;
 
     gzip on;
     gzip_types text/css application/javascript application/json image/svg+xml;
@@ -31,6 +30,8 @@ server {
 
     # Immutable hashed assets
     location /assets/ {
+        # add_header here would otherwise drop the server-level headers.
+        include /etc/nginx/snippets/security-headers.conf;
         add_header Cache-Control "public, max-age=31536000, immutable";
     }
 

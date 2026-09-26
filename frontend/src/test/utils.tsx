@@ -6,6 +6,7 @@ import { I18nextProvider } from 'react-i18next'
 import { Provider } from 'react-redux'
 import { MemoryRouter } from 'react-router-dom'
 
+import { ROUTER_FUTURE_FLAGS } from '@/routes/routerFutureFlags'
 import { makeStore } from '@/store'
 
 import { createTestI18n } from './i18n'
@@ -26,7 +27,9 @@ export const renderWithProviders = (
     <HelmetProvider>
       <Provider store={store}>
         <I18nextProvider i18n={i18n}>
-          <MemoryRouter initialEntries={[route]}>{children}</MemoryRouter>
+          <MemoryRouter initialEntries={[route]} future={ROUTER_FUTURE_FLAGS}>
+            {children}
+          </MemoryRouter>
         </I18nextProvider>
       </Provider>
     </HelmetProvider>

@@ -20,18 +20,32 @@ import { resolve } from 'node:path'
 const SITE_URL = process.env.SITE_URL ?? 'https://marcomanduca.dev'
 const API_URL = process.env.API_URL ?? `${SITE_URL}/api/v1`
 
+// Static routes carry no <lastmod>: the build date is not a content change
+// and would only teach crawlers to ignore the field.
 const STATIC_ROUTES = [
   { path: '/', priority: '1.0' },
   { path: '/about-me', priority: '0.8' },
   { path: '/projects', priority: '0.9' },
   { path: '/learning', priority: '0.9' },
   { path: '/contacts', priority: '0.6' },
+  // Indexable (the page sets no noindex), but of little search value.
+  { path: '/privacy-policy', priority: '0.2' },
 ]
 
-const today = new Date().toISOString().split('T')[0]
+const XML_ENTITIES = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&apos;',
+}
 
-/** ISO timestamp -> YYYY-MM-DD, falling back to today. */
-const dateOf = (value) => (value ? String(value).split('T')[0] : today)
+/** Escape a value for use as XML text content. */
+const escapeXml = (value) =>
+  String(value).replace(/[&<>"']/g, (char) => XML_ENTITIES[char])
+
+/** ISO timestamp -> YYYY-MM-DD, or undefined when missing. */
+const dateOf = (value) => (value ? String(value).split('T')[0] : undefined)
 
 /** Fetch a public collection; return [] on any failure so the build never breaks. */
 async function fetchCollection(path) {
@@ -55,31 +69,31 @@ const [projects, articles] = await Promise.all([
 
 const dynamicRoutes = [
   ...projects.map((item) => ({
-    path: `/projects/${item.slug}`,
+    path: `/projects/${encodeURIComponent(item.slug)}`,
     priority: '0.7',
     lastmod: dateOf(item.updated_at),
   })),
   ...articles.map((item) => ({
-    path: `/learning/${item.slug}`,
+    path: `/learning/${encodeURIComponent(item.slug)}`,
     priority: '0.7',
     lastmod: dateOf(item.updated_at),
   })),
 ]
 
-const routes = [
-  ...STATIC_ROUTES.map((route) => ({ ...route, lastmod: today })),
-  ...dynamicRoutes,
-]
+const routes = [...STATIC_ROUTES, ...dynamicRoutes]
 
-const urls = routes
-  .map(
-    ({ path, priority, lastmod }) => `  <url>
-    <loc>${SITE_URL}${path}</loc>
-    <lastmod>${lastmod}</lastmod>
-    <priority>${priority}</priority>
-  </url>`,
-  )
-  .join('\n')
+const toUrlEntry = ({ path, priority, lastmod }) =>
+  [
+    '  <url>',
+    `    <loc>${escapeXml(`${SITE_URL}${path}`)}</loc>`,
+    lastmod && `    <lastmod>${escapeXml(lastmod)}</lastmod>`,
+    `    <priority>${priority}</priority>`,
+    '  </url>',
+  ]
+    .filter(Boolean)
+    .join('\n')
+
+const urls = routes.map(toUrlEntry).join('\n')
 
 const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

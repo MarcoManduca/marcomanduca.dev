@@ -6,11 +6,52 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=3" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#052730" />
+    <title>marcomanduca.dev</title>
+    <!--
+      Static defaults for crawlers and link previews that do not run JS.
+      `data-rh` hands them over to react-helmet-async, which replaces them
+      with the per-page tags emitted by <Seo /> instead of duplicating them.
+    -->
     <meta
+      data-rh="true"
       name="description"
       content="Marco Manduca — Data Engineer & Data Scientist. Portfolio, technical knowledge base and CV."
     />
-    <title>marcomanduca.dev</title>
+    <link data-rh="true" rel="canonical" href="https://marcomanduca.dev/" />
+    <meta data-rh="true" property="og:site_name" content="marcomanduca.dev" />
+    <meta data-rh="true" property="og:title" content="marcomanduca.dev" />
+    <meta
+      data-rh="true"
+      property="og:description"
+      content="Marco Manduca — Data Engineer & Data Scientist. Portfolio, technical knowledge base and CV."
+    />
+    <meta data-rh="true" property="og:type" content="website" />
+    <meta
+      data-rh="true"
+      property="og:url"
+      content="https://marcomanduca.dev/"
+    />
+    <meta
+      data-rh="true"
+      property="og:image"
+      content="https://marcomanduca.dev/og-image.png"
+    />
+    <meta data-rh="true" property="og:image:width" content="1200" />
+    <meta data-rh="true" property="og:image:height" content="630" />
+    <meta data-rh="true" property="og:locale" content="en_GB" />
+    <meta data-rh="true" property="og:locale:alternate" content="it_IT" />
+    <meta data-rh="true" name="twitter:card" content="summary_large_image" />
+    <meta data-rh="true" name="twitter:title" content="marcomanduca.dev" />
+    <meta
+      data-rh="true"
+      name="twitter:description"
+      content="Marco Manduca — Data Engineer & Data Scientist. Portfolio, technical knowledge base and CV."
+    />
+    <meta
+      data-rh="true"
+      name="twitter:image"
+      content="https://marcomanduca.dev/og-image.png"
+    />
   </head>
   <body>
     <div id="root"></div>

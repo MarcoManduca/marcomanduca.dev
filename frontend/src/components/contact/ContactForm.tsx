@@ -1,13 +1,14 @@
 import { useState, type FormEvent } from 'react'
 
-import { Trans, useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/Button'
-import { Checkbox } from '@/components/ui/Checkbox'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { useSendContactMutation } from '@/services/contactApi'
+
+import { ConsentCheckbox } from './ConsentCheckbox'
+import { HONEYPOT_FIELD, HoneypotField } from './HoneypotField'
 
 export const ContactForm = () => {
   const { t } = useTranslation()
@@ -22,7 +23,7 @@ export const ContactForm = () => {
     const data = new FormData(form)
 
     // Honeypot: bots fill the hidden "website" field. Pretend success.
-    if (data.get('website')) {
+    if (data.get(HONEYPOT_FIELD)) {
       setHoneypotTriggered(true)
       return
     }
@@ -56,35 +57,8 @@ export const ContactForm = () => {
         required
       />
       <Textarea label={t('contacts.messageLabel')} name="message" required />
-      <div aria-hidden="true" className="hidden">
-        <label htmlFor="contact-website">Website</label>
-        <input
-          id="contact-website"
-          name="website"
-          type="text"
-          tabIndex={-1}
-          autoComplete="off"
-        />
-      </div>
-      <Checkbox
-        name="consent"
-        required
-        checked={consent}
-        onChange={(e) => setConsent(e.target.checked)}
-        label={
-          <Trans
-            i18nKey="contacts.consent"
-            components={{
-              privacy: (
-                <Link
-                  to="/privacy-policy"
-                  className="text-accent transition-colors hover:text-accent-hover"
-                />
-              ),
-            }}
-          />
-        }
-      />
+      <HoneypotField />
+      <ConsentCheckbox checked={consent} onChange={setConsent} />
       {isError && (
         <p role="alert" className="rounded-lg bg-red-500/15 p-4 text-red-400">
           {t('contacts.error')}

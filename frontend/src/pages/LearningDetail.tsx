@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom'
 import { MarkdownRenderer } from '@/components/markdown/MarkdownRenderer'
 import { Seo } from '@/components/seo/Seo'
 import { Badge } from '@/components/ui/Badge'
+import { ErrorState } from '@/components/ui/ErrorState'
 import { Prose } from '@/components/ui/Prose'
 import { Spinner } from '@/components/ui/Spinner'
 import { Tag } from '@/components/ui/Tag'
@@ -11,6 +12,7 @@ import { useLanguage } from '@/hooks/useLanguage'
 import { useGetArticleBySlugQuery } from '@/services/learningApi'
 import { excerpt } from '@/utils/excerpt'
 import { formatDate } from '@/utils/formatDate'
+import { isNotFoundError } from '@/utils/isNotFoundError'
 
 import { NotFound } from './NotFound'
 
@@ -18,10 +20,19 @@ export const LearningDetail = () => {
   const { t } = useTranslation()
   const { language, localize } = useLanguage()
   const { slug = '' } = useParams()
-  const { data: article, isLoading, isError } = useGetArticleBySlugQuery(slug)
+  const {
+    data: article,
+    error,
+    isLoading,
+    isError,
+    refetch,
+  } = useGetArticleBySlugQuery(slug)
 
   if (isLoading) return <Spinner />
-  if (isError || !article) return <NotFound />
+  if (isError && !isNotFoundError(error)) {
+    return <ErrorState onRetry={() => void refetch()} />
+  }
+  if (!article) return <NotFound />
 
   return (
     <article>

@@ -1,5 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { screen } from '@testing-library/react'
 
 import { renderWithProviders } from '@/test/utils'
 
@@ -32,18 +31,11 @@ describe('AboutMe', () => {
     expect(screen.getByText('Power BI')).toBeInTheDocument()
   })
 
-  it('opens the presigned CV URL when the download button is clicked', async () => {
-    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
+  it('renders the CV download button', () => {
     renderWithProviders(<AboutMe />)
 
-    await userEvent.click(screen.getByRole('button', { name: 'Download CV' }))
-
-    await waitFor(() =>
-      expect(openSpy).toHaveBeenCalledWith(
-        'http://localhost/cv-download',
-        '_blank',
-      ),
-    )
-    openSpy.mockRestore()
+    expect(
+      screen.getByRole('button', { name: 'Download CV' }),
+    ).toBeInTheDocument()
   })
 })

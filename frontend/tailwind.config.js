@@ -32,6 +32,22 @@ export default {
         sans: ['Inter', 'system-ui', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
       },
+      // Entrance animations. Always applied with the `motion-safe:` variant so
+      // users who prefer reduced motion get the final state immediately.
+      keyframes: {
+        'fade-in-up': {
+          from: { opacity: '0', transform: 'translateY(8px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
+        'fade-in-scale': {
+          from: { opacity: '0', transform: 'scale(0.96)' },
+          to: { opacity: '1', transform: 'scale(1)' },
+        },
+      },
+      animation: {
+        'fade-in-up': 'fade-in-up 0.3s ease-out both',
+        'fade-in-scale': 'fade-in-scale 0.5s ease-out both',
+      },
     },
   },
   plugins: [],

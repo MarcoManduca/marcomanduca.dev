@@ -19,7 +19,6 @@
     "@fontsource/jetbrains-mono": "^5.1.0",
     "@reduxjs/toolkit": "^2.5.0",
     "clsx": "^2.1.1",
-    "framer-motion": "^11.15.0",
     "highlight.js": "^11.11.1",
     "i18next": "^24.2.0",
     "i18next-browser-languagedetector": "^8.0.2",

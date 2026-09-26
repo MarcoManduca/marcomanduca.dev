@@ -1,10 +1,10 @@
 import { useTranslation } from 'react-i18next'
 
+import { DownloadCvButton } from '@/components/about/DownloadCvButton'
 import {
   EducationTimeline,
   type EducationEntry,
 } from '@/components/about/EducationTimeline'
-import { DownloadCvButton } from '@/components/about/DownloadCvButton'
 import {
   ExperienceTimeline,
   type ExperienceEntry,

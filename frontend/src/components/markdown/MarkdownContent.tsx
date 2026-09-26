@@ -3,6 +3,11 @@ import rehypeHighlight from 'rehype-highlight'
 import rehypeKatex from 'rehype-katex'
 import remarkMath from 'remark-math'
 
+// Themes live with the renderer so they ship in its lazy chunk, not in the
+// global stylesheet loaded by every page.
+import 'katex/dist/katex.min.css'
+import 'highlight.js/styles/github-dark.css'
+
 interface MarkdownContentProps {
   content: string
 }

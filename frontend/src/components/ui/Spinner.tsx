@@ -15,7 +15,10 @@ export const Spinner = ({ className }: SpinnerProps) => {
       aria-label={t('common.loading')}
       className={cn('flex items-center justify-center py-12', className)}
     >
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-edge border-t-accent" />
+      <div
+        aria-hidden
+        className="h-8 w-8 animate-spin rounded-full border-2 border-edge border-t-accent motion-reduce:animate-[spin_2s_linear_infinite]"
+      />
     </div>
   )
 }
