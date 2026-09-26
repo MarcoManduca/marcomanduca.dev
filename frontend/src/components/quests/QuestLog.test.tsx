@@ -6,6 +6,7 @@ import { renderWithProviders } from '@/test/utils'
 import { QuestLog } from './QuestLog'
 
 const panel = () => screen.getByRole('tabpanel')
+const questLinks = () => within(panel()).getAllByRole('link')
 
 describe('QuestLog', () => {
   it('opens on the active quests: current job and studies', () => {
@@ -15,17 +16,26 @@ describe('QuestLog', () => {
       'aria-selected',
       'true',
     )
-    const links = within(panel()).getAllByRole('link')
-    expect(links).toHaveLength(2)
-    expect(links[0]).toHaveTextContent(
-      'Business Data Analyst — AdKaora (Mondadori Digital)',
-    )
-    expect(links[0]).toHaveTextContent('Work')
-    expect(links[1]).toHaveTextContent('Study')
+    expect(questLinks()).toHaveLength(2)
+    expect(questLinks()[0]).toHaveTextContent('Business Data Analyst')
+    expect(questLinks()[0]).toHaveTextContent('Work')
+    expect(questLinks()[1]).toHaveTextContent('Study')
     expect(within(panel()).getByText('[Next quest]')).toBeInTheDocument()
   })
 
-  it('lists completed jobs, degrees and projects newest first', async () => {
+  it('expands active quests with guild, start, objective, boss and rewards', () => {
+    renderWithProviders(<QuestLog />)
+
+    const job = questLinks()[0]
+    expect(job).toHaveTextContent('Guild:AdKaora (Mondadori Digital)')
+    expect(job).toHaveTextContent('Started:November 2020')
+    expect(job).toHaveTextContent('Objective:')
+    expect(job).toHaveTextContent('Final Boss:')
+    expect(job).toHaveTextContent('Rewards:Python')
+    expect(job).not.toHaveTextContent('Completed:')
+  })
+
+  it('lists completed quests newest first with guild and dates only', async () => {
     renderWithProviders(<QuestLog />)
 
     await userEvent.click(screen.getByRole('tab', { name: /Completed Quests/ }))
@@ -33,10 +43,17 @@ describe('QuestLog', () => {
     expect(
       await within(panel()).findByRole('link', { name: /Data pipeline/ }),
     ).toHaveAttribute('href', '/projects/data-pipeline')
-    const years = within(panel())
-      .getAllByRole('link')
-      .map((link) => link.textContent?.match(/\d{4}$/)?.[0])
-    expect(years).toEqual(['2026', '2026', '2025', '2020', '2019'])
+    const infoEdge = within(panel()).getByRole('link', { name: /InfoEdge/ })
+    expect(infoEdge).toHaveTextContent('Started:September 2019')
+    expect(infoEdge).toHaveTextContent('Completed:November 2020')
+    expect(infoEdge).not.toHaveTextContent('Objective:')
+    expect(questLinks().map((link) => link.textContent)).toEqual([
+      expect.stringContaining('Portfolio site'),
+      expect.stringContaining('Data pipeline'),
+      expect.stringContaining('Master'),
+      expect.stringContaining('InfoEdge'),
+      expect.stringContaining('Statistics'),
+    ])
     expect(within(panel()).queryByText('[Next quest]')).not.toBeInTheDocument()
   })
 
@@ -51,8 +68,7 @@ describe('QuestLog', () => {
 
   it('switches tab with the arrow keys', async () => {
     renderWithProviders(<QuestLog />)
-    const activeTab = screen.getByRole('tab', { name: /Active Quests/ })
-    activeTab.focus()
+    screen.getByRole('tab', { name: /Active Quests/ }).focus()
 
     await userEvent.keyboard('{ArrowRight}')
 

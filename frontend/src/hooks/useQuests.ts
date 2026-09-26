@@ -4,18 +4,14 @@ import type { EducationEntry } from '@/components/about/EducationTimeline'
 import type { ExperienceEntry } from '@/components/about/ExperienceTimeline'
 import { useGetProjectsQuery } from '@/services/projectsApi'
 import type { Quest } from '@/types'
-import { endYear } from '@/utils/endYear'
 
 import { useLanguage } from './useLanguage'
 
-const SUBTITLE_TECH_COUNT = 3
+const TAGS_COUNT = 3
 
-const byYearDesc = (a: Quest, b: Quest) => (b.year ?? 0) - (a.year ?? 0)
-
-interface CvQuest {
-  current: boolean
-  quest: Quest
-}
+/** Newest completion first; `YYYY-MM` strings sort chronologically. */
+const byEndDesc = (a: Quest, b: Quest) =>
+  (b.end ?? '').localeCompare(a.end ?? '')
 
 export interface QuestLog {
   active: Quest[]
@@ -23,8 +19,8 @@ export interface QuestLog {
 }
 
 /**
- * Home quest log: CV entries flagged `current` are active; past jobs and
- * degrees plus published projects are completed, newest first.
+ * Home quest log built from the CV copy and the published projects. A CV
+ * entry without an `end` month is active; everything else is completed.
  */
 export const useQuests = (): QuestLog => {
   const { t } = useTranslation()
@@ -38,28 +34,24 @@ export const useQuests = (): QuestLog => {
     returnObjects: true,
   }) as EducationEntry[]
 
-  const cvQuests: CvQuest[] = [
-    ...experience.map((job) => ({
-      current: job.current,
-      quest: {
-        key: `work-${job.period}`,
-        kind: 'work' as const,
-        to: '/about-me',
-        title: `${job.role} — ${job.company}`,
-        subtitle: job.period,
-        year: job.current ? undefined : endYear(job.period),
-      },
+  const cvQuests: Quest[] = [
+    ...experience.map(({ start, end, role, quest }) => ({
+      key: `work-${start}`,
+      kind: 'work' as const,
+      to: '/about-me',
+      title: role,
+      start,
+      end: end ?? undefined,
+      ...quest,
     })),
-    ...education.map((study) => ({
-      current: study.current,
-      quest: {
-        key: `study-${study.period}`,
-        kind: 'study' as const,
-        to: '/about-me',
-        title: study.degree,
-        subtitle: `${study.school} · ${study.period}`,
-        year: study.current ? undefined : endYear(study.period),
-      },
+    ...education.map(({ start, end, degree, quest }) => ({
+      key: `study-${start}`,
+      kind: 'study' as const,
+      to: '/about-me',
+      title: degree,
+      start,
+      end: end ?? undefined,
+      ...quest,
     })),
   ]
   const projectQuests = projects.map((project): Quest => ({
@@ -67,15 +59,14 @@ export const useQuests = (): QuestLog => {
     kind: 'project',
     to: `/projects/${project.slug}`,
     title: localize(project.title),
-    subtitle: project.technologies.slice(0, SUBTITLE_TECH_COUNT).join(' · '),
-    year: new Date(project.created_at).getFullYear(),
+    end: project.created_at.slice(0, 7),
+    tags: project.technologies.slice(0, TAGS_COUNT).join(' · '),
   }))
 
   return {
-    active: cvQuests.filter(({ current }) => current).map(({ quest }) => quest),
-    completed: [
-      ...cvQuests.filter(({ current }) => !current).map(({ quest }) => quest),
-      ...projectQuests,
-    ].sort(byYearDesc),
+    active: cvQuests.filter(({ end }) => !end),
+    completed: [...cvQuests.filter(({ end }) => end), ...projectQuests].sort(
+      byEndDesc,
+    ),
   }
 }

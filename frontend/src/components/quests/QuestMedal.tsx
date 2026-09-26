@@ -13,11 +13,10 @@ const KIND_CLASSES: Record<QuestKind, string> = {
 
 interface QuestMedalProps {
   kind: QuestKind
-  completed?: boolean
 }
 
-/** Round badge with the quest symbol; a check marks completed quests. */
-export const QuestMedal = ({ kind, completed = false }: QuestMedalProps) => {
+/** Round badge with the symbol of the quest's domain. */
+export const QuestMedal = ({ kind }: QuestMedalProps) => {
   const { t } = useTranslation()
 
   return (
@@ -30,12 +29,6 @@ export const QuestMedal = ({ kind, completed = false }: QuestMedalProps) => {
     >
       <QuestIcon kind={kind} className="h-5 w-5 sm:h-7 sm:w-7" />
       <span className="sr-only">{t(`home.quests.types.${kind}`)}</span>
-      {completed && (
-        <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-success bg-background text-[11px] font-extrabold text-success sm:h-6 sm:w-6">
-          <span aria-hidden="true">✓</span>
-          <span className="sr-only">{t('home.quests.completedLabel')}</span>
-        </span>
-      )}
     </span>
   )
 }

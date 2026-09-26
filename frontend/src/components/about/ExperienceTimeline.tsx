@@ -1,6 +1,12 @@
+import type { QuestDetails } from '@/types'
+
 export interface ExperienceEntry {
-  /** Still in progress: shown among the active quests on the home page. */
-  current: boolean
+  /** Start month, `YYYY-MM`. */
+  start: string
+  /** Completion month, `YYYY-MM`; `null` while still in progress. */
+  end: string | null
+  /** RPG framing used by the home quest log. */
+  quest: QuestDetails
   period: string
   role: string
   company: string

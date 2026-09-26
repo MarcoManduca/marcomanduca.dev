@@ -38,10 +38,12 @@ them at runtime).
 - **Fonts.** Barlow Condensed for headings/labels (`font-display`), Barlow for
   body text, JetBrains Mono for code.
 - **Home.** Character card (profile) + quest log + skill "energies" +
-  figurines. The quest log has two tabs: _Active Quests_ (CV entries flagged
-  `current` in the locale files) and _Completed Quests_ (past jobs, degrees and
-  published projects, newest first). Each row shows the domain symbol (work,
-  study, project) and the quest name.
+  figurines. The quest log has two tabs built from the CV copy in the locale
+  files (`about.experience` / `about.education`, each with `start`/`end` months
+  and a `quest` block: guild, objective, final boss, rewards) plus the
+  published projects. Entries without an `end` are _Active Quests_ and show
+  every detail; the rest are _Completed Quests_ (guild and dates, newest
+  first). Each row carries the domain symbol (work, study, project).
 - **Game mode.** Six figurines unlocked by exploring (first visit, 3 projects,
   an article, language switch, theme switch, contact message). Progress lives
   in the `game` Redux slice, persisted to `localStorage` only (never sent to

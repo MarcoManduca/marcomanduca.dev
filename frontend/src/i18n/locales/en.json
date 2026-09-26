@@ -48,7 +48,14 @@
         "study": "Study",
         "project": "Project"
       },
-      "completedLabel": "Completed"
+      "fields": {
+        "guild": "Guild",
+        "started": "Started",
+        "completed": "Completed",
+        "objective": "Objective",
+        "boss": "Final Boss",
+        "rewards": "Rewards"
+      }
     }
   },
   "game": {
@@ -111,7 +118,8 @@
     },
     "experience": [
       {
-        "current": true,
+        "start": "2020-11",
+        "end": null,
         "period": "November 2020 — Present",
         "role": "Business Data Analyst",
         "company": "AdKaora (Mondadori Digital)",
@@ -122,10 +130,17 @@
           "Data governance: documentation of analytical processes, business metrics and BI team standards.",
           "SQL & Python analytics: scripts and queries for advanced extractions, anomaly detection, trend analysis and reporting.",
           "Dashboards & reporting: interactive Power BI dashboards for digital performance, traffic, engagement and campaign KPIs."
-        ]
+        ],
+        "quest": {
+          "guild": "AdKaora (Mondadori Digital)",
+          "objective": "Turn digital platform data into dashboards and insights for sales teams and C-level",
+          "boss": "Automate the ETL pipelines on AWS to remove manual work",
+          "rewards": "Python · SQL · AWS (S3, Athena, Lambda, Glue) · Power BI"
+        }
       },
       {
-        "current": false,
+        "start": "2019-09",
+        "end": "2020-11",
         "period": "September 2019 — November 2020",
         "role": "Business Intelligence Consultant",
         "company": "InfoEdge (Lutech)",
@@ -133,27 +148,45 @@
         "highlights": [
           "Reporting & data management: development and maintenance of SAS Viya reports with back-end and front-end data management, integrated into operational dashboards.",
           "Compliance & data governance: led a cross-functional project monitoring report access, ensuring GDPR compliance and data quality."
-        ]
+        ],
+        "quest": {
+          "guild": "InfoEdge (Lutech) · UniCredit Services"
+        }
       }
     ],
     "education": [
       {
-        "current": true,
+        "start": "2025-09",
+        "end": null,
         "period": "September 2025 — Present",
         "degree": "MSc in Data Science",
-        "school": "Università degli Studi di Milano-Bicocca"
+        "school": "Università degli Studi di Milano-Bicocca",
+        "quest": {
+          "guild": "University of Milano-Bicocca",
+          "objective": "Earn the MSc in Data Science",
+          "boss": "Master's thesis",
+          "rewards": "Machine Learning · Deep Learning · Big Data"
+        }
       },
       {
-        "current": false,
+        "start": "2024-04",
+        "end": "2025-04",
         "period": "April 2024 — April 2025",
         "degree": "1st-Level Master in Artificial Intelligence and Data Analytics for Business",
-        "school": "Università degli Studi di Milano-Bicocca"
+        "school": "Università degli Studi di Milano-Bicocca",
+        "quest": {
+          "guild": "University of Milano-Bicocca"
+        }
       },
       {
-        "current": false,
+        "start": "2015-09",
+        "end": "2019-09",
         "period": "September 2015 — September 2019",
         "degree": "BSc in Statistics",
-        "school": "Università degli Studi di Milano-Bicocca"
+        "school": "Università degli Studi di Milano-Bicocca",
+        "quest": {
+          "guild": "University of Milano-Bicocca"
+        }
       }
     ],
     "skills": {
