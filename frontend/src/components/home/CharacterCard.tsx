@@ -7,7 +7,7 @@ import { CardBack } from './CardBack'
 import { CardFront } from './CardFront'
 
 const FACE =
-  'relative flex h-full flex-col overflow-hidden rounded-[20px] [backface-visibility:hidden] [grid-area:1/1]'
+  'relative flex h-full flex-col overflow-hidden rounded-[20px] [-webkit-backface-visibility:hidden] [backface-visibility:hidden] [grid-area:1/1]'
 
 /** Circular arrow outside the card corner: the card can be turned. */
 const FlipIcon = () => (
@@ -19,7 +19,7 @@ const FlipIcon = () => (
     strokeLinecap="round"
     strokeLinejoin="round"
     aria-hidden="true"
-    className="h-6 w-6 text-muted transition-transform duration-500 group-hover:rotate-180 group-hover:text-highlight motion-reduce:transition-none"
+    className="h-6 w-6 text-heading/20"
   >
     <path d="M20 12a8 8 0 1 1-2.34-5.66" />
     <path d="M20 4v5h-5" />
@@ -39,7 +39,7 @@ export const CharacterCard = () => {
   return (
     <article
       aria-label={t('home.card.label')}
-      className="group mx-auto flex w-full max-w-[420px] flex-col gap-2 lg:-rotate-2"
+      className="mx-auto flex w-full max-w-[420px] flex-col gap-2 lg:-rotate-2"
     >
       <div className="relative [perspective:1600px]">
         <div

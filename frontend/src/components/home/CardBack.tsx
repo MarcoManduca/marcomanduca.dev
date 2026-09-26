@@ -59,7 +59,7 @@ export const CardBack = () => {
 
       <section className="relative flex flex-col gap-2 border-t-2 border-card-accent/30 pt-4 dark:border-brand-yellow/30">
         <h2 className={SECTION_TITLE}>{t('home.card.descriptionTitle')}</h2>
-        <p className="text-base leading-relaxed text-card-ink dark:text-brand-mist">
+        <p className="text-base font-medium leading-relaxed text-card-ink dark:text-brand-cream">
           {t('home.card.description')}
         </p>
       </section>
