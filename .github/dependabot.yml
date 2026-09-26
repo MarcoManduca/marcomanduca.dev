@@ -42,3 +42,8 @@ updates:
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
+      # katex is only imported for its stylesheet; rehype-katex renders with
+      # its own bundled KaTeX (0.16.x). Keep both on the same minor until
+      # rehype-katex moves on, or math markup and CSS drift apart.
+      - dependency-name: "katex"
+        versions: [">=0.17.0"]
