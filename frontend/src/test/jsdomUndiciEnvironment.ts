@@ -11,6 +11,10 @@ import type { Environment } from 'vitest/environments'
  * This environment extends the built-in jsdom environment and restores Node's
  * native `AbortController` / `AbortSignal`, captured here in the Node realm
  * before jsdom overrides them, so a single implementation is shared everywhere.
+ *
+ * Node 22+ also ships experimental Web Storage globals that are `undefined`
+ * without `--localstorage-file`; since jsdom skips globals that already exist,
+ * they would hide jsdom's working `localStorage` / `sessionStorage`.
  */
 const NativeAbortController = globalThis.AbortController
 const NativeAbortSignal = globalThis.AbortSignal
@@ -19,6 +23,8 @@ const environment: Environment = {
   name: 'jsdom-undici',
   transformMode: 'web',
   async setup(global, options) {
+    delete global.localStorage
+    delete global.sessionStorage
     const jsdom = await builtinEnvironments.jsdom.setup(global, options)
     global.AbortController = NativeAbortController
     global.AbortSignal = NativeAbortSignal
