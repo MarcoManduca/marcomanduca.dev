@@ -1,21 +1,41 @@
 """Project-wide fixtures: environment, moto AWS backend, API clients."""
 
 import os
-from collections.abc import AsyncIterator, Callable, Iterator
-from typing import Any
 
-import boto3
-import pytest
-from fastapi import FastAPI
-from httpx import ASGITransport, AsyncClient
-from moto import mock_aws
+# ``src.main`` builds the app at import time and prod (the default) refuses to
+# start without an origin secret, so the local env must be set before import.
+os.environ.setdefault("APP_ENV", "local")
 
-from src.config import get_settings
-from src.main import create_app
-from src.utils.auth import optional_admin, require_admin
-from src.utils.rate_limit import reset_contact_limiter
+from collections.abc import AsyncIterator, Callable, Iterator  # noqa: E402
+from typing import Any  # noqa: E402
+
+import boto3  # noqa: E402
+import pytest  # noqa: E402
+from fastapi import FastAPI  # noqa: E402
+from httpx import ASGITransport, AsyncClient  # noqa: E402
+from moto import mock_aws  # noqa: E402
+
+from src.config import get_settings  # noqa: E402
+from src.main import create_app  # noqa: E402
+from src.services.contact_service import get_contact_service  # noqa: E402
+from src.services.learning_service import get_learning_service  # noqa: E402
+from src.services.media_service import get_media_service  # noqa: E402
+from src.services.project_service import get_project_service  # noqa: E402
+from src.services.technology_service import get_technology_service  # noqa: E402
+from src.utils.auth import optional_admin, require_admin  # noqa: E402
+from src.utils.aws_clients import clear_aws_caches  # noqa: E402
+from src.utils.rate_limit import reset_contact_limiter  # noqa: E402
+
+_SERVICE_FACTORIES = (
+    get_contact_service,
+    get_learning_service,
+    get_media_service,
+    get_project_service,
+    get_technology_service,
+)
 
 _TEST_ENV = {
+    "APP_ENV": "local",
     "AWS_ACCESS_KEY_ID": "testing",
     "AWS_SECRET_ACCESS_KEY": "testing",
     "AWS_SECURITY_TOKEN": "testing",
@@ -38,13 +58,20 @@ _TEST_ENV = {
 
 @pytest.fixture(autouse=True)
 def test_environment(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
-    """Isolate settings and limiter state for every test."""
+    """Isolate settings, cached AWS objects and limiter state per test."""
     for key, value in _TEST_ENV.items():
         monkeypatch.setenv(key, value)
-    get_settings.cache_clear()
-    reset_contact_limiter()
+    _clear_caches()
     yield
+    _clear_caches()
+
+
+def _clear_caches() -> None:
+    """Drop cached settings, boto3 objects, services and the limiter."""
     get_settings.cache_clear()
+    clear_aws_caches()
+    for factory in _SERVICE_FACTORIES:
+        factory.cache_clear()
     reset_contact_limiter()
 
 

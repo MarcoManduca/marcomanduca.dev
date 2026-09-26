@@ -97,3 +97,101 @@ async def test_submit_contact_returns_429_over_rate_limit(
     assert first.status_code == 202
     assert second.status_code == 202
     assert third.status_code == 429
+
+
+@pytest.fixture
+def limited_client(
+    app: FastAPI, contact_stub: _StubContactService, monkeypatch: pytest.MonkeyPatch
+) -> AsyncClient:
+    """Client whose contact limit is one request per IP per window."""
+    monkeypatch.setenv("CONTACT_RATE_LIMIT_MAX_REQUESTS", "1")
+    get_settings.cache_clear()
+    reset_contact_limiter()
+    return AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
+
+
+async def test_submit_contact_ignores_spoofed_forwarded_for(
+    limited_client: AsyncClient,
+) -> None:
+    # Act: rotating X-Forwarded-For must not create fresh buckets.
+    async with limited_client as client:
+        first = await client.post(
+            "/api/v1/contact",
+            json=_VALID_PAYLOAD,
+            headers={"X-Forwarded-For": "1.1.1.1"},
+        )
+        second = await client.post(
+            "/api/v1/contact",
+            json=_VALID_PAYLOAD,
+            headers={"X-Forwarded-For": "2.2.2.2"},
+        )
+
+    # Assert
+    assert first.status_code == 202
+    assert second.status_code == 429
+
+
+async def test_submit_contact_buckets_by_viewer_ip(
+    limited_client: AsyncClient,
+) -> None:
+    # Act
+    async with limited_client as client:
+        first = await client.post(
+            "/api/v1/contact", json=_VALID_PAYLOAD, headers={"X-Viewer-Ip": "1.1.1.1"}
+        )
+        other_viewer = await client.post(
+            "/api/v1/contact", json=_VALID_PAYLOAD, headers={"X-Viewer-Ip": "2.2.2.2"}
+        )
+        same_viewer = await client.post(
+            "/api/v1/contact", json=_VALID_PAYLOAD, headers={"X-Viewer-Ip": "1.1.1.1"}
+        )
+
+    # Assert
+    assert first.status_code == 202
+    assert other_viewer.status_code == 202
+    assert same_viewer.status_code == 429
+
+
+async def test_submit_contact_returns_429_when_daily_cap_is_reached(
+    app: FastAPI,
+    contact_stub: _StubContactService,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Arrange
+    monkeypatch.setenv("CONTACT_RATE_LIMIT_DAILY_MAX", "1")
+    get_settings.cache_clear()
+    reset_contact_limiter()
+    transport = ASGITransport(app=app)
+
+    # Act
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        first = await client.post(
+            "/api/v1/contact", json=_VALID_PAYLOAD, headers={"X-Viewer-Ip": "1.1.1.1"}
+        )
+        second = await client.post(
+            "/api/v1/contact", json=_VALID_PAYLOAD, headers={"X-Viewer-Ip": "2.2.2.2"}
+        )
+
+    # Assert
+    assert first.status_code == 202
+    assert second.status_code == 429
+
+
+async def test_submit_contact_returns_503_when_rate_limit_backend_fails(
+    app: FastAPI,
+    contact_stub: _StubContactService,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Arrange: point the limiter at a table that does not exist.
+    monkeypatch.setenv("RATELIMIT_TABLE_NAME", "missing-table")
+    get_settings.cache_clear()
+    reset_contact_limiter()
+    transport = ASGITransport(app=app)
+
+    # Act
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.post("/api/v1/contact", json=_VALID_PAYLOAD)
+
+    # Assert
+    assert response.status_code == 503
+    assert contact_stub.sent == []

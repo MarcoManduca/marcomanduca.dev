@@ -37,6 +37,7 @@ def token_factory(rsa_key: RSAPrivateKey) -> Callable[..., str]:
             "client_id": "test-client-id",
             "token_use": "access",
             "username": "marco",
+            "iat": int(time.time()),
             "exp": int(time.time()) + 3600,
         }
         claims.update(overrides)
@@ -188,3 +189,76 @@ def test_optional_admin_returns_none_for_non_admin_token(
 
     # Assert
     assert result is None
+
+
+def _claims_without(*names: str) -> dict[str, Any]:
+    """Valid access-token claims minus the given claim names."""
+    now = int(time.time())
+    claims: dict[str, Any] = {
+        "iss": _ISSUER,
+        "client_id": "test-client-id",
+        "token_use": "access",
+        "iat": now,
+        "exp": now + 3600,
+    }
+    return {key: value for key, value in claims.items() if key not in names}
+
+
+@pytest.mark.parametrize("missing", ["exp", "iat", "iss", "client_id", "token_use"])
+def test_decode_token_raises_401_when_required_claim_is_missing(
+    rsa_key: RSAPrivateKey, missing: str
+) -> None:
+    # Arrange
+    token = jwt.encode(_claims_without(missing), rsa_key, algorithm="RS256")
+
+    # Act / Assert
+    with pytest.raises(HTTPException) as exc_info:
+        decode_token(token)
+    assert exc_info.value.status_code == 401
+
+
+def test_decode_token_raises_401_on_unsigned_alg_none_token() -> None:
+    # Arrange
+    token = jwt.encode(_claims_without(), key=None, algorithm="none")
+
+    # Act / Assert
+    with pytest.raises(HTTPException) as exc_info:
+        decode_token(token)
+    assert exc_info.value.status_code == 401
+
+
+def test_decode_token_raises_401_on_hs256_token() -> None:
+    # Arrange: symmetric signature, as in an algorithm-confusion attack.
+    token = jwt.encode(_claims_without(), "a-shared-secret-of-32-bytes-min!", "HS256")
+
+    # Act / Assert
+    with pytest.raises(HTTPException) as exc_info:
+        decode_token(token)
+    assert exc_info.value.status_code == 401
+
+
+def test_decode_token_raises_401_on_tampered_payload(
+    token_factory: Callable[..., str],
+) -> None:
+    # Arrange: swap the payload of a valid token for an admin one.
+    header, _, signature = token_factory().split(".")
+    forged_payload = token_factory(**{"cognito:groups": ["Administrators"]}).split(".")[
+        1
+    ]
+    token = f"{header}.{forged_payload}.{signature}"
+
+    # Act / Assert
+    with pytest.raises(HTTPException) as exc_info:
+        decode_token(token)
+    assert exc_info.value.status_code == 401
+
+
+def test_decode_token_raises_401_on_token_signed_by_another_key() -> None:
+    # Arrange
+    other_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    token = jwt.encode(_claims_without(), other_key, algorithm="RS256")
+
+    # Act / Assert
+    with pytest.raises(HTTPException) as exc_info:
+        decode_token(token)
+    assert exc_info.value.status_code == 401

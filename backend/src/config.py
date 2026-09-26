@@ -1,8 +1,21 @@
 """Environment-based application settings."""
 
+from enum import StrEnum
 from functools import lru_cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class AppEnv(StrEnum):
+    """Deployment environment the application runs in.
+
+    ``PROD`` is the fail-secure default: API docs are disabled and the
+    CloudFront origin secret is mandatory. ``LOCAL`` relaxes both for
+    development (docker-compose, tests).
+    """
+
+    LOCAL = "local"
+    PROD = "prod"
 
 
 class Settings(BaseSettings):
@@ -14,6 +27,8 @@ class Settings(BaseSettings):
     """
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+
+    app_env: AppEnv = AppEnv.PROD
 
     aws_region: str = "eu-west-1"
     dynamodb_endpoint_url: str | None = None
@@ -35,12 +50,25 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:5173"
 
     # Shared secret CloudFront injects in the X-Origin-Verify header so the
-    # Lambda Function URL (public) only serves requests that came through the
-    # CDN. Empty disables the check (local development).
+    # API Gateway HTTP API (publicly reachable) only serves requests that came
+    # through the CDN. Mandatory in prod; empty disables the check locally.
     origin_verify_secret: str = ""
 
     contact_rate_limit_max_requests: int = 5
     contact_rate_limit_window_seconds: int = 900
+    # Site-wide cap on contact submissions per UTC day, across all IPs.
+    contact_rate_limit_daily_max: int = 50
+
+    @property
+    def is_prod(self) -> bool:
+        """Report whether the app runs in the production environment.
+
+        Returns
+        -------
+        bool
+            ``True`` when ``app_env`` is :attr:`AppEnv.PROD`.
+        """
+        return self.app_env is AppEnv.PROD
 
     @property
     def cors_origin_list(self) -> list[str]:

@@ -1,5 +1,6 @@
 """Business logic for the technologies catalogue."""
 
+from functools import lru_cache
 from typing import Any
 
 from src.models.technologies_table import TechnologiesTable
@@ -79,12 +80,16 @@ class TechnologyService:
         self._table.delete(tech_id)
 
 
+@lru_cache
 def get_technology_service() -> TechnologyService:
-    """Build a request-scoped :class:`TechnologyService`.
+    """Return the cached :class:`TechnologyService`.
+
+    Built once per execution environment so boto3 objects are reused
+    across requests; tests clear it with ``cache_clear()``.
 
     Returns
     -------
     TechnologyService
-        Service bound to a fresh table wrapper.
+        Shared service instance.
     """
     return TechnologyService(TechnologiesTable())

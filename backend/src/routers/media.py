@@ -27,7 +27,8 @@ def presign_upload(
     Parameters
     ----------
     payload : PresignUploadRequest
-        Destination prefix, filename and MIME type.
+        Destination prefix, filename, allowlisted MIME type and optional
+        exact size (signed into the URL when provided).
     service : MediaService
         Injected media service.
 
@@ -44,12 +45,17 @@ def presign_download(
     key: str = Query(min_length=1, max_length=512),
     service: MediaService = Depends(get_media_service),
 ) -> PresignDownloadResponse:
-    """Issue a presigned GET URL for a stored media object.
+    """Issue a presigned GET URL for a public media object.
+
+    Deliberately unauthenticated: the public About page downloads the CV
+    through it. Only the CV key (``cv/cv.pdf``) and server-generated image
+    keys (``images/<projects|learning>/<uuid>-<slug>.<ext>``) are signed;
+    anything else is rejected with 400.
 
     Parameters
     ----------
     key : str
-        S3 object key under an allowed media prefix.
+        S3 object key in one of the downloadable formats.
     service : MediaService
         Injected media service.
 

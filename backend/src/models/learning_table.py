@@ -10,7 +10,13 @@ from typing import Any
 from boto3.dynamodb.conditions import Key
 
 from src.config import get_settings
-from src.models.base import get_dynamodb_resource, put_if_absent, scan_all, to_native
+from src.models.base import (
+    get_dynamodb_resource,
+    put_if_absent,
+    query_all,
+    scan_all,
+    to_native,
+)
 
 
 class LearningTable:
@@ -93,11 +99,11 @@ class LearningTable:
         list[dict[str, Any]]
             Version items in descending version order.
         """
-        response = self._table.query(
+        return query_all(
+            self._table,
             KeyConditionExpression=Key("slug").eq(slug),
             ScanIndexForward=False,
         )
-        return [to_native(item) for item in response.get("Items", [])]
 
     def delete_all_versions(self, slug: str) -> int:
         """Delete every version of an article.
@@ -112,7 +118,13 @@ class LearningTable:
         int
             Number of deleted version items.
         """
-        versions = self.list_versions(slug)
+        # Only the sort key is needed: avoid reading full markdown bodies.
+        versions = query_all(
+            self._table,
+            KeyConditionExpression=Key("slug").eq(slug),
+            ProjectionExpression="#version",
+            ExpressionAttributeNames={"#version": "version"},
+        )
         with self._table.batch_writer() as batch:
             for item in versions:
                 batch.delete_item(Key={"slug": slug, "version": item["version"]})

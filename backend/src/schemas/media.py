@@ -4,6 +4,9 @@ from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
+# Upper bound for a single upload (images and the CV PDF).
+MAX_UPLOAD_BYTES = 10 * 1024 * 1024
+
 
 class MediaPrefix(StrEnum):
     """Allowed S3 key prefixes for uploads."""
@@ -21,14 +24,18 @@ class PresignUploadRequest(BaseModel):
     prefix : MediaPrefix
         Destination prefix inside the media bucket.
     filename : str
-        Original file name; it is sanitised before use.
+        Original file name; only a sanitised stem is kept.
     content_type : str
-        MIME type the client will send on upload.
+        MIME type the client will send on upload (allowlisted per prefix).
+    content_length : int or None
+        Optional exact size in bytes (at most 10 MB). When provided it is
+        signed into the URL, so S3 rejects a body of any other size.
     """
 
     prefix: MediaPrefix
     filename: str = Field(min_length=1, max_length=255)
     content_type: str = Field(min_length=1, max_length=128)
+    content_length: int | None = Field(default=None, ge=1, le=MAX_UPLOAD_BYTES)
 
 
 class PresignUploadResponse(BaseModel):

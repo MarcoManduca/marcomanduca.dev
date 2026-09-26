@@ -2,7 +2,15 @@
 
 from pydantic import BaseModel, Field, field_validator
 
-from src.schemas.common import LocalizedText, PublicationStatus
+from src.schemas.common import (
+    URL_MAX_LENGTH,
+    LocalizedMarkdown,
+    LocalizedSummary,
+    LocalizedTitle,
+    MediaRef,
+    PublicationStatus,
+    TechnologyId,
+)
 
 _ALLOWED_URL_SCHEMES = ("http://", "https://")
 
@@ -36,14 +44,18 @@ class ProjectBase(BaseModel):
 
     Attributes
     ----------
-    title, description, content_markdown : LocalizedText
-        Bilingual content (Italian / English).
+    title : LocalizedTitle
+        Bilingual title (Italian / English).
+    description : LocalizedSummary
+        Bilingual short description.
+    content_markdown : LocalizedMarkdown
+        Bilingual markdown body.
     technologies : list[str]
-        Identifiers from the technologies table.
+        Identifiers from the technologies table (at most 30).
     category : str
         Free-form project category.
     images : list[str]
-        S3 object keys of project images.
+        Image URLs or S3 object keys (at most 20).
     github_url : str
         Repository URL.
     demo_url : str or None
@@ -52,14 +64,14 @@ class ProjectBase(BaseModel):
         Publication lifecycle state.
     """
 
-    title: LocalizedText
-    description: LocalizedText
-    content_markdown: LocalizedText
-    technologies: list[str] = Field(default_factory=list)
+    title: LocalizedTitle
+    description: LocalizedSummary
+    content_markdown: LocalizedMarkdown
+    technologies: list[TechnologyId] = Field(default_factory=list, max_length=30)
     category: str = Field(min_length=1, max_length=64)
-    images: list[str] = Field(default_factory=list)
-    github_url: str = Field(min_length=1, max_length=512)
-    demo_url: str | None = None
+    images: list[MediaRef] = Field(default_factory=list, max_length=20)
+    github_url: str = Field(min_length=1, max_length=URL_MAX_LENGTH)
+    demo_url: str | None = Field(default=None, max_length=URL_MAX_LENGTH)
     status: PublicationStatus = PublicationStatus.DRAFT
 
     _validate_urls = field_validator("github_url", "demo_url")(_require_http_url)

@@ -4,7 +4,12 @@ from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
-from src.schemas.common import LocalizedText, PublicationStatus
+from src.schemas.common import (
+    LocalizedMarkdown,
+    LocalizedTitle,
+    PublicationStatus,
+    Tag,
+)
 
 
 class LearningCategory(StrEnum):
@@ -22,20 +27,22 @@ class ArticleBase(BaseModel):
 
     Attributes
     ----------
-    title, content_markdown : LocalizedText
-        Bilingual markdown content.
+    title : LocalizedTitle
+        Bilingual title.
+    content_markdown : LocalizedMarkdown
+        Bilingual markdown body.
     category : LearningCategory
         Knowledge-base category.
     tags : list[str]
-        Free-form tags.
+        Free-form tags (at most 20, 1-40 chars each).
     status : PublicationStatus
         Publication lifecycle state.
     """
 
-    title: LocalizedText
-    content_markdown: LocalizedText
+    title: LocalizedTitle
+    content_markdown: LocalizedMarkdown
     category: LearningCategory
-    tags: list[str] = Field(default_factory=list)
+    tags: list[Tag] = Field(default_factory=list, max_length=20)
     status: PublicationStatus = PublicationStatus.DRAFT
 
 

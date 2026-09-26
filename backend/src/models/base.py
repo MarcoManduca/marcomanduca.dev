@@ -3,14 +3,16 @@
 from decimal import Decimal
 from typing import Any
 
-import boto3
 from botocore.exceptions import ClientError
 
 from src.config import get_settings
+from src.utils.aws_clients import get_resource
+
+_CONDITION_FAILED = "ConditionalCheckFailedException"
 
 
 def get_dynamodb_resource() -> Any:
-    """Build a boto3 DynamoDB resource from the current settings.
+    """Return the cached boto3 DynamoDB resource for the current settings.
 
     ``DYNAMODB_ENDPOINT_URL`` (when set) points the resource at a local
     DynamoDB instance for development and manual testing.
@@ -21,10 +23,7 @@ def get_dynamodb_resource() -> Any:
         A ``boto3.resources.factory.dynamodb.ServiceResource``.
     """
     settings = get_settings()
-    kwargs: dict[str, Any] = {"region_name": settings.aws_region}
-    if settings.dynamodb_endpoint_url:
-        kwargs["endpoint_url"] = settings.dynamodb_endpoint_url
-    return boto3.resource("dynamodb", **kwargs)
+    return get_resource("dynamodb", settings.aws_region, settings.dynamodb_endpoint_url)
 
 
 def to_native(value: Any) -> Any:
@@ -84,10 +83,33 @@ def scan_all(table: Any) -> list[dict[str, Any]]:
     list[dict[str, Any]]
         All items, with numeric types converted to native Python.
     """
+    return _paginate(table.scan)
+
+
+def query_all(table: Any, **kwargs: Any) -> list[dict[str, Any]]:
+    """Run a query and return every matching item, following pagination.
+
+    Parameters
+    ----------
+    table : Any
+        A boto3 DynamoDB ``Table`` resource.
+    **kwargs : Any
+        Arguments forwarded to ``Table.query`` on every page (key
+        condition, projection, ordering, ...).
+
+    Returns
+    -------
+    list[dict[str, Any]]
+        All matching items, with numeric types converted to native Python.
+    """
+    return _paginate(table.query, **kwargs)
+
+
+def _paginate(operation: Any, **kwargs: Any) -> list[dict[str, Any]]:
+    """Call a scan/query operation page by page until exhausted."""
     items: list[dict[str, Any]] = []
-    kwargs: dict[str, Any] = {}
     while True:
-        response = table.scan(**kwargs)
+        response = operation(**kwargs)
         items.extend(response.get("Items", []))
         last_key = response.get("LastEvaluatedKey")
         if not last_key:
@@ -113,13 +135,67 @@ def put_if_absent(table: Any, item: dict[str, Any], key_name: str) -> bool:
     bool
         ``True`` on success, ``False`` when the item already exists.
     """
+    return _conditional(
+        table.put_item,
+        Item=item,
+        ConditionExpression=f"attribute_not_exists({key_name})",
+    )
+
+
+def put_if_present(table: Any, item: dict[str, Any], key_name: str) -> bool:
+    """Overwrite an item only when its key attribute already exists.
+
+    Parameters
+    ----------
+    table : Any
+        A boto3 DynamoDB ``Table`` resource.
+    item : dict[str, Any]
+        Full item to store.
+    key_name : str
+        Name of the key attribute guarded by the conditional write.
+
+    Returns
+    -------
+    bool
+        ``True`` on success, ``False`` when the item does not exist.
+    """
+    return _conditional(
+        table.put_item,
+        Item=item,
+        ConditionExpression=f"attribute_exists({key_name})",
+    )
+
+
+def delete_if_present(table: Any, key: dict[str, Any], key_name: str) -> bool:
+    """Delete an item only when it exists.
+
+    Parameters
+    ----------
+    table : Any
+        A boto3 DynamoDB ``Table`` resource.
+    key : dict[str, Any]
+        Primary key of the item to delete.
+    key_name : str
+        Name of the key attribute guarded by the conditional delete.
+
+    Returns
+    -------
+    bool
+        ``True`` on success, ``False`` when the item does not exist.
+    """
+    return _conditional(
+        table.delete_item,
+        Key=key,
+        ConditionExpression=f"attribute_exists({key_name})",
+    )
+
+
+def _conditional(operation: Any, **kwargs: Any) -> bool:
+    """Run a conditional write, mapping a failed condition to ``False``."""
     try:
-        table.put_item(
-            Item=item,
-            ConditionExpression=f"attribute_not_exists({key_name})",
-        )
+        operation(**kwargs)
     except ClientError as exc:
-        if exc.response["Error"]["Code"] == "ConditionalCheckFailedException":
+        if exc.response["Error"]["Code"] == _CONDITION_FAILED:
             return False
         raise
     return True

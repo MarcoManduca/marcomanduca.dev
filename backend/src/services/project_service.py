@@ -1,5 +1,6 @@
 """Business logic for portfolio projects."""
 
+from functools import lru_cache
 from typing import Any
 
 from src.models.projects_table import ProjectsTable
@@ -160,7 +161,8 @@ class ProjectService:
             "created_at": existing["created_at"],
             "updated_at": utc_now_iso(),
         }
-        self._table.put(item)
+        if not self._table.replace_if_exists(item):
+            raise NotFoundError(f"Project '{slug}' not found.")
         return item
 
     def delete_project(self, slug: str) -> None:
@@ -176,9 +178,8 @@ class ProjectService:
         NotFoundError
             When the project does not exist.
         """
-        if self._table.get(slug) is None:
+        if not self._table.delete_if_exists(slug):
             raise NotFoundError(f"Project '{slug}' not found.")
-        self._table.delete(slug)
 
 
 def _matches_search(item: dict[str, Any], search: str) -> bool:
@@ -191,12 +192,16 @@ def _matches_search(item: dict[str, Any], search: str) -> bool:
     return any(needle in str(text).lower() for text in haystacks)
 
 
+@lru_cache
 def get_project_service() -> ProjectService:
-    """Build a request-scoped :class:`ProjectService`.
+    """Return the cached :class:`ProjectService`.
+
+    Built once per execution environment so boto3 objects are reused
+    across requests; tests clear it with ``cache_clear()``.
 
     Returns
     -------
     ProjectService
-        Service bound to a fresh table wrapper.
+        Shared service instance.
     """
     return ProjectService(ProjectsTable())

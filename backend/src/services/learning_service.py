@@ -1,5 +1,6 @@
 """Business logic for learning articles, including versioning."""
 
+from functools import lru_cache
 from typing import Any
 
 from src.models.learning_table import LearningTable
@@ -250,12 +251,16 @@ class LearningService:
             raise NotFoundError(f"Article '{slug}' not found.")
 
 
+@lru_cache
 def get_learning_service() -> LearningService:
-    """Build a request-scoped :class:`LearningService`.
+    """Return the cached :class:`LearningService`.
+
+    Built once per execution environment so boto3 objects are reused
+    across requests; tests clear it with ``cache_clear()``.
 
     Returns
     -------
     LearningService
-        Service bound to a fresh table wrapper.
+        Shared service instance.
     """
     return LearningService(LearningTable())

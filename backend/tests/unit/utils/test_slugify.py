@@ -14,6 +14,14 @@ from src.utils.slugify import slugify
         ("MiXeD_Case 123", "mixed-case-123"),
         ("perché---no", "perche-no"),
         ("!!!", ""),
+        ("C", "c"),
+        ("C++", "cplusplus"),
+        ("C#", "csharp"),
+        ("F#", "fsharp"),
+        ("Notepad++", "notepadplusplus"),
+        ("C++ and C# Basics", "cplusplus-and-csharp-basics"),
+        ("A + B", "a-b"),
+        ("Tip #1", "tip-1"),
     ],
 )
 def test_slugify_normalizes_text(text: str, expected: str) -> None:

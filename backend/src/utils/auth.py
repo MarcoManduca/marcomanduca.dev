@@ -1,8 +1,10 @@
 """AWS Cognito JWT validation dependencies.
 
-Access tokens are verified against the user pool JWKS (signature,
-issuer, ``token_use`` and ``client_id`` claims). Admin-only routes also
-require membership of the ``Administrators`` Cognito group.
+Access tokens are verified against the user pool JWKS (RS256 signature,
+issuer, expiry, ``token_use`` and ``client_id`` claims); the ``exp``,
+``iat``, ``iss``, ``client_id`` and ``token_use`` claims are mandatory.
+Admin-only routes also require membership of the ``Administrators``
+Cognito group.
 """
 
 from functools import lru_cache
@@ -15,6 +17,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from src.config import Settings, get_settings
 
 ADMIN_GROUP = "Administrators"
+_REQUIRED_CLAIMS = ["exp", "iat", "iss", "client_id", "token_use"]
 
 _bearer = HTTPBearer()
 _optional_bearer = HTTPBearer(auto_error=False)
@@ -66,7 +69,8 @@ def decode_token(token: str) -> dict[str, Any]:
             _get_signing_key(token),
             algorithms=["RS256"],
             issuer=_issuer(settings),
-            options={"verify_aud": False},
+            # Cognito access tokens carry ``client_id`` instead of ``aud``.
+            options={"verify_aud": False, "require": _REQUIRED_CLAIMS},
         )
     except jwt.PyJWTError as exc:
         raise _unauthorized("Invalid authentication token.") from exc

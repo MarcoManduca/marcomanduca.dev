@@ -2,6 +2,7 @@
 
 from collections.abc import Callable
 from typing import Any
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -64,7 +65,7 @@ def test_list_projects_tolerates_items_without_created_at(
 ) -> None:
     # Arrange: a legacy item stored without a created_at timestamp.
     service.create_project(ProjectCreate(**project_payload_factory()))
-    service._table.put(
+    service._table.put_if_absent(
         {"slug": "legacy", "status": "published", "title": {"it": "L", "en": "L"}}
     )
 
@@ -245,3 +246,47 @@ def test_delete_project_raises_not_found_on_missing_slug(
     # Act / Assert
     with pytest.raises(NotFoundError):
         service.delete_project("missing")
+
+
+def test_update_project_raises_not_found_when_deleted_concurrently(
+    project_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange: the read sees the project, the conditional write does not.
+    table = MagicMock(spec=ProjectsTable)
+    table.get.return_value = {"slug": "demo-project", "created_at": "2026-01-01"}
+    table.replace_if_exists.return_value = False
+    payload = ProjectUpdate(**project_payload_factory())
+
+    # Act / Assert
+    with pytest.raises(NotFoundError):
+        ProjectService(table).update_project("demo-project", payload)
+
+
+def test_update_project_does_not_recreate_a_deleted_project(
+    service: ProjectService,
+    project_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange
+    service.create_project(ProjectCreate(**project_payload_factory()))
+    item = project_payload_factory() | {"slug": "demo-project"}
+    service._table.delete_if_exists("demo-project")
+
+    # Act
+    written = service._table.replace_if_exists(item)
+
+    # Assert
+    assert written is False
+    assert service._table.get("demo-project") is None
+
+
+def test_delete_project_uses_a_single_conditional_delete() -> None:
+    # Arrange
+    table = MagicMock(spec=ProjectsTable)
+    table.delete_if_exists.return_value = True
+
+    # Act
+    ProjectService(table).delete_project("demo-project")
+
+    # Assert
+    table.delete_if_exists.assert_called_once_with("demo-project")
+    table.get.assert_not_called()

@@ -58,3 +58,24 @@ async def test_request_allowed_when_secret_set_and_header_matches(
 
     # Assert
     assert response.status_code == 200
+
+
+@pytest.mark.parametrize(
+    "header", [b"wrong", b"s3cre", b"s3cret-extra", "sécret".encode()]
+)
+async def test_request_rejected_when_header_does_not_match(
+    aws_backend: None, monkeypatch: pytest.MonkeyPatch, header: bytes
+) -> None:
+    # Arrange
+    monkeypatch.setenv("ORIGIN_VERIFY_SECRET", "s3cret")
+    get_settings.cache_clear()
+    app = create_app()
+
+    # Act
+    async with await _client(app) as client:
+        response = await client.get(
+            "/api/v1/health", headers={"X-Origin-Verify": header}
+        )
+
+    # Assert
+    assert response.status_code == 403

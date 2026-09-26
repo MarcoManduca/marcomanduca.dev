@@ -14,9 +14,21 @@ belonging to the `Administrators` group.
 - **Storage**: DynamoDB (on-demand) for content, S3 for media.
 - **Auth**: Cognito JWT validation (JWKS, PyJWT) in `src/utils/auth.py`.
 - **Email**: AWS SES for contact form delivery.
-- **Anti-spam**: honeypot field + per-IP fixed-window rate limit backed by a
-  DynamoDB TTL table (`src/utils/rate_limit.py`), so the limit is shared
-  across Lambda invocations and survives cold starts.
+- **Anti-spam**: honeypot field + per-IP fixed-window rate limit and a
+  site-wide daily cap, backed by a DynamoDB TTL table
+  (`src/utils/rate_limit.py`), so the limits are shared across Lambda
+  invocations and survive cold starts. The limiter fails closed (503) if
+  DynamoDB is unavailable.
+- **Client IP**: taken from the `x-viewer-ip` header, which a CloudFront
+  viewer-request function on `/api/*` overwrites with the real viewer IP.
+  `X-Forwarded-For` is never trusted. Locally (no CloudFront) the socket peer
+  address is used.
+- **Origin lock**: CloudFront adds an `X-Origin-Verify` secret; the API
+  Gateway endpoint rejects requests without it (constant-time comparison).
+- **Environments**: `APP_ENV=prod` (default, fail-secure) disables `/docs`,
+  `/redoc` and `/openapi.json` and refuses to start without
+  `ORIGIN_VERIFY_SECRET`. `APP_ENV=local` (docker-compose, tests) keeps the
+  docs and allows an empty secret.
 
 ## Endpoints
 
@@ -40,9 +52,20 @@ belonging to the `Administrators` group.
 | DELETE | `/api/v1/technologies/{id}` | admin | Delete technology |
 | POST | `/api/v1/contact` | public | Contact form (honeypot + rate limit) |
 | POST | `/api/v1/media/presign` | admin | Presigned S3 PUT URL |
-| GET | `/api/v1/media/url?key=...` | public | Presigned S3 GET URL |
+| GET | `/api/v1/media/url?key=...` | public | Presigned S3 GET URL (CV and generated image keys only) |
 
 \* Authenticated administrators also see `draft`/`archived` content.
+
+### Media uploads
+
+`POST /media/presign` returns a presigned **PUT** URL. Allowed content types:
+`image/png`, `image/jpeg`, `image/webp`, `image/gif` under the image prefixes,
+and `application/pdf` under `cv/` (SVG is rejected). The object key is
+generated server side (`<prefix><uuid>-<slug>.<ext>`, extension derived from
+the content type; the CV is always `cv/cv.pdf`). The optional
+`content_length` field (bytes, max 10 MB) is signed into the URL so S3
+rejects any other body size; clients that omit it get no size enforcement,
+so the admin UI should send `file.size`.
 
 ## Environment variables
 
@@ -63,9 +86,11 @@ See `.env.example` for the full annotated list.
 | `SES_SENDER_EMAIL` | Verified SES sender | `noreply@marcomanduca.dev` |
 | `SES_RECIPIENT_EMAIL` | Contact form recipient | `owner@marcomanduca.dev` |
 | `CORS_ORIGINS` | Comma-separated origins | `http://localhost:5173` |
-| `ORIGIN_VERIFY_SECRET` | CloudFront `X-Origin-Verify` secret (empty disables the check) | empty |
+| `APP_ENV` | `local` or `prod` (see Architecture) | `prod` |
+| `ORIGIN_VERIFY_SECRET` | CloudFront `X-Origin-Verify` secret (required in prod; empty disables the check locally) | empty |
 | `CONTACT_RATE_LIMIT_MAX_REQUESTS` | Requests per window per IP | `5` |
 | `CONTACT_RATE_LIMIT_WINDOW_SECONDS` | Window length | `900` |
+| `CONTACT_RATE_LIMIT_DAILY_MAX` | Accepted contact submissions per UTC day, all IPs | `50` |
 
 ## Local development
 
@@ -84,7 +109,7 @@ docker run -d -p 8001:8000 amazon/dynamodb-local
 uvicorn src.main:app --reload --port 8000
 ```
 
-OpenAPI docs: `http://localhost:8000/docs`.
+OpenAPI docs (only with `APP_ENV=local`): `http://localhost:8000/docs`.
 
 ## Testing
 
@@ -98,9 +123,9 @@ pytest tests/unit/
 # Only integration tests
 pytest -m integration
 
-# Lint and format
-ruff check src tests
-ruff format src tests
+# Lint and format (includes pydocstyle "D" with numpy convention and bandit "S")
+ruff check .
+ruff format .
 ```
 
 AWS services are mocked with `moto`; no credentials or network access
@@ -113,8 +138,23 @@ docker build -t marcomanduca-backend .
 docker run --rm -p 8000:8000 --env-file .env marcomanduca-backend
 ```
 
-Multi-stage build on `python:3.12-slim`, runs as a non-root user, no
-secrets baked into the image.
+Multi-stage build on `python:3.12.14-slim` pinned by digest, runs as a
+non-root user, no secrets baked into the image. Dependencies are installed
+from `requirements.lock` with `--require-hashes`.
+
+## Dependency lockfile
+
+`pyproject.toml` declares compatible ranges; `requirements.lock` pins the
+exact runtime set (transitive dependencies included) with hashes, resolved
+for the Lambda target (Python 3.12, Linux arm64). Regenerate it after
+changing runtime dependencies, then sync your venv to it:
+
+```bash
+pip install uv  # once, inside the venv
+uv pip compile pyproject.toml --generate-hashes --python-version 3.12 \
+  --python-platform aarch64-manylinux_2_28 -o requirements.lock
+uv pip install --require-hashes -r requirements.lock
+```
 
 ## Dependency justification
 
