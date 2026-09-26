@@ -15,7 +15,7 @@ describe('Home', () => {
       screen.getByRole('heading', { level: 1, name: 'Marco Manduca' }),
     ).toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: 'Flip the card: show the back' }),
+      screen.getByRole('button', { name: 'Flip the character card' }),
     ).toBeInTheDocument()
   })
 

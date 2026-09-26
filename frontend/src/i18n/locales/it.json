@@ -26,9 +26,7 @@
       "portraitAlt": "Ritratto di Marco Manduca",
       "level": "LV 5+",
       "levelLabel": "Livello: oltre 5 anni di esperienza",
-      "showBack": "Gira la carta: mostra il retro",
-      "showFront": "Gira la carta: mostra il fronte",
-      "flipHint": "Gira la carta",
+      "flip": "Gira la carta personaggio",
       "skillsTitle": "Abilità",
       "skills": [
         {
@@ -85,6 +83,10 @@
       "firstStep": {
         "name": "Primo passo",
         "hint": "Entra nel sito"
+      },
+      "curious": {
+        "name": "Curioso",
+        "hint": "Gira la carta personaggio"
       },
       "explorer": {
         "name": "Esploratore",

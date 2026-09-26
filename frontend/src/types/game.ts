@@ -1,6 +1,7 @@
 /** Collectible "figurines" earned by exploring the site. */
 export const ACHIEVEMENT_IDS = [
   'firstStep',
+  'curious',
   'explorer',
   'reader',
   'polyglot',

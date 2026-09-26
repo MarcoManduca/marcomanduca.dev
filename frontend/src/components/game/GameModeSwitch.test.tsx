@@ -17,13 +17,13 @@ describe('GameModeSwitch', () => {
     )
     const toggle = screen.getByRole('switch', { name: 'Game mode' })
     expect(toggle).toBeChecked()
-    expect(screen.getByLabelText('Figurines collected: 1 of 6')).toBeVisible()
+    expect(screen.getByLabelText('Figurines collected: 1 of 7')).toBeVisible()
 
     await userEvent.click(toggle)
 
     expect(toggle).not.toBeChecked()
     expect(
-      screen.queryByLabelText('Figurines collected: 1 of 6'),
+      screen.queryByLabelText('Figurines collected: 1 of 7'),
     ).not.toBeInTheDocument()
   })
 })

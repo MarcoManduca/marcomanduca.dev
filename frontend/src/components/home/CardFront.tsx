@@ -20,13 +20,6 @@ export const CardFront = () => {
       <div aria-hidden="true" className="absolute inset-0 bg-holo" />
       <div aria-hidden="true" className="absolute inset-0 bg-card-fade" />
 
-      <span
-        aria-hidden="true"
-        className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full border-2 border-brand-yellow/80 bg-brand-ink/70 text-lg text-brand-yellow"
-      >
-        ↻
-      </span>
-
       <div className="relative mt-auto flex items-end justify-between gap-4">
         <div className="flex flex-col gap-1.5">
           <p className="font-display text-sm font-extrabold uppercase tracking-[0.12em] text-brand-yellow">

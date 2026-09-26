@@ -26,9 +26,7 @@
       "portraitAlt": "Portrait of Marco Manduca",
       "level": "LV 5+",
       "levelLabel": "Level: over 5 years of experience",
-      "showBack": "Flip the card: show the back",
-      "showFront": "Flip the card: show the front",
-      "flipHint": "Flip the card",
+      "flip": "Flip the character card",
       "skillsTitle": "Skills",
       "skills": [
         {
@@ -85,6 +83,10 @@
       "firstStep": {
         "name": "First step",
         "hint": "Enter the site"
+      },
+      "curious": {
+        "name": "Curious",
+        "hint": "Flip the character card"
       },
       "explorer": {
         "name": "Explorer",

@@ -45,7 +45,7 @@ them at runtime).
   published projects. Entries without an `end` are _Active Quests_ and show
   every detail; the rest are _Completed Quests_ (guild and dates, newest
   first). Each row carries the domain symbol (work, study, project).
-- **Game mode.** Six figurines unlocked by exploring (first visit, 3 projects,
+- **Game mode.** Seven figurines unlocked by exploring (first visit, card flip, 3 projects,
   an article, language switch, theme switch, contact message). Progress lives
   in the `game` Redux slice, persisted to `localStorage` only (never sent to
   the backend); the header switch hides all gamified UI.

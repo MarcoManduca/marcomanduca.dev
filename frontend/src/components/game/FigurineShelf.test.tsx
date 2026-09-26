@@ -15,8 +15,8 @@ describe('FigurineShelf', () => {
       game: { unlocked: ['firstStep', 'reader'] },
     })
 
-    expect(screen.getAllByRole('listitem')).toHaveLength(6)
-    expect(screen.getByText('2/6')).toBeInTheDocument()
+    expect(screen.getAllByRole('listitem')).toHaveLength(7)
+    expect(screen.getByText('2/7')).toBeInTheDocument()
     expect(
       within(tile(/First step/)!).getByText('Unlocked'),
     ).toBeInTheDocument()
