@@ -11,6 +11,8 @@ export interface PresignRequest {
   prefix: MediaPrefix
   filename: string
   content_type: string
+  /** File size in bytes; signed into the URL so S3 rejects any other size. */
+  content_length?: number
 }
 
 /** Presigned PUT URL and the key it targets (`PresignUploadResponse`). */

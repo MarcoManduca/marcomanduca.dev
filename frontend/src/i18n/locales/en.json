@@ -7,7 +7,8 @@
     "contacts": "Contacts",
     "admin": "Admin",
     "openMenu": "Open menu",
-    "closeMenu": "Close menu"
+    "closeMenu": "Close menu",
+    "skipToContent": "Skip to content"
   },
   "common": {
     "loading": "Loading…",
@@ -31,6 +32,7 @@
     "title": "About me",
     "subtitle": "Data professional with 5+ years across the full data lifecycle.",
     "downloadCv": "Download CV",
+    "cvError": "Could not open the CV. Please try again later.",
     "bio": "Data professional with over five years of experience across the full data lifecycle — from data collection and validation to operational dashboards and strategic insights for commercial and C-level teams. I pair a strong statistical foundation (BSc in Statistics, MSc in Data Science in progress) with a practical, result-driven mindset. I work mainly with Python, SQL and cloud tooling on AWS, with experience in process automation and Machine/Deep Learning. Passionate about AI and emerging technologies, I enjoy turning complex data into clear, actionable strategies for both technical and non-technical stakeholders.",
     "experienceTitle": "Experience",
     "educationTitle": "Education",
@@ -121,7 +123,8 @@
     "github": "GitHub",
     "demo": "Live demo",
     "gallery": "Gallery",
-    "backToProjects": "Back to projects"
+    "backToProjects": "Back to projects",
+    "galleryImageAlt": "{{title}} — image {{index}} of {{total}}"
   },
   "projectCategories": {
     "data": "Data",
@@ -248,7 +251,9 @@
       "cancel": "Cancel",
       "saving": "Saving…",
       "saved": "Saved",
-      "add": "Add"
+      "add": "Add",
+      "editItem": "Edit {{title}}",
+      "deleteItem": "Delete {{title}}"
     },
     "table": {
       "title": "Title",
@@ -268,7 +273,9 @@
       "editArticle": "Edit article",
       "versions": "Versions",
       "rollback": "Rollback",
-      "versionLabel": "Version {{version}}"
+      "versionLabel": "Version {{version}}",
+      "versionsFor": "Versions of {{title}}",
+      "rollbackTo": "Rollback to version {{version}}"
     },
     "form": {
       "slug": "Slug",
@@ -303,6 +310,20 @@
       "success": "File uploaded successfully.",
       "error": "Upload failed. Please try again.",
       "objectKey": "Object key"
+    },
+    "confirm": {
+      "deleteTitle": "Delete “{{title}}”?",
+      "deleteMessage": "This action cannot be undone."
+    },
+    "errors": {
+      "saveFailed": "Could not save the changes.",
+      "deleteFailed": "Could not delete the item.",
+      "rollbackFailed": "Could not restore the version.",
+      "createTechnologyFailed": "Could not add the technology.",
+      "validation": "Some fields are invalid: check the form and try again.",
+      "unauthorized": "Your session has expired: sign in again.",
+      "forbidden": "You do not have permission for this action.",
+      "generic": "Something went wrong. Please try again."
     }
   },
   "footer": {

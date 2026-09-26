@@ -1,4 +1,5 @@
 import { screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { Route, Routes } from 'react-router-dom'
 
 import type { AuthState } from '@/hooks/useAuth'
@@ -28,6 +29,7 @@ const renderCallback = () =>
     <Routes>
       <Route path="/admin/callback" element={<AuthCallback />} />
       <Route path="/admin" element={<div>Admin area</div>} />
+      <Route path="/admin/projects" element={<div>Admin projects</div>} />
     </Routes>,
     { route: '/admin/callback' },
   )
@@ -50,7 +52,7 @@ describe('AuthCallback', () => {
     expect(screen.getByText('Admin area')).toBeInTheDocument()
   })
 
-  it('shows an error with a retry action instead of redirecting on failure', () => {
+  it('shows an error with a retry action instead of redirecting on failure', async () => {
     const signIn = vi.fn()
     mockUseAuth.mockReturnValue(
       authState({ error: new Error('exchange failed'), signIn }),
@@ -59,8 +61,32 @@ describe('AuthCallback', () => {
     renderCallback()
 
     expect(screen.queryByText('Admin area')).not.toBeInTheDocument()
-    expect(
+    await userEvent.click(
       screen.getByRole('button', { name: /try again|riprova/i }),
-    ).toBeInTheDocument()
+    )
+    expect(signIn).toHaveBeenCalledWith()
+  })
+
+  it('returns to the admin page requested before signing in', () => {
+    mockUseAuth.mockReturnValue(authState({ returnTo: '/admin/projects' }))
+
+    renderCallback()
+
+    expect(screen.getByText('Admin projects')).toBeInTheDocument()
+  })
+
+  it.each([
+    'https://evil.example.com/admin',
+    '//evil.example.com/admin',
+    '/\\evil.example.com/admin',
+    '/administrator',
+    '/projects',
+    '/admin/callback',
+  ])('falls back to /admin for the unsafe return path %s', (returnTo) => {
+    mockUseAuth.mockReturnValue(authState({ returnTo }))
+
+    renderCallback()
+
+    expect(screen.getByText('Admin area')).toBeInTheDocument()
   })
 })

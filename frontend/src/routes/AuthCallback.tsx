@@ -1,35 +1,39 @@
-import { useTranslation } from 'react-i18next'
 import { Navigate } from 'react-router-dom'
 
-import { Button } from '@/components/ui/Button'
+import { AuthError } from '@/components/admin/AuthError'
 import { Spinner } from '@/components/ui/Spinner'
 import { useAuth } from '@/hooks/useAuth'
+
+const ADMIN_HOME = '/admin'
+const ADMIN_PATH = /^\/admin(?:[/?#]|$)/
+
+/**
+ * Accept only a same-origin, relative path inside the admin area (never the
+ * callback itself) to avoid open redirects and loops; fall back to /admin.
+ */
+const toSafeAdminPath = (path: string | null | undefined): string => {
+  if (!path || !ADMIN_PATH.test(path) || path.includes('\\')) return ADMIN_HOME
+  const url = new URL(path, window.location.origin)
+  if (url.origin !== window.location.origin) return ADMIN_HOME
+  if (url.pathname.startsWith('/admin/callback')) return ADMIN_HOME
+  return `${url.pathname}${url.search}${url.hash}`
+}
 
 /**
  * OIDC redirect target (the Cognito callback URL `/admin/callback`).
  *
  * react-oidc-context exchanges the authorization code automatically on mount;
- * a spinner is shown while that happens. On success the user is sent into the
- * admin area; on failure an error with a retry action is shown instead of
- * navigating, which would otherwise bounce back here and loop.
+ * a spinner is shown while that happens. On success the user is sent back to
+ * the admin page requested before signing in; on failure an error with a
+ * retry action is shown instead of navigating, which would otherwise bounce
+ * back here and loop.
  */
 export const AuthCallback = () => {
-  const { t } = useTranslation()
-  const { isLoading, error, signIn } = useAuth()
+  const { isLoading, error, returnTo, signIn } = useAuth()
 
   if (isLoading) return <Spinner className="min-h-screen" />
 
-  if (error) {
-    return (
-      <div className="flex flex-col items-center gap-3 py-20 text-center">
-        <h1 className="text-2xl font-bold text-heading">
-          {t('auth.errorTitle')}
-        </h1>
-        <p className="text-muted">{t('auth.errorMessage')}</p>
-        <Button onClick={signIn}>{t('auth.retry')}</Button>
-      </div>
-    )
-  }
+  if (error) return <AuthError onRetry={() => signIn()} />
 
-  return <Navigate to="/admin" replace />
+  return <Navigate to={toSafeAdminPath(returnTo)} replace />
 }

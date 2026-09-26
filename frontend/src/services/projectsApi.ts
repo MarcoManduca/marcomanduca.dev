@@ -9,7 +9,7 @@ export const projectsApi = api.injectEndpoints({
       providesTags: ['Project'],
     }),
     getProjectBySlug: build.query<Project, string>({
-      query: (slug) => `/projects/${slug}`,
+      query: (slug) => `/projects/${encodeURIComponent(slug)}`,
       providesTags: (_result, _error, slug) => [{ type: 'Project', id: slug }],
     }),
     createProject: build.mutation<Project, ProjectInput>({
@@ -21,14 +21,17 @@ export const projectsApi = api.injectEndpoints({
       { slug: string; body: ProjectInput }
     >({
       query: ({ slug, body }) => ({
-        url: `/projects/${slug}`,
+        url: `/projects/${encodeURIComponent(slug)}`,
         method: 'PUT',
         body,
       }),
       invalidatesTags: ['Project'],
     }),
     deleteProject: build.mutation<void, string>({
-      query: (slug) => ({ url: `/projects/${slug}`, method: 'DELETE' }),
+      query: (slug) => ({
+        url: `/projects/${encodeURIComponent(slug)}`,
+        method: 'DELETE',
+      }),
       invalidatesTags: ['Project'],
     }),
   }),

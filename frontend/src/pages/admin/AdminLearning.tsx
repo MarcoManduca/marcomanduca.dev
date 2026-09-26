@@ -2,8 +2,10 @@ import { useState } from 'react'
 
 import { useTranslation } from 'react-i18next'
 
-import { Badge } from '@/components/ui/Badge'
-import { Button } from '@/components/ui/Button'
+import { AdminErrorAlert } from '@/components/admin/AdminErrorAlert'
+import { AdminPageHeader } from '@/components/admin/AdminPageHeader'
+import { AdminTable } from '@/components/admin/AdminTable'
+import { EditorPanel } from '@/components/admin/EditorPanel'
 import { Spinner } from '@/components/ui/Spinner'
 import { useLanguage } from '@/hooks/useLanguage'
 import {
@@ -14,13 +16,11 @@ import {
 } from '@/services/learningApi'
 import type { LearningArticle, LearningArticleInput } from '@/types'
 
+import { ArticleRow } from './ArticleRow'
+import { DeleteConfirm } from './DeleteConfirm'
 import { LearningForm } from './LearningForm'
-import { VersionsList } from './VersionsList'
-
-type Editing =
-  | { mode: 'new' }
-  | { mode: 'edit'; article: LearningArticle }
-  | null
+import { VersionsPanel } from './VersionsPanel'
+import { useAdminEditor } from './useAdminEditor'
 
 export const AdminLearning = () => {
   const { t } = useTranslation()
@@ -28,105 +28,72 @@ export const AdminLearning = () => {
   const { data, isLoading } = useGetArticlesQuery()
   const [createArticle, { isLoading: isCreating }] = useCreateArticleMutation()
   const [updateArticle, { isLoading: isUpdating }] = useUpdateArticleMutation()
-  const [deleteArticle] = useDeleteArticleMutation()
-  const [editing, setEditing] = useState<Editing>(null)
-  const [versionsFor, setVersionsFor] = useState<LearningArticle | null>(null)
-
-  const handleSubmit = async (input: LearningArticleInput) => {
-    if (editing?.mode === 'edit') {
-      await updateArticle({ slug: editing.article.slug, body: input })
-    } else {
-      await createArticle(input)
-    }
-    setEditing(null)
-  }
+  const [deleteArticle, { isLoading: isDeleting }] = useDeleteArticleMutation()
+  const editor = useAdminEditor<LearningArticle, LearningArticleInput>({
+    create: (body) => createArticle(body).unwrap(),
+    update: (slug, body) => updateArticle({ slug, body }).unwrap(),
+    remove: (slug) => deleteArticle(slug).unwrap(),
+  })
+  const { editing, pendingDelete } = editor
+  // Only the slug is stored: the article (and its current version) is read
+  // from the live query so the panel reflects rollbacks and deletions.
+  const [versionsSlug, setVersionsSlug] = useState<string | null>(null)
+  const versionsArticle = data?.find(({ slug }) => slug === versionsSlug)
 
   if (isLoading) return <Spinner />
 
   return (
     <>
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-heading">
-          {t('admin.learning.title')}
-        </h1>
-        <Button onClick={() => setEditing({ mode: 'new' })}>
-          {t('admin.learning.newArticle')}
-        </Button>
-      </div>
+      <AdminPageHeader
+        title={t('admin.learning.title')}
+        actionLabel={t('admin.learning.newArticle')}
+        onAction={editor.startNew}
+      />
       {editing && (
-        <div className="mt-6 rounded-xl border border-edge bg-surface p-6">
+        <EditorPanel
+          title={t(
+            editing.mode === 'edit'
+              ? 'admin.learning.editArticle'
+              : 'admin.learning.newArticle',
+          )}
+          error={editor.saveError}
+        >
           <LearningForm
-            initial={editing.mode === 'edit' ? editing.article : null}
+            key={editor.formKey}
+            initial={editing.mode === 'edit' ? editing.item : null}
             isSaving={isCreating || isUpdating}
-            onSubmit={handleSubmit}
-            onCancel={() => setEditing(null)}
+            onSubmit={editor.save}
+            onCancel={editor.cancel}
           />
-        </div>
+        </EditorPanel>
       )}
-      <table className="mt-6 w-full text-left text-sm">
-        <thead className="border-b border-edge text-muted">
-          <tr>
-            <th className="py-2 pr-4">{t('admin.table.title')}</th>
-            <th className="py-2 pr-4">{t('admin.table.category')}</th>
-            <th className="py-2 pr-4">{t('admin.table.status')}</th>
-            <th className="py-2 pr-4">{t('admin.table.version')}</th>
-            <th className="py-2">{t('admin.table.actions')}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data?.map((article) => (
-            <tr key={article.slug} className="border-b border-edge/50">
-              <td className="py-3 pr-4 font-medium text-heading">
-                {localize(article.title)}
-              </td>
-              <td className="py-3 pr-4">
-                {t(`learningCategories.${article.category}`)}
-              </td>
-              <td className="py-3 pr-4">
-                <Badge tone={article.status === 'published' ? 'green' : 'gray'}>
-                  {t(`statuses.${article.status}`)}
-                </Badge>
-              </td>
-              <td className="py-3 pr-4 font-mono">v{article.version}</td>
-              <td className="flex flex-wrap gap-2 py-3">
-                <Button
-                  variant="secondary"
-                  onClick={() => setEditing({ mode: 'edit', article })}
-                >
-                  {t('admin.actions.edit')}
-                </Button>
-                <Button
-                  variant="secondary"
-                  onClick={() =>
-                    setVersionsFor(
-                      versionsFor?.slug === article.slug ? null : article,
-                    )
-                  }
-                >
-                  {t('admin.learning.versions')}
-                </Button>
-                <Button
-                  variant="danger"
-                  onClick={() => void deleteArticle(article.slug)}
-                >
-                  {t('admin.actions.delete')}
-                </Button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      {versionsFor && (
-        <div className="mt-6">
-          <h2 className="mb-3 text-lg font-semibold text-heading">
-            {t('admin.learning.versions')} — {localize(versionsFor.title)}
-          </h2>
-          <VersionsList
-            slug={versionsFor.slug}
-            currentVersion={versionsFor.version}
+      <AdminErrorAlert
+        title={t('admin.errors.deleteFailed')}
+        error={editor.deleteError}
+        className="mt-6"
+      />
+      <AdminTable columns={['title', 'category', 'status', 'version']}>
+        {data?.map((article) => (
+          <ArticleRow
+            key={article.slug}
+            article={article}
+            onEdit={() => editor.startEdit(article)}
+            onToggleVersions={() =>
+              setVersionsSlug((open) =>
+                open === article.slug ? null : article.slug,
+              )
+            }
+            onDelete={() => editor.requestDelete(article)}
           />
-        </div>
-      )}
+        ))}
+      </AdminTable>
+      {versionsArticle && <VersionsPanel article={versionsArticle} />}
+      <DeleteConfirm
+        title={pendingDelete && localize(pendingDelete.title)}
+        isPending={isDeleting}
+        onConfirm={() => void editor.confirmDelete()}
+        onCancel={editor.cancelDelete}
+      />
     </>
   )
 }

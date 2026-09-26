@@ -2,10 +2,9 @@ import { useMemo, useState } from 'react'
 
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
+import { ChipButton } from '@/components/admin/ChipButton'
+import { InlineAddField } from '@/components/admin/InlineAddField'
 import { useGetArticlesQuery } from '@/services/learningApi'
-import { cn } from '@/utils/cn'
 
 interface TagPickerProps {
   /** Selected tags. */
@@ -50,47 +49,25 @@ export const TagPicker = ({ value, onChange }: TagPickerProps) => {
       </span>
       <div className="flex flex-wrap gap-2">
         {catalogue.map((tag) => (
-          <button
+          <ChipButton
             key={tag}
-            type="button"
-            aria-pressed={value.includes(tag)}
+            selected={value.includes(tag)}
             onClick={() => toggle(tag)}
-            className={cn(
-              'rounded-full border px-3 py-1 text-sm transition-colors',
-              value.includes(tag)
-                ? 'border-accent bg-accent text-background'
-                : 'border-edge text-body hover:border-accent hover:text-heading',
-            )}
           >
             {tag}
-          </button>
+          </ChipButton>
         ))}
         {catalogue.length === 0 && (
           <p className="text-sm text-muted">{t('admin.form.noTags')}</p>
         )}
       </div>
-      <div className="mt-3 flex items-end gap-2">
-        <Input
-          label={t('admin.form.addTag')}
-          value={newTag}
-          onChange={(event) => setNewTag(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') {
-              event.preventDefault()
-              addTag()
-            }
-          }}
-          placeholder={t('admin.form.addTagPlaceholder')}
-        />
-        <Button
-          type="button"
-          variant="secondary"
-          disabled={!newTag.trim()}
-          onClick={addTag}
-        >
-          {t('admin.actions.add')}
-        </Button>
-      </div>
+      <InlineAddField
+        label={t('admin.form.addTag')}
+        placeholder={t('admin.form.addTagPlaceholder')}
+        value={newTag}
+        onChange={setNewTag}
+        onAdd={addTag}
+      />
     </div>
   )
 }

@@ -3,18 +3,20 @@ import { useState } from 'react'
 
 import { useTranslation } from 'react-i18next'
 
+import { BilingualFields } from '@/components/admin/BilingualFields'
+import { FormActions } from '@/components/admin/FormActions'
+import { readBilingual } from '@/components/admin/readBilingual'
+import { StatusSelect } from '@/components/admin/StatusSelect'
 import { TagPicker } from '@/components/learning/TagPicker'
-import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
-import { Textarea } from '@/components/ui/Textarea'
 import type {
   ArticleStatus,
   LearningArticle,
   LearningArticleInput,
   LearningCategory,
 } from '@/types'
-import { LEARNING_CATEGORIES, PROJECT_STATUSES } from '@/types'
+import { LEARNING_CATEGORIES } from '@/types'
 
 interface LearningFormProps {
   initial: LearningArticle | null
@@ -24,11 +26,8 @@ interface LearningFormProps {
 }
 
 const toInput = (data: FormData, tags: string[]): LearningArticleInput => ({
-  title: { it: String(data.get('titleIt')), en: String(data.get('titleEn')) },
-  content_markdown: {
-    it: String(data.get('contentIt')),
-    en: String(data.get('contentEn')),
-  },
+  title: readBilingual(data, 'title'),
+  content_markdown: readBilingual(data, 'content'),
   category: String(data.get('category')) as LearningCategory,
   status: String(data.get('status')) as ArticleStatus,
   tags,
@@ -67,48 +66,15 @@ export const LearningForm = ({
           label: t(`learningCategories.${value}`),
         }))}
       />
-      <Input
-        label={t('admin.form.titleIt')}
-        name="titleIt"
-        defaultValue={initial?.title.it}
-        required
-      />
-      <Input
-        label={t('admin.form.titleEn')}
-        name="titleEn"
-        defaultValue={initial?.title.en}
-        required
-      />
-      <Textarea
-        label={t('admin.form.contentIt')}
-        name="contentIt"
+      <BilingualFields name="title" defaultValue={initial?.title} required />
+      <BilingualFields
+        name="content"
         rows={10}
-        defaultValue={initial?.content_markdown.it}
-      />
-      <Textarea
-        label={t('admin.form.contentEn')}
-        name="contentEn"
-        rows={10}
-        defaultValue={initial?.content_markdown.en}
+        defaultValue={initial?.content_markdown}
       />
       <TagPicker value={tags} onChange={setTags} />
-      <Select
-        label={t('admin.form.status')}
-        name="status"
-        defaultValue={initial?.status ?? 'draft'}
-        options={PROJECT_STATUSES.map((value) => ({
-          value,
-          label: t(`statuses.${value}`),
-        }))}
-      />
-      <div className="flex gap-3 sm:col-span-2">
-        <Button type="submit" disabled={isSaving}>
-          {isSaving ? t('admin.actions.saving') : t('admin.actions.save')}
-        </Button>
-        <Button type="button" variant="secondary" onClick={onCancel}>
-          {t('admin.actions.cancel')}
-        </Button>
-      </div>
+      <StatusSelect defaultValue={initial?.status} />
+      <FormActions isSaving={isSaving} onCancel={onCancel} />
     </form>
   )
 }

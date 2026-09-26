@@ -26,16 +26,27 @@ describe('VersionsList', () => {
     await screen.findByText('Version 1')
 
     // 3 versions total, the current one (v3) has no rollback button.
-    expect(screen.getAllByRole('button', { name: 'Rollback' })).toHaveLength(2)
+    expect(
+      screen.getAllByRole('button', { name: /^Rollback to version/ }),
+    ).toHaveLength(2)
+    expect(
+      screen.queryByRole('button', { name: 'Rollback to version 3' }),
+    ).not.toBeInTheDocument()
   })
 
   it('triggers a rollback request on click', async () => {
     let calledSlug: string | undefined
+    let calledVersion: number | undefined
     server.use(
-      http.post(`${API_URL}/learning/:slug/rollback`, ({ params }) => {
-        calledSlug = String(params.slug)
-        return HttpResponse.json({})
-      }),
+      http.post(
+        `${API_URL}/learning/:slug/rollback`,
+        async ({ params, request }) => {
+          calledSlug = String(params.slug)
+          calledVersion = ((await request.json()) as { version: number })
+            .version
+          return HttpResponse.json({})
+        },
+      ),
     )
 
     renderWithProviders(
@@ -44,9 +55,31 @@ describe('VersionsList', () => {
     await screen.findByText('Version 1')
 
     await userEvent.click(
-      screen.getAllByRole('button', { name: 'Rollback' })[0],
+      screen.getByRole('button', { name: 'Rollback to version 2' }),
     )
 
     expect(calledSlug).toBe('big-o-notation')
+    expect(calledVersion).toBe(2)
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('shows an alert when the rollback fails', async () => {
+    server.use(
+      http.post(`${API_URL}/learning/:slug/rollback`, () =>
+        HttpResponse.json({ detail: 'boom' }, { status: 500 }),
+      ),
+    )
+    renderWithProviders(
+      <VersionsList slug="big-o-notation" currentVersion={3} />,
+    )
+    await screen.findByText('Version 1')
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Rollback to version 1' }),
+    )
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Could not restore the version.',
+    )
   })
 })

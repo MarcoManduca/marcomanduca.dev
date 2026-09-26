@@ -5,7 +5,7 @@ import { HttpResponse, http } from 'msw'
 import { Provider } from 'react-redux'
 
 import { makeStore } from '@/store'
-import { S3_UPLOAD_URL } from '@/test/mocks/handlers'
+import { API_URL, S3_UPLOAD_URL } from '@/test/mocks/handlers'
 import { server } from '@/test/mocks/server'
 
 import { useMediaUpload } from './useMediaUpload'
@@ -26,6 +26,32 @@ describe('useMediaUpload', () => {
 
     await waitFor(() => expect(result.current.status).toBe('success'))
     expect(result.current.key).toBe('images/projects/uploaded.png')
+  })
+
+  it('sends the file size so the presigned URL pins the upload length', async () => {
+    let presignBody: unknown
+    server.use(
+      http.post(`${API_URL}/media/presign`, async ({ request }) => {
+        presignBody = await request.json()
+        return HttpResponse.json({
+          url: S3_UPLOAD_URL,
+          key: 'images/projects/uploaded.png',
+          expires_in: 900,
+        })
+      }),
+    )
+    const { result } = renderHook(() => useMediaUpload(), { wrapper })
+
+    await act(async () => {
+      await result.current.upload(makeFile(), 'images/projects/')
+    })
+
+    expect(presignBody).toEqual({
+      prefix: 'images/projects/',
+      filename: 'photo.png',
+      content_type: 'image/png',
+      content_length: 4,
+    })
   })
 
   it('reports an error when the S3 upload fails', async () => {

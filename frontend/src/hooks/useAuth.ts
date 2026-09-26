@@ -1,3 +1,5 @@
+import { useCallback, useMemo } from 'react'
+
 import { useAuth as useOidcAuth } from 'react-oidc-context'
 
 import { ADMIN_GROUP, COGNITO_CLIENT_ID, COGNITO_DOMAIN } from '@/utils/env'
@@ -24,36 +26,67 @@ export interface AuthState {
   isAdmin: boolean
   error: Error | null
   userName: string | null
-  signIn: () => void
+  /** Path requested before the sign-in redirect (unvalidated), if any. */
+  returnTo?: string | null
+  /** Redirect to the hosted UI, optionally coming back to `returnTo`. */
+  signIn: (returnTo?: string) => void
   signOut: () => void
+}
+
+interface SigninState {
+  returnTo?: unknown
+}
+
+const readReturnTo = (state: unknown): string | null => {
+  const returnTo = (state as SigninState | null | undefined)?.returnTo
+  return typeof returnTo === 'string' ? returnTo : null
 }
 
 /**
  * Wrap react-oidc-context with the Cognito admin-group check.
  *
  * Admins are members of the "Administrators" Cognito group, exposed in the
- * ID token through the `cognito:groups` claim.
+ * ID token through the `cognito:groups` claim. The returned object and its
+ * functions are memoized so effects depending on them do not re-run (and
+ * re-trigger a sign-in redirect) on every render.
  */
 export const useAuth = (): AuthState => {
-  const auth = useOidcAuth()
+  const {
+    isLoading,
+    isAuthenticated,
+    error,
+    user,
+    signinRedirect,
+    removeUser,
+  } = useOidcAuth()
 
-  const groups =
-    (auth.user?.profile['cognito:groups'] as string[] | undefined) ?? []
+  const signIn = useCallback(
+    (returnTo?: string) =>
+      void signinRedirect(returnTo ? { state: { returnTo } } : undefined),
+    [signinRedirect],
+  )
 
-  return {
-    isLoading: auth.isLoading,
-    isAuthenticated: auth.isAuthenticated,
-    isAdmin: groups.includes(ADMIN_GROUP),
-    error: auth.error ?? null,
-    userName:
-      (auth.user?.profile.email as string | undefined) ??
-      auth.user?.profile.sub ??
-      null,
-    signIn: () => void auth.signinRedirect(),
-    signOut: () => {
-      // Clear local tokens, then end the Cognito session via the hosted UI.
-      void auth.removeUser()
-      if (COGNITO_DOMAIN) window.location.assign(cognitoLogoutUrl())
-    },
-  }
+  const signOut = useCallback(() => {
+    // Clear local tokens, then end the Cognito session via the hosted UI.
+    void removeUser()
+    if (COGNITO_DOMAIN) window.location.assign(cognitoLogoutUrl())
+  }, [removeUser])
+
+  return useMemo(() => {
+    const groups =
+      (user?.profile['cognito:groups'] as string[] | undefined) ?? []
+    return {
+      isLoading,
+      isAuthenticated,
+      isAdmin: groups.includes(ADMIN_GROUP),
+      error: error ?? null,
+      userName:
+        (user?.profile.email as string | undefined) ??
+        user?.profile.sub ??
+        null,
+      returnTo: readReturnTo(user?.state),
+      signIn,
+      signOut,
+    }
+  }, [isLoading, isAuthenticated, error, user, signIn, signOut])
 }

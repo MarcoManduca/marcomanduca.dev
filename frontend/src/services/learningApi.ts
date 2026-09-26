@@ -14,7 +14,7 @@ export const learningApi = api.injectEndpoints({
       providesTags: ['Article'],
     }),
     getArticleBySlug: build.query<LearningArticle, string>({
-      query: (slug) => `/learning/${slug}`,
+      query: (slug) => `/learning/${encodeURIComponent(slug)}`,
       providesTags: (_result, _error, slug) => [{ type: 'Article', id: slug }],
     }),
     createArticle: build.mutation<LearningArticle, LearningArticleInput>({
@@ -26,18 +26,21 @@ export const learningApi = api.injectEndpoints({
       { slug: string; body: LearningArticleInput }
     >({
       query: ({ slug, body }) => ({
-        url: `/learning/${slug}`,
+        url: `/learning/${encodeURIComponent(slug)}`,
         method: 'PUT',
         body,
       }),
       invalidatesTags: ['Article', 'ArticleVersions'],
     }),
     deleteArticle: build.mutation<void, string>({
-      query: (slug) => ({ url: `/learning/${slug}`, method: 'DELETE' }),
+      query: (slug) => ({
+        url: `/learning/${encodeURIComponent(slug)}`,
+        method: 'DELETE',
+      }),
       invalidatesTags: ['Article'],
     }),
     getArticleVersions: build.query<ArticleVersion[], string>({
-      query: (slug) => `/learning/${slug}/versions`,
+      query: (slug) => `/learning/${encodeURIComponent(slug)}/versions`,
       providesTags: ['ArticleVersions'],
     }),
     rollbackArticle: build.mutation<
@@ -45,7 +48,7 @@ export const learningApi = api.injectEndpoints({
       { slug: string; version: number }
     >({
       query: ({ slug, version }) => ({
-        url: `/learning/${slug}/rollback`,
+        url: `/learning/${encodeURIComponent(slug)}/rollback`,
         method: 'POST',
         body: { version },
       }),

@@ -20,22 +20,25 @@ interface OidcStub {
   isLoading?: boolean
   isAuthenticated?: boolean
   profile?: Record<string, unknown>
+  state?: unknown
 }
 
 const stubOidc = ({
   isLoading = false,
   isAuthenticated = false,
   profile,
+  state,
 }: OidcStub) => {
   const removeUser = vi.fn()
+  const signinRedirect = vi.fn().mockResolvedValue(undefined)
   mockedOidc.mockReturnValue({
     isLoading,
     isAuthenticated,
-    user: profile ? { profile } : null,
-    signinRedirect: vi.fn(),
+    user: profile ? { profile, state } : null,
+    signinRedirect,
     removeUser,
   } as unknown as ReturnType<typeof useOidcAuth>)
-  return { removeUser }
+  return { removeUser, signinRedirect }
 }
 
 describe('useAuth', () => {
@@ -93,5 +96,49 @@ describe('useAuth', () => {
     )
 
     vi.unstubAllGlobals()
+  })
+
+  it('returns stable functions across re-renders', () => {
+    stubOidc({ isAuthenticated: true, profile: { sub: 'user-1' } })
+
+    const { result, rerender } = renderHook(() => useAuth())
+    const first = result.current
+    rerender()
+
+    expect(result.current.signIn).toBe(first.signIn)
+    expect(result.current.signOut).toBe(first.signOut)
+    expect(result.current).toBe(first)
+  })
+
+  it('round-trips the requested path through the sign-in state', () => {
+    const { signinRedirect } = stubOidc({})
+
+    const { result } = renderHook(() => useAuth())
+    result.current.signIn('/admin/projects')
+
+    expect(signinRedirect).toHaveBeenCalledWith({
+      state: { returnTo: '/admin/projects' },
+    })
+  })
+
+  it('signs in without state when no path is given', () => {
+    const { signinRedirect } = stubOidc({})
+
+    const { result } = renderHook(() => useAuth())
+    result.current.signIn()
+
+    expect(signinRedirect).toHaveBeenCalledWith(undefined)
+  })
+
+  it('exposes the path stored in the signed-in user state', () => {
+    stubOidc({
+      isAuthenticated: true,
+      profile: { sub: 'user-1' },
+      state: { returnTo: '/admin/learning' },
+    })
+
+    const { result } = renderHook(() => useAuth())
+
+    expect(result.current.returnTo).toBe('/admin/learning')
   })
 })

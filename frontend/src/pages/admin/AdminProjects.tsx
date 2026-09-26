@@ -1,9 +1,9 @@
-import { useState } from 'react'
-
 import { useTranslation } from 'react-i18next'
 
-import { Badge } from '@/components/ui/Badge'
-import { Button } from '@/components/ui/Button'
+import { AdminErrorAlert } from '@/components/admin/AdminErrorAlert'
+import { AdminPageHeader } from '@/components/admin/AdminPageHeader'
+import { AdminTable } from '@/components/admin/AdminTable'
+import { EditorPanel } from '@/components/admin/EditorPanel'
 import { Spinner } from '@/components/ui/Spinner'
 import { useLanguage } from '@/hooks/useLanguage'
 import {
@@ -14,9 +14,10 @@ import {
 } from '@/services/projectsApi'
 import type { Project, ProjectInput } from '@/types'
 
+import { DeleteConfirm } from './DeleteConfirm'
 import { ProjectForm } from './ProjectForm'
-
-type Editing = { mode: 'new' } | { mode: 'edit'; project: Project } | null
+import { ProjectRow } from './ProjectRow'
+import { useAdminEditor } from './useAdminEditor'
 
 export const AdminProjects = () => {
   const { t } = useTranslation()
@@ -24,86 +25,62 @@ export const AdminProjects = () => {
   const { data, isLoading } = useGetProjectsQuery()
   const [createProject, { isLoading: isCreating }] = useCreateProjectMutation()
   const [updateProject, { isLoading: isUpdating }] = useUpdateProjectMutation()
-  const [deleteProject] = useDeleteProjectMutation()
-  const [editing, setEditing] = useState<Editing>(null)
-
-  const handleSubmit = async (input: ProjectInput) => {
-    if (editing?.mode === 'edit') {
-      await updateProject({ slug: editing.project.slug, body: input })
-    } else {
-      await createProject(input)
-    }
-    setEditing(null)
-  }
+  const [deleteProject, { isLoading: isDeleting }] = useDeleteProjectMutation()
+  const editor = useAdminEditor<Project, ProjectInput>({
+    create: (body) => createProject(body).unwrap(),
+    update: (slug, body) => updateProject({ slug, body }).unwrap(),
+    remove: (slug) => deleteProject(slug).unwrap(),
+  })
+  const { editing, pendingDelete } = editor
 
   if (isLoading) return <Spinner />
 
   return (
     <>
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-heading">
-          {t('admin.projects.title')}
-        </h1>
-        <Button onClick={() => setEditing({ mode: 'new' })}>
-          {t('admin.projects.newProject')}
-        </Button>
-      </div>
+      <AdminPageHeader
+        title={t('admin.projects.title')}
+        actionLabel={t('admin.projects.newProject')}
+        onAction={editor.startNew}
+      />
       {editing && (
-        <div className="mt-6 rounded-xl border border-edge bg-surface p-6">
-          <h2 className="mb-4 text-lg font-semibold text-heading">
-            {editing.mode === 'edit'
-              ? t('admin.projects.editProject')
-              : t('admin.projects.newProject')}
-          </h2>
+        <EditorPanel
+          title={t(
+            editing.mode === 'edit'
+              ? 'admin.projects.editProject'
+              : 'admin.projects.newProject',
+          )}
+          error={editor.saveError}
+        >
           <ProjectForm
-            initial={editing.mode === 'edit' ? editing.project : null}
+            key={editor.formKey}
+            initial={editing.mode === 'edit' ? editing.item : null}
             isSaving={isCreating || isUpdating}
-            onSubmit={handleSubmit}
-            onCancel={() => setEditing(null)}
+            onSubmit={editor.save}
+            onCancel={editor.cancel}
           />
-        </div>
+        </EditorPanel>
       )}
-      <table className="mt-6 w-full text-left text-sm">
-        <thead className="border-b border-edge text-muted">
-          <tr>
-            <th className="py-2 pr-4">{t('admin.table.title')}</th>
-            <th className="py-2 pr-4">{t('admin.table.category')}</th>
-            <th className="py-2 pr-4">{t('admin.table.status')}</th>
-            <th className="py-2">{t('admin.table.actions')}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data?.map((project) => (
-            <tr key={project.slug} className="border-b border-edge/50">
-              <td className="py-3 pr-4 font-medium text-heading">
-                {localize(project.title)}
-              </td>
-              <td className="py-3 pr-4">
-                {t(`projectCategories.${project.category}`)}
-              </td>
-              <td className="py-3 pr-4">
-                <Badge tone={project.status === 'published' ? 'green' : 'gray'}>
-                  {t(`statuses.${project.status}`)}
-                </Badge>
-              </td>
-              <td className="flex gap-2 py-3">
-                <Button
-                  variant="secondary"
-                  onClick={() => setEditing({ mode: 'edit', project })}
-                >
-                  {t('admin.actions.edit')}
-                </Button>
-                <Button
-                  variant="danger"
-                  onClick={() => void deleteProject(project.slug)}
-                >
-                  {t('admin.actions.delete')}
-                </Button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <AdminErrorAlert
+        title={t('admin.errors.deleteFailed')}
+        error={editor.deleteError}
+        className="mt-6"
+      />
+      <AdminTable columns={['title', 'category', 'status']}>
+        {data?.map((project) => (
+          <ProjectRow
+            key={project.slug}
+            project={project}
+            onEdit={() => editor.startEdit(project)}
+            onDelete={() => editor.requestDelete(project)}
+          />
+        ))}
+      </AdminTable>
+      <DeleteConfirm
+        title={pendingDelete && localize(pendingDelete.title)}
+        isPending={isDeleting}
+        onConfirm={() => void editor.confirmDelete()}
+        onCancel={editor.cancelDelete}
+      />
     </>
   )
 }

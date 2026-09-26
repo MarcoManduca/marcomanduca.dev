@@ -7,7 +7,8 @@
     "contacts": "Contatti",
     "admin": "Admin",
     "openMenu": "Apri menu",
-    "closeMenu": "Chiudi menu"
+    "closeMenu": "Chiudi menu",
+    "skipToContent": "Vai al contenuto"
   },
   "common": {
     "loading": "Caricamento…",
@@ -31,6 +32,7 @@
     "title": "Chi sono",
     "subtitle": "Data professional con oltre 5 anni sull'intero ciclo di vita del dato.",
     "downloadCv": "Scarica il CV",
+    "cvError": "Impossibile aprire il CV. Riprova più tardi.",
     "bio": "Data professional con oltre cinque anni di esperienza sull'intero ciclo di vita del dato — dalla raccolta e validazione fino alle dashboard operative e agli insight strategici per team commerciali e C-level. Unisco solide basi statistiche (Laurea triennale in Statistica, Laurea magistrale in Data Science in corso) a un approccio pratico e orientato ai risultati. Lavoro principalmente con Python, SQL e strumenti cloud su AWS, con esperienza in automazione dei processi e algoritmi di Machine/Deep Learning. Appassionato di AI e tecnologie emergenti, mi piace tradurre dati complessi in strategie chiare e attuabili per interlocutori tecnici e non.",
     "experienceTitle": "Esperienza",
     "educationTitle": "Formazione",
@@ -121,7 +123,8 @@
     "github": "GitHub",
     "demo": "Demo live",
     "gallery": "Galleria",
-    "backToProjects": "Torna ai progetti"
+    "backToProjects": "Torna ai progetti",
+    "galleryImageAlt": "{{title}} — immagine {{index}} di {{total}}"
   },
   "projectCategories": {
     "data": "Data",
@@ -248,7 +251,9 @@
       "cancel": "Annulla",
       "saving": "Salvataggio…",
       "saved": "Salvato",
-      "add": "Aggiungi"
+      "add": "Aggiungi",
+      "editItem": "Modifica {{title}}",
+      "deleteItem": "Elimina {{title}}"
     },
     "table": {
       "title": "Titolo",
@@ -268,7 +273,9 @@
       "editArticle": "Modifica articolo",
       "versions": "Versioni",
       "rollback": "Ripristina",
-      "versionLabel": "Versione {{version}}"
+      "versionLabel": "Versione {{version}}",
+      "versionsFor": "Versioni di {{title}}",
+      "rollbackTo": "Ripristina la versione {{version}}"
     },
     "form": {
       "slug": "Slug",
@@ -303,6 +310,20 @@
       "success": "File caricato con successo.",
       "error": "Caricamento fallito. Riprova.",
       "objectKey": "Chiave oggetto"
+    },
+    "confirm": {
+      "deleteTitle": "Eliminare “{{title}}”?",
+      "deleteMessage": "Questa operazione non può essere annullata."
+    },
+    "errors": {
+      "saveFailed": "Impossibile salvare le modifiche.",
+      "deleteFailed": "Impossibile eliminare l'elemento.",
+      "rollbackFailed": "Impossibile ripristinare la versione.",
+      "createTechnologyFailed": "Impossibile aggiungere la tecnologia.",
+      "validation": "Alcuni campi non sono validi: controlla il modulo e riprova.",
+      "unauthorized": "La sessione è scaduta: accedi di nuovo.",
+      "forbidden": "Non hai i permessi per questa azione.",
+      "generic": "Qualcosa è andato storto. Riprova."
     }
   },
   "footer": {

@@ -3,14 +3,18 @@ import { useState } from 'react'
 
 import { useTranslation } from 'react-i18next'
 
+import { BilingualFields } from '@/components/admin/BilingualFields'
+import { FormActions } from '@/components/admin/FormActions'
+import { readBilingual } from '@/components/admin/readBilingual'
+import { StatusSelect } from '@/components/admin/StatusSelect'
 import { TechnologyPicker } from '@/components/projects/TechnologyPicker'
-import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
-import { Textarea } from '@/components/ui/Textarea'
 import type { Project, ProjectInput, ProjectStatus } from '@/types'
-import { PROJECT_CATEGORIES, PROJECT_STATUSES } from '@/types'
+import { PROJECT_CATEGORIES } from '@/types'
 import { parseLines } from '@/utils/parseList'
+
+import { ProjectLinksFields } from './ProjectLinksFields'
 
 interface ProjectFormProps {
   initial: Project | null
@@ -20,15 +24,9 @@ interface ProjectFormProps {
 }
 
 const toInput = (data: FormData, technologies: string[]): ProjectInput => ({
-  title: { it: String(data.get('titleIt')), en: String(data.get('titleEn')) },
-  description: {
-    it: String(data.get('descriptionIt')),
-    en: String(data.get('descriptionEn')),
-  },
-  content_markdown: {
-    it: String(data.get('contentIt')),
-    en: String(data.get('contentEn')),
-  },
+  title: readBilingual(data, 'title'),
+  description: readBilingual(data, 'description'),
+  content_markdown: readBilingual(data, 'content'),
   category: String(data.get('category')),
   status: String(data.get('status')) as ProjectStatus,
   technologies,
@@ -72,81 +70,21 @@ export const ProjectForm = ({
           label: t(`projectCategories.${value}`),
         }))}
       />
-      <Input
-        label={t('admin.form.titleIt')}
-        name="titleIt"
-        defaultValue={initial?.title.it}
-        required
-      />
-      <Input
-        label={t('admin.form.titleEn')}
-        name="titleEn"
-        defaultValue={initial?.title.en}
-        required
-      />
-      <Textarea
-        label={t('admin.form.descriptionIt')}
-        name="descriptionIt"
+      <BilingualFields name="title" defaultValue={initial?.title} required />
+      <BilingualFields
+        name="description"
         rows={3}
-        defaultValue={initial?.description.it}
+        defaultValue={initial?.description}
       />
-      <Textarea
-        label={t('admin.form.descriptionEn')}
-        name="descriptionEn"
-        rows={3}
-        defaultValue={initial?.description.en}
-      />
-      <Textarea
-        label={t('admin.form.contentIt')}
-        name="contentIt"
+      <BilingualFields
+        name="content"
         rows={8}
-        defaultValue={initial?.content_markdown.it}
-      />
-      <Textarea
-        label={t('admin.form.contentEn')}
-        name="contentEn"
-        rows={8}
-        defaultValue={initial?.content_markdown.en}
+        defaultValue={initial?.content_markdown}
       />
       <TechnologyPicker value={technologies} onChange={setTechnologies} />
-      <Select
-        label={t('admin.form.status')}
-        name="status"
-        defaultValue={initial?.status ?? 'draft'}
-        options={PROJECT_STATUSES.map((value) => ({
-          value,
-          label: t(`statuses.${value}`),
-        }))}
-      />
-      <Input
-        label={t('admin.form.githubUrl')}
-        name="githubUrl"
-        type="url"
-        defaultValue={initial?.github_url ?? ''}
-        required
-      />
-      <Input
-        label={t('admin.form.demoUrl')}
-        name="demoUrl"
-        type="url"
-        defaultValue={initial?.demo_url ?? ''}
-      />
-      <div className="sm:col-span-2">
-        <Textarea
-          label={t('admin.form.images')}
-          name="images"
-          rows={3}
-          defaultValue={initial?.images.join('\n')}
-        />
-      </div>
-      <div className="flex gap-3 sm:col-span-2">
-        <Button type="submit" disabled={isSaving}>
-          {isSaving ? t('admin.actions.saving') : t('admin.actions.save')}
-        </Button>
-        <Button type="button" variant="secondary" onClick={onCancel}>
-          {t('admin.actions.cancel')}
-        </Button>
-      </div>
+      <StatusSelect defaultValue={initial?.status} />
+      <ProjectLinksFields initial={initial} />
+      <FormActions isSaving={isSaving} onCancel={onCancel} />
     </form>
   )
 }

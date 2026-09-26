@@ -27,6 +27,7 @@ export const useMediaUpload = (): MediaUploadState => {
           prefix,
           filename: file.name,
           content_type: file.type,
+          content_length: file.size,
         }).unwrap()
 
         const response = await fetch(presigned.url, {

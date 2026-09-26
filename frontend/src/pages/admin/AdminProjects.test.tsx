@@ -1,23 +1,63 @@
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { HttpResponse, http } from 'msw'
 
+import { projectsFixture } from '@/test/mocks/fixtures'
+import { API_URL } from '@/test/mocks/handlers'
+import { server } from '@/test/mocks/server'
 import { renderWithProviders } from '@/test/utils'
+import type { ProjectInput } from '@/types'
 
 import { AdminProjects } from './AdminProjects'
 
+interface SavedProject {
+  slug: string
+  body: ProjectInput
+}
+
+/** Record every PUT /projects/:slug and answer with the saved project. */
+const recordUpdates = () => {
+  const saved: SavedProject[] = []
+  server.use(
+    http.put(`${API_URL}/projects/:slug`, async ({ request, params }) => {
+      const body = (await request.json()) as ProjectInput
+      saved.push({ slug: String(params.slug), body })
+      return HttpResponse.json({ ...projectsFixture[0], ...body })
+    }),
+  )
+  return saved
+}
+
+const failWith = (method: 'put' | 'post' | 'delete', status: number) => {
+  const path = method === 'post' ? '/projects' : '/projects/:slug'
+  server.use(
+    http[method](`${API_URL}${path}`, () =>
+      HttpResponse.json({ detail: 'error' }, { status }),
+    ),
+  )
+}
+
+const renderPage = async () => {
+  renderWithProviders(<AdminProjects />)
+  await screen.findByText('Data pipeline')
+}
+
+const clickButton = (name: string) =>
+  userEvent.click(screen.getByRole('button', { name }))
+
 describe('AdminProjects', () => {
-  it('lists the existing projects in a table', async () => {
+  it('shows a spinner, then lists the existing projects', async () => {
     renderWithProviders(<AdminProjects />)
 
+    expect(screen.getByRole('status')).toBeInTheDocument()
     expect(await screen.findByText('Data pipeline')).toBeInTheDocument()
     expect(screen.getByText('Portfolio site')).toBeInTheDocument()
   })
 
   it('opens the new-project form', async () => {
-    renderWithProviders(<AdminProjects />)
-    await screen.findByText('Data pipeline')
+    await renderPage()
 
-    await userEvent.click(screen.getByRole('button', { name: 'New project' }))
+    await clickButton('New project')
 
     expect(
       screen.getByRole('heading', { name: 'New project' }),
@@ -25,15 +65,138 @@ describe('AdminProjects', () => {
     expect(screen.getByLabelText('Title (EN)')).toBeInTheDocument()
   })
 
-  it('opens the edit form prefilled with the project slug', async () => {
-    renderWithProviders(<AdminProjects />)
-    await screen.findByText('Data pipeline')
+  it('names each row action after its project', async () => {
+    await renderPage()
 
-    await userEvent.click(screen.getAllByRole('button', { name: 'Edit' })[0])
+    expect(
+      screen.getByRole('button', { name: 'Edit Portfolio site' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Delete Portfolio site' }),
+    ).toBeInTheDocument()
+  })
+
+  it('opens the edit form prefilled with the project slug', async () => {
+    await renderPage()
+
+    await clickButton('Edit Data pipeline')
 
     expect(
       screen.getByRole('heading', { name: 'Edit project' }),
     ).toBeInTheDocument()
     expect(screen.getByLabelText('Slug')).toHaveValue('data-pipeline')
+  })
+
+  it('shows and saves the second project after switching edit target', async () => {
+    const saved = recordUpdates()
+    await renderPage()
+
+    await clickButton('Edit Data pipeline')
+    await clickButton('Edit Portfolio site')
+
+    expect(screen.getByLabelText('Slug')).toHaveValue('portfolio-site')
+    expect(screen.getByLabelText('Title (EN)')).toHaveValue('Portfolio site')
+    expect(screen.getByRole('button', { name: 'React' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+
+    await clickButton('Save')
+
+    await waitFor(() => expect(saved).toHaveLength(1))
+    expect(saved[0].slug).toBe('portfolio-site')
+    expect(saved[0].body).toMatchObject({
+      title: { en: 'Portfolio site' },
+      technologies: ['React', 'TypeScript'],
+    })
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('heading', { name: 'Edit project' }),
+      ).not.toBeInTheDocument(),
+    )
+  })
+
+  it('keeps the form open with an alert when validation fails (422)', async () => {
+    failWith('put', 422)
+    await renderPage()
+
+    await clickButton('Edit Data pipeline')
+    await clickButton('Save')
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Could not save the changes. Some fields are invalid',
+    )
+    expect(
+      screen.getByRole('heading', { name: 'Edit project' }),
+    ).toBeInTheDocument()
+  })
+
+  it('keeps the new form and its values when creation fails (500)', async () => {
+    failWith('post', 500)
+    await renderPage()
+
+    await clickButton('New project')
+    await userEvent.type(screen.getByLabelText('Title (IT)'), 'Nuovo')
+    await userEvent.type(screen.getByLabelText('Title (EN)'), 'New')
+    await userEvent.type(
+      screen.getByLabelText('GitHub URL'),
+      'https://github.com/x/y',
+    )
+    await clickButton('Save')
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Could not save the changes. Something went wrong',
+    )
+    expect(screen.getByLabelText('Title (EN)')).toHaveValue('New')
+  })
+
+  it('asks for confirmation and does nothing when cancelled', async () => {
+    let deleted = false
+    server.use(
+      http.delete(`${API_URL}/projects/:slug`, () => {
+        deleted = true
+        return new HttpResponse(null, { status: 204 })
+      }),
+    )
+    await renderPage()
+
+    await clickButton('Delete Data pipeline')
+    expect(
+      screen.getByRole('alertdialog', { name: 'Delete “Data pipeline”?' }),
+    ).toBeInTheDocument()
+    await clickButton('Cancel')
+
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
+    expect(deleted).toBe(false)
+  })
+
+  it('deletes the project once confirmed', async () => {
+    let deletedSlug: string | undefined
+    server.use(
+      http.delete(`${API_URL}/projects/:slug`, ({ params }) => {
+        deletedSlug = String(params.slug)
+        return new HttpResponse(null, { status: 204 })
+      }),
+    )
+    await renderPage()
+
+    await clickButton('Delete Data pipeline')
+    await clickButton('Delete')
+
+    await waitFor(() => expect(deletedSlug).toBe('data-pipeline'))
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
+  })
+
+  it('shows an alert when the deletion fails', async () => {
+    failWith('delete', 500)
+    await renderPage()
+
+    await clickButton('Delete Data pipeline')
+    await clickButton('Delete')
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Could not delete the item.',
+    )
+    expect(screen.getByText('Data pipeline')).toBeInTheDocument()
   })
 })

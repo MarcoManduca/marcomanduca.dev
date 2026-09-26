@@ -1,5 +1,9 @@
+import { HttpResponse, http } from 'msw'
+
 import { makeStore } from '@/store'
 import { articlesFixture, versionsFixture } from '@/test/mocks/fixtures'
+import { API_URL } from '@/test/mocks/handlers'
+import { server } from '@/test/mocks/server'
 
 import { learningApi } from './learningApi'
 
@@ -43,5 +47,22 @@ describe('learningApi', () => {
       expect(result.data?.slug).toBe('big-o-notation')
       expect(result.data?.version).toBe(4)
     }
+  })
+
+  it('encodes the slug so it stays a single path segment', async () => {
+    let requestedUrl = ''
+    server.use(
+      http.get(`${API_URL}/learning/:slug`, ({ request }) => {
+        requestedUrl = request.url
+        return HttpResponse.json(articlesFixture[0])
+      }),
+    )
+    const store = makeStore()
+
+    await store.dispatch(
+      learningApi.endpoints.getArticleBySlug.initiate('a/b?c'),
+    )
+
+    expect(requestedUrl).toBe(`${API_URL}/learning/a%2Fb%3Fc`)
   })
 })
