@@ -1,0 +1,19 @@
+# Weekly dependency updates. GitHub Actions are pinned to commit SHAs in
+# ci.yml; Dependabot bumps the SHA and the "# vX.Y.Z" comment together.
+
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: pip
+    directory: /backend
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
