@@ -2,8 +2,11 @@ import { Suspense } from 'react'
 
 import { Outlet, useLocation } from 'react-router-dom'
 
+import { AchievementToast } from '@/components/game/AchievementToast'
 import { Spinner } from '@/components/ui/Spinner'
+import { useUnlockOnMount } from '@/hooks/useUnlockOnMount'
 
+import { BackgroundContours } from './BackgroundContours'
 import { Footer } from './Footer'
 import { Header } from './Header'
 import { ScrollToTop } from './ScrollToTop'
@@ -11,9 +14,11 @@ import { MAIN_CONTENT_ID, SkipLink } from './SkipLink'
 
 export const PublicLayout = () => {
   const { pathname } = useLocation()
+  useUnlockOnMount('firstStep')
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="relative isolate flex min-h-screen flex-col overflow-x-clip">
+      <BackgroundContours />
       <ScrollToTop />
       <SkipLink />
       <Header />
@@ -22,13 +27,14 @@ export const PublicLayout = () => {
         key={pathname}
         id={MAIN_CONTENT_ID}
         tabIndex={-1}
-        className="mx-auto w-full max-w-5xl flex-1 px-4 py-10 focus:outline-none motion-safe:animate-fade-in-up"
+        className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 focus:outline-none motion-safe:animate-fade-in-up"
       >
         <Suspense fallback={<Spinner />}>
           <Outlet />
         </Suspense>
       </main>
       <Footer />
+      <AchievementToast />
     </div>
   )
 }

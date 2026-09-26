@@ -8,19 +8,23 @@ import { MemoryRouter } from 'react-router-dom'
 
 import { ROUTER_FUTURE_FLAGS } from '@/routes/routerFutureFlags'
 import { makeStore } from '@/store'
+import { initialGameState } from '@/store/gameSlice'
+import type { GameState } from '@/types'
 
 import { createTestI18n } from './i18n'
 
 interface RenderOptions {
   route?: string
+  /** Initial gamification progress (defaults to a fresh visitor). */
+  game?: Partial<GameState>
 }
 
 /** Render with a fresh Redux store, test i18n instance and memory router. */
 export const renderWithProviders = (
   ui: ReactElement,
-  { route = '/' }: RenderOptions = {},
+  { route = '/', game }: RenderOptions = {},
 ) => {
-  const store = makeStore()
+  const store = makeStore({ ...initialGameState, ...game })
   const i18n = createTestI18n()
 
   const Wrapper = ({ children }: { children: ReactNode }) => (

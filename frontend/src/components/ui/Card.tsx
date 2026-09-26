@@ -9,7 +9,7 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 export const Card = ({ className, children, ...props }: CardProps) => (
   <div
     className={cn(
-      'rounded-xl border border-edge bg-surface p-6 transition-colors hover:border-accent/50',
+      'rounded-2xl border-2 border-edge bg-surface p-6 transition-colors hover:border-warm/70',
       className,
     )}
     {...props}

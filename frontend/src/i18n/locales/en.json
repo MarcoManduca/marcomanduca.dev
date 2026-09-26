@@ -18,15 +18,80 @@
     "readMore": "Read more"
   },
   "home": {
-    "heroGreeting": "Hi, I am",
     "heroName": "Marco Manduca",
     "heroRole": "Data Engineer & Data Scientist",
     "heroTagline": "Between raw data and strategic decisions lies a path built of architectures, algorithms and analysis. My job is to design that path and make it scalable, efficient and measurable.",
-    "ctaProjects": "Explore projects",
-    "ctaLearning": "Read the knowledge base",
-    "ctaContacts": "Get in touch",
-    "latestProjects": "Latest projects",
-    "latestArticles": "Latest articles"
+    "card": {
+      "label": "Character card",
+      "level": "LV 5+",
+      "levelLabel": "Level: over 5 years of experience",
+      "portraitAlt": "Portrait of Marco Manduca",
+      "type": "Type: {{role}}",
+      "abilityTitle": "Ability · Data path",
+      "ability": "Designs the path from raw data to decisions and makes it scalable, efficient and measurable.",
+      "evolutionsTitle": "Evolutions",
+      "evolutions": ["Statistics", "AI Master"],
+      "evolutionCurrent": "MSc Data Science (ongoing)",
+      "stack": "Python · SQL · AWS",
+      "serial": "001 · marcomanduca.dev"
+    },
+    "deck": {
+      "title": "My mission deck",
+      "fullPath": "See the full path",
+      "mainQuest": "Main quest",
+      "study": "Study",
+      "project": "Project",
+      "notes": "Notes",
+      "job": "Job",
+      "inProgress": "In progress",
+      "completed": "Completed",
+      "new": "New",
+      "hiddenCard": "[Next project]",
+      "hiddenLabel": "Face-down card",
+      "cta": "Play the card: explore projects"
+    },
+    "energiesTitle": "Energies"
+  },
+  "game": {
+    "collection": "Collection",
+    "collectionLabel": "Figurines collected: {{count}} of {{total}}",
+    "mode": "Game mode",
+    "figurines": "Figurines",
+    "unlocked": "Unlocked",
+    "locked": "Locked",
+    "toast": "Figurine unlocked: {{name}}",
+    "dismiss": "Dismiss notification",
+    "hiddenName": "???",
+    "achievements": {
+      "firstStep": {
+        "name": "First step",
+        "hint": "Enter the site"
+      },
+      "explorer": {
+        "name": "Explorer",
+        "hint": "Open {{goal}} different projects"
+      },
+      "reader": {
+        "name": "Reader",
+        "hint": "Read a learning article"
+      },
+      "polyglot": {
+        "name": "Polyglot",
+        "hint": "Switch the site language"
+      },
+      "secret": {
+        "name": "Eclipse",
+        "hint": "A secret hides in the header"
+      },
+      "contact": {
+        "name": "Contact",
+        "hint": "Send me a message"
+      }
+    }
+  },
+  "theme": {
+    "toLight": "Switch to light theme",
+    "toDark": "Switch to dark theme"
   },
   "about": {
     "title": "About me",
@@ -164,7 +229,7 @@
   "privacy": {
     "title": "Privacy Policy",
     "subtitle": "How your personal data is handled when you use this website.",
-    "lastUpdated": "Last updated: 13 June 2026",
+    "lastUpdated": "Last updated: 26 September 2026",
     "sections": [
       {
         "heading": "Data Controller",
@@ -201,7 +266,7 @@
       },
       {
         "heading": "Cookies and local storage",
-        "body": "This website does not use profiling or third-party tracking cookies. It only uses technical local storage that is strictly necessary for the site to work, such as remembering your preferred language."
+        "body": "This website does not use profiling or third-party tracking cookies. It only uses your browser's local storage to remember your preferences (language and theme) and your game mode progress (figurines collected and projects visited). This data stays on your device, is never sent to the server and can be deleted at any time from your browser settings."
       },
       {
         "heading": "Changes to this policy",

@@ -10,6 +10,7 @@ import { Prose } from '@/components/ui/Prose'
 import { Spinner } from '@/components/ui/Spinner'
 import { Tag } from '@/components/ui/Tag'
 import { useLanguage } from '@/hooks/useLanguage'
+import { useTrackProjectVisit } from '@/hooks/useTrackProjectVisit'
 import { useGetProjectBySlugQuery } from '@/services/projectsApi'
 import { isNotFoundError } from '@/utils/isNotFoundError'
 import { safeExternalUrl } from '@/utils/safeUrl'
@@ -27,6 +28,7 @@ export const ProjectDetail = () => {
     isError,
     refetch,
   } = useGetProjectBySlugQuery(slug)
+  useTrackProjectVisit(project?.slug)
 
   if (isLoading) return <Spinner />
   if (isError && !isNotFoundError(error)) {

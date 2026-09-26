@@ -43,7 +43,7 @@ export const DownloadCvButton = () => {
         {t('about.downloadCv')}
       </Button>
       {failed && (
-        <p role="alert" className="text-sm text-red-400">
+        <p role="alert" className="text-sm text-danger">
           {t('about.cvError')}
         </p>
       )}

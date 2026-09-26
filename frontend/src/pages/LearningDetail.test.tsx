@@ -29,6 +29,14 @@ describe('LearningDetail', () => {
     expect(screen.getByText('algorithms')).toBeInTheDocument()
   })
 
+  it('unlocks the reader figurine once the article loads', async () => {
+    const { store } = renderDetail('big-o-notation')
+
+    await screen.findByRole('heading', { level: 1, name: 'Big-O notation' })
+
+    expect(store.getState().game.unlocked).toContain('reader')
+  })
+
   it('renders the not found page with noindex for an unknown slug', async () => {
     renderDetail('missing-article')
 

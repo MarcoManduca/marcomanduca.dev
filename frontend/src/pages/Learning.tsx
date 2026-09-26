@@ -43,7 +43,7 @@ export const Learning = () => {
         />
       </div>
       {isLoading && <Spinner />}
-      {isError && <p className="mt-8 text-red-400">{t('common.error')}</p>}
+      {isError && <p className="mt-8 text-danger">{t('common.error')}</p>}
       {data && (
         <div className="mt-8 grid gap-4 sm:grid-cols-2">
           {filtered.map((article) => (

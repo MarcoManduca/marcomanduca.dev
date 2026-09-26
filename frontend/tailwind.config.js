@@ -1,35 +1,57 @@
 /** @type {import('tailwindcss').Config} */
 
-// Brand palette (dark theme):
-//   #03728B blu pastello   #03A9C1 azzurro pastello   #F4DF6D giallo pastello
-//   #F38C30 arancione       #F4F0F0 bianco tortora
-// Neutrals (background/surface/raised/edge/muted) are derived, tinted toward
-// teal for cohesion. `warm` is the CTA accent, `highlight` is for badges/tags.
+// Semantic colours are CSS variables (RGB channels) defined per theme in
+// src/index.css, so every utility (and its `/alpha` modifier) follows the
+// active `data-theme` on <html>:
+//   dark  — "Trading Card": night teal surfaces, cyan/orange/yellow accents
+//   light — "Adventurers' Guild": parchment surfaces, ink/wax/ochre accents
+// `brand` holds the fixed logo colours, used where a surface must look the
+// same in both themes (the foil of the character card, energy chips).
+const themed = (name) => `rgb(var(--color-${name}) / <alpha-value>)`
+
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
+  darkMode: ['selector', '[data-theme="dark"]'],
   theme: {
     extend: {
       colors: {
-        background: '#052730',
-        surface: '#07323D',
-        raised: '#0A3F4C',
-        edge: '#14515F',
+        background: themed('background'),
+        surface: themed('surface'),
+        raised: themed('raised'),
+        edge: themed('edge'),
         accent: {
-          DEFAULT: '#03A9C1', // bright cyan: reads well on dark backgrounds
-          hover: '#2FC3D6',
-          deep: '#03728B',
+          DEFAULT: themed('accent'),
+          hover: themed('accent-hover'),
+          deep: themed('accent-deep'),
         },
         warm: {
-          DEFAULT: '#F38C30',
-          hover: '#F7A455',
+          DEFAULT: themed('warm'),
+          hover: themed('warm-hover'),
         },
-        highlight: '#F4DF6D',
-        body: '#D6E2E5',
-        heading: '#F4F0F0',
-        muted: '#6E8A92',
+        highlight: themed('highlight'),
+        body: themed('body'),
+        heading: themed('heading'),
+        muted: themed('muted'),
+        success: themed('success'),
+        danger: themed('danger'),
+        card: {
+          DEFAULT: themed('card'),
+          ink: themed('card-ink'),
+          accent: themed('card-accent'),
+          muted: themed('card-muted'),
+        },
+        brand: {
+          yellow: '#F4DF6D',
+          orange: '#F38C30',
+          teal: '#03728B',
+          cyan: '#03A9C1',
+          cream: '#F4F0F0',
+          ink: '#0D1B1F',
+        },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Barlow', 'system-ui', 'sans-serif'],
+        display: ['"Barlow Condensed"', 'Barlow', 'system-ui', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
       },
       // Entrance animations. Always applied with the `motion-safe:` variant so

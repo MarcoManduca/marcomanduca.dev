@@ -39,6 +39,14 @@ describe('ProjectDetail', () => {
     expect(screen.getByText('Python')).toBeInTheDocument()
   })
 
+  it('counts the opened project towards the explorer figurine', async () => {
+    const { store } = renderDetail('data-pipeline')
+
+    await screen.findByRole('heading', { level: 1, name: 'Data pipeline' })
+
+    expect(store.getState().game.visitedProjects).toEqual(['data-pipeline'])
+  })
+
   it('gives each gallery image a distinct, position-aware alt text', async () => {
     renderDetail('data-pipeline')
 

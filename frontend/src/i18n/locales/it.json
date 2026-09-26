@@ -18,15 +18,80 @@
     "readMore": "Leggi di più"
   },
   "home": {
-    "heroGreeting": "Ciao, sono",
     "heroName": "Marco Manduca",
     "heroRole": "Data Engineer & Data Scientist",
     "heroTagline": "Tra dati grezzi e decisioni strategiche c'è un percorso fatto di architetture, algoritmi e analisi. Il mio lavoro consiste nel progettare quel percorso e renderlo scalabile, efficiente e misurabile.",
-    "ctaProjects": "Esplora i progetti",
-    "ctaLearning": "Leggi la knowledge base",
-    "ctaContacts": "Contattami",
-    "latestProjects": "Ultimi progetti",
-    "latestArticles": "Ultimi articoli"
+    "card": {
+      "label": "Carta personaggio",
+      "level": "LV 5+",
+      "levelLabel": "Livello: oltre 5 anni di esperienza",
+      "portraitAlt": "Ritratto di Marco Manduca",
+      "type": "Tipo: {{role}}",
+      "abilityTitle": "Abilità · Percorso del dato",
+      "ability": "Progetta il percorso tra dati grezzi e decisioni e lo rende scalabile, efficiente e misurabile.",
+      "evolutionsTitle": "Evoluzioni",
+      "evolutions": ["Statistica", "Master AI"],
+      "evolutionCurrent": "MSc Data Science (in corso)",
+      "stack": "Python · SQL · AWS",
+      "serial": "001 · marcomanduca.dev"
+    },
+    "deck": {
+      "title": "Il mio mazzo di missioni",
+      "fullPath": "Vedi il percorso",
+      "mainQuest": "Missione principale",
+      "study": "Studio",
+      "project": "Progetto",
+      "notes": "Appunti",
+      "job": "Lavoro",
+      "inProgress": "In corso",
+      "completed": "Completato",
+      "new": "Nuovo",
+      "hiddenCard": "[Prossimo progetto]",
+      "hiddenLabel": "Carta coperta",
+      "cta": "Gioca la carta: esplora i progetti"
+    },
+    "energiesTitle": "Energie"
+  },
+  "game": {
+    "collection": "Collezione",
+    "collectionLabel": "Figurine raccolte: {{count}} su {{total}}",
+    "mode": "Modalità gioco",
+    "figurines": "Figurine",
+    "unlocked": "Sbloccata",
+    "locked": "Da sbloccare",
+    "toast": "Figurina sbloccata: {{name}}",
+    "dismiss": "Chiudi notifica",
+    "hiddenName": "???",
+    "achievements": {
+      "firstStep": {
+        "name": "Primo passo",
+        "hint": "Entra nel sito"
+      },
+      "explorer": {
+        "name": "Esploratore",
+        "hint": "Apri {{goal}} progetti diversi"
+      },
+      "reader": {
+        "name": "Lettore",
+        "hint": "Leggi un articolo del learning"
+      },
+      "polyglot": {
+        "name": "Poliglotta",
+        "hint": "Cambia la lingua del sito"
+      },
+      "secret": {
+        "name": "Eclissi",
+        "hint": "Un segreto si nasconde nell'intestazione"
+      },
+      "contact": {
+        "name": "Contatto",
+        "hint": "Inviami un messaggio"
+      }
+    }
+  },
+  "theme": {
+    "toLight": "Passa al tema chiaro",
+    "toDark": "Passa al tema scuro"
   },
   "about": {
     "title": "Chi sono",
@@ -164,7 +229,7 @@
   "privacy": {
     "title": "Privacy Policy",
     "subtitle": "Come vengono trattati i tuoi dati personali quando usi questo sito.",
-    "lastUpdated": "Ultimo aggiornamento: 13 giugno 2026",
+    "lastUpdated": "Ultimo aggiornamento: 26 settembre 2026",
     "sections": [
       {
         "heading": "Titolare del trattamento",
@@ -201,7 +266,7 @@
       },
       {
         "heading": "Cookie e archiviazione locale",
-        "body": "Questo sito non utilizza cookie di profilazione o di tracciamento di terze parti. Utilizza solo l'archiviazione locale tecnica strettamente necessaria al funzionamento del sito, come la memorizzazione della lingua preferita."
+        "body": "Questo sito non utilizza cookie di profilazione o di tracciamento di terze parti. Utilizza solo l'archiviazione locale del tuo browser per ricordare le tue preferenze (lingua e tema) e i progressi della modalità gioco (figurine raccolte e progetti visitati). Questi dati restano sul tuo dispositivo, non vengono mai inviati al server e puoi cancellarli in qualsiasi momento dalle impostazioni del browser."
       },
       {
         "heading": "Modifiche a questa policy",

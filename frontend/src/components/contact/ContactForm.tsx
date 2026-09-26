@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
+import { useUnlockOnMount } from '@/hooks/useUnlockOnMount'
 import { useSendContactMutation } from '@/services/contactApi'
 
 import { ConsentCheckbox } from './ConsentCheckbox'
@@ -16,6 +17,7 @@ export const ContactForm = () => {
     useSendContactMutation()
   const [honeypotTriggered, setHoneypotTriggered] = useState(false)
   const [consent, setConsent] = useState(false)
+  useUnlockOnMount('contact', isSuccess)
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -38,10 +40,7 @@ export const ContactForm = () => {
 
   if (isSuccess || honeypotTriggered) {
     return (
-      <p
-        role="status"
-        className="rounded-lg bg-emerald-500/15 p-4 text-emerald-400"
-      >
+      <p role="status" className="rounded-lg bg-success/15 p-4 text-success">
         {t('contacts.success')}
       </p>
     )
@@ -60,7 +59,7 @@ export const ContactForm = () => {
       <HoneypotField />
       <ConsentCheckbox checked={consent} onChange={setConsent} />
       {isError && (
-        <p role="alert" className="rounded-lg bg-red-500/15 p-4 text-red-400">
+        <p role="alert" className="rounded-lg bg-danger/15 p-4 text-danger">
           {t('contacts.error')}
         </p>
       )}

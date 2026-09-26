@@ -5,24 +5,45 @@ plus a protected admin panel backed by the FastAPI REST API (`/api/v1`).
 
 ## Stack
 
-| Concern    | Technology                                                     |
-| ---------- | -------------------------------------------------------------- |
-| Framework  | React 18 + Vite + TypeScript                                   |
-| Styling    | Tailwind CSS (dark blue theme, `cn()` helper)                  |
-| State/Data | Redux Toolkit + RTK Query (single injected API slice)          |
-| Routing    | React Router                                                   |
-| Animations | Tailwind keyframes, `motion-safe:` only (reduced-motion aware) |
-| i18n       | i18next + react-i18next + browser language detector            |
-| Auth       | react-oidc-context (OIDC against AWS Cognito hosted UI)        |
-| Markdown   | react-markdown + rehype-highlight + remark-math/rehype-katex   |
-| SEO        | react-helmet-async                                             |
-| Fonts      | @fontsource/inter, @fontsource/jetbrains-mono (self-hosted)    |
-| Tests      | Vitest + React Testing Library + MSW (jsdom)                   |
+| Concern    | Technology                                                         |
+| ---------- | ------------------------------------------------------------------ |
+| Framework  | React 18 + Vite + TypeScript                                       |
+| Styling    | Tailwind CSS (dark/light themes via CSS variables, `cn()`)         |
+| State/Data | Redux Toolkit + RTK Query (single injected API slice)              |
+| Routing    | React Router                                                       |
+| Animations | Tailwind keyframes, `motion-safe:` only (reduced-motion aware)     |
+| i18n       | i18next + react-i18next + browser language detector                |
+| Auth       | react-oidc-context (OIDC against AWS Cognito hosted UI)            |
+| Markdown   | react-markdown + rehype-highlight + remark-math/rehype-katex       |
+| SEO        | react-helmet-async                                                 |
+| Fonts      | @fontsource Barlow, Barlow Condensed, JetBrains Mono (self-hosted) |
+| Tests      | Vitest + React Testing Library + MSW (jsdom)                       |
 
 No dependencies beyond the agreed list. `oidc-client-ts` is the peer
 dependency required by `react-oidc-context`; `highlight.js` and `katex` are
 only pulled in for their CSS themes (the rehype plugins already depend on
 them at runtime).
+
+## Design
+
+"Quest Log · Trading Card": the CV presented as a collectible card game.
+
+- **Themes.** Semantic colours (`background`, `surface`, `accent`, `warm`,
+  `highlight`, …) are RGB-channel CSS variables defined per `data-theme` in
+  `src/index.css` and mapped in `tailwind.config.js`. Dark ("Trading Card",
+  night teal) is the default; light uses the "Adventurers' Guild" parchment
+  palette. `public/theme-init.js` applies the stored or OS theme before first
+  paint (external script, as the CSP forbids inline ones); `useTheme` toggles
+  and persists it. `brand.*` colours are fixed across themes (card foil).
+- **Fonts.** Barlow Condensed for headings/labels (`font-display`), Barlow for
+  body text, JetBrains Mono for code.
+- **Home.** Character card (profile) + mission deck (current job and studies
+  from the CV copy, latest project and article from the API) + skill
+  "energies" + figurines.
+- **Game mode.** Six figurines unlocked by exploring (first visit, 3 projects,
+  an article, language switch, theme switch, contact message). Progress lives
+  in the `game` Redux slice, persisted to `localStorage` only (never sent to
+  the backend); the header switch hides all gamified UI.
 
 ## Scripts
 

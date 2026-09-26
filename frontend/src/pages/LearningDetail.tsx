@@ -9,6 +9,7 @@ import { Prose } from '@/components/ui/Prose'
 import { Spinner } from '@/components/ui/Spinner'
 import { Tag } from '@/components/ui/Tag'
 import { useLanguage } from '@/hooks/useLanguage'
+import { useUnlockOnMount } from '@/hooks/useUnlockOnMount'
 import { useGetArticleBySlugQuery } from '@/services/learningApi'
 import { excerpt } from '@/utils/excerpt'
 import { formatDate } from '@/utils/formatDate'
@@ -27,6 +28,7 @@ export const LearningDetail = () => {
     isError,
     refetch,
   } = useGetArticleBySlugQuery(slug)
+  useUnlockOnMount('reader', Boolean(article))
 
   if (isLoading) return <Spinner />
   if (isError && !isNotFoundError(error)) {

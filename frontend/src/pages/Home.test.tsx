@@ -5,42 +5,48 @@ import { renderWithProviders } from '@/test/utils'
 import { Home } from './Home'
 
 describe('Home', () => {
-  it('renders the hero with name, role and CTA links', () => {
+  it('renders the character card as the page heading', () => {
     renderWithProviders(<Home />)
 
+    const card = screen.getByRole('article', { name: 'Character card' })
     expect(
-      screen.getByRole('heading', { name: 'Marco Manduca' }),
+      screen.getByRole('heading', { level: 1, name: 'Marco Manduca' }),
     ).toBeInTheDocument()
+    expect(card).toHaveTextContent('Type: Data Engineer & Data Scientist')
+    expect(card).toHaveTextContent('Level: over 5 years of experience')
     expect(
-      screen.getByRole('heading', { name: 'Data Engineer & Data Scientist' }),
+      screen.getByRole('img', { name: 'Portrait of Marco Manduca' }),
     ).toBeInTheDocument()
-    expect(
-      screen.getByRole('link', { name: 'Explore projects' }),
-    ).toHaveAttribute('href', '/projects')
-    expect(
-      screen.getByRole('link', { name: 'Read the knowledge base' }),
-    ).toHaveAttribute('href', '/learning')
-    expect(screen.getByRole('link', { name: 'Get in touch' })).toHaveAttribute(
-      'href',
-      '/contacts',
-    )
   })
 
-  it('shows previews of latest published projects and articles', async () => {
+  it('renders the mission deck with the projects call to action', () => {
     renderWithProviders(<Home />)
 
     expect(
-      await screen.findByRole('heading', { name: 'Latest projects' }),
+      screen.getByRole('heading', { name: 'My mission deck' }),
     ).toBeInTheDocument()
     expect(
-      await screen.findByRole('link', { name: 'Data pipeline' }),
-    ).toBeInTheDocument()
+      screen.getByRole('link', { name: 'Play the card: explore projects' }),
+    ).toHaveAttribute('href', '/projects')
+    expect(screen.getByText('Face-down card')).toBeInTheDocument()
+  })
+
+  it('renders the skill energies from the CV', () => {
+    renderWithProviders(<Home />)
+
+    expect(screen.getByRole('heading', { name: 'Energies' })).toBeVisible()
+    expect(screen.getByText('Python · R · SAS Base')).toBeInTheDocument()
+  })
+
+  it('shows the figurines only in game mode', () => {
+    const { unmount } = renderWithProviders(<Home />)
+    expect(screen.getByRole('heading', { name: 'Figurines' })).toBeVisible()
+    unmount()
+
+    renderWithProviders(<Home />, { game: { gameMode: false } })
 
     expect(
-      await screen.findByRole('heading', { name: 'Latest articles' }),
-    ).toBeInTheDocument()
-    expect(
-      await screen.findByRole('link', { name: 'Big-O notation' }),
-    ).toBeInTheDocument()
+      screen.queryByRole('heading', { name: 'Figurines' }),
+    ).not.toBeInTheDocument()
   })
 })
