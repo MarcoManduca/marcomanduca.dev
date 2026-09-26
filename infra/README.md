@@ -106,7 +106,7 @@ for `.dev`). Route 53 automatically creates the **hosted zone**
 ### 2. Bootstrap Terraform
 
 Prerequisites: AWS account, AWS CLI v2 configured (`aws configure` or SSO),
-Terraform >= 1.10 (S3-native state locking), Docker, Node.js 20, Python 3.12.
+Terraform >= 1.10 (S3-native state locking), Docker, Node.js 24, Python 3.12.
 
 #### 2a. Remote state bucket (once)
 

@@ -39,7 +39,7 @@ Each top-level directory has its own `README.md` with detailed instructions.
 
 ## Quickstart (local development)
 
-Prerequisites: Docker, Node.js 20+, Python 3.12+.
+Prerequisites: Docker, Node.js 24+, Python 3.12+.
 
 ```bash
 # Full stack with Docker (backend + frontend + DynamoDB Local)
