@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { FigurineShelf } from '@/components/game/FigurineShelf'
 import { CharacterCard } from '@/components/home/CharacterCard'
 import { EnergySection } from '@/components/home/EnergySection'
-import { MissionDeck } from '@/components/home/MissionDeck'
+import { QuestLog } from '@/components/quests/QuestLog'
 import { Seo } from '@/components/seo/Seo'
 
 export const Home = () => {
@@ -14,7 +14,7 @@ export const Home = () => {
       <Seo description={t('home.heroTagline')} />
       <div className="grid items-start gap-10 lg:grid-cols-[420px_minmax(0,1fr)] lg:gap-12">
         <CharacterCard />
-        <MissionDeck />
+        <QuestLog />
       </div>
       <EnergySection />
       <FigurineShelf />

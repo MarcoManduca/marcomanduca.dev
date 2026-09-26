@@ -1,4 +1,6 @@
 export interface ExperienceEntry {
+  /** Still in progress: shown among the active quests on the home page. */
+  current: boolean
   period: string
   role: string
   company: string

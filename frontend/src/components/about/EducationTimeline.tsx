@@ -1,4 +1,6 @@
 export interface EducationEntry {
+  /** Still in progress: shown among the active quests on the home page. */
+  current: boolean
   period: string
   degree: string
   school: string

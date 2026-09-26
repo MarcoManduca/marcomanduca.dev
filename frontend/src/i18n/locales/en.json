@@ -35,22 +35,21 @@
       "stack": "Python · SQL · AWS",
       "serial": "001 · marcomanduca.dev"
     },
-    "deck": {
-      "title": "My mission deck",
-      "fullPath": "See the full path",
-      "mainQuest": "Main quest",
-      "study": "Study",
-      "project": "Project",
-      "notes": "Notes",
-      "job": "Job",
-      "inProgress": "In progress",
-      "completed": "Completed",
-      "new": "New",
-      "hiddenCard": "[Next project]",
-      "hiddenLabel": "Face-down card",
-      "cta": "Play the card: explore projects"
-    },
-    "energiesTitle": "Energies"
+    "energiesTitle": "Energies",
+    "quests": {
+      "tablist": "Quests",
+      "active": "Active Quests",
+      "completed": "Completed Quests",
+      "nextQuest": "[Next quest]",
+      "cta": "Explore projects",
+      "fullPath": "Full journey",
+      "types": {
+        "work": "Work",
+        "study": "Study",
+        "project": "Project"
+      },
+      "completedLabel": "Completed"
+    }
   },
   "game": {
     "collection": "Collection",
@@ -112,6 +111,7 @@
     },
     "experience": [
       {
+        "current": true,
         "period": "November 2020 — Present",
         "role": "Business Data Analyst",
         "company": "AdKaora (Mondadori Digital)",
@@ -125,6 +125,7 @@
         ]
       },
       {
+        "current": false,
         "period": "September 2019 — November 2020",
         "role": "Business Intelligence Consultant",
         "company": "InfoEdge (Lutech)",
@@ -137,16 +138,19 @@
     ],
     "education": [
       {
+        "current": true,
         "period": "September 2025 — Present",
         "degree": "MSc in Data Science",
         "school": "Università degli Studi di Milano-Bicocca"
       },
       {
+        "current": false,
         "period": "April 2024 — April 2025",
         "degree": "1st-Level Master in Artificial Intelligence and Data Analytics for Business",
         "school": "Università degli Studi di Milano-Bicocca"
       },
       {
+        "current": false,
         "period": "September 2015 — September 2019",
         "degree": "BSc in Statistics",
         "school": "Università degli Studi di Milano-Bicocca"

@@ -37,9 +37,11 @@ them at runtime).
   and persists it. `brand.*` colours are fixed across themes (card foil).
 - **Fonts.** Barlow Condensed for headings/labels (`font-display`), Barlow for
   body text, JetBrains Mono for code.
-- **Home.** Character card (profile) + mission deck (current job and studies
-  from the CV copy, latest project and article from the API) + skill
-  "energies" + figurines.
+- **Home.** Character card (profile) + quest log + skill "energies" +
+  figurines. The quest log has two tabs: _Active Quests_ (CV entries flagged
+  `current` in the locale files) and _Completed Quests_ (past jobs, degrees and
+  published projects, newest first). Each row shows the domain symbol (work,
+  study, project) and the quest name.
 - **Game mode.** Six figurines unlocked by exploring (first visit, 3 projects,
   an article, language switch, theme switch, contact message). Progress lives
   in the `game` Redux slice, persisted to `localStorage` only (never sent to

@@ -19,16 +19,16 @@ describe('Home', () => {
     ).toBeInTheDocument()
   })
 
-  it('renders the mission deck with the projects call to action', () => {
+  it('renders the quest log with the active quests first', () => {
     renderWithProviders(<Home />)
 
+    expect(screen.getByRole('tab', { name: /Active Quests/ })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
     expect(
-      screen.getByRole('heading', { name: 'My mission deck' }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('link', { name: 'Play the card: explore projects' }),
+      screen.getByRole('link', { name: 'Explore projects' }),
     ).toHaveAttribute('href', '/projects')
-    expect(screen.getByText('Face-down card')).toBeInTheDocument()
   })
 
   it('renders the skill energies from the CV', () => {

@@ -35,22 +35,21 @@
       "stack": "Python · SQL · AWS",
       "serial": "001 · marcomanduca.dev"
     },
-    "deck": {
-      "title": "Il mio mazzo di missioni",
-      "fullPath": "Vedi il percorso",
-      "mainQuest": "Missione principale",
-      "study": "Studio",
-      "project": "Progetto",
-      "notes": "Appunti",
-      "job": "Lavoro",
-      "inProgress": "In corso",
-      "completed": "Completato",
-      "new": "Nuovo",
-      "hiddenCard": "[Prossimo progetto]",
-      "hiddenLabel": "Carta coperta",
-      "cta": "Gioca la carta: esplora i progetti"
-    },
-    "energiesTitle": "Energie"
+    "energiesTitle": "Energie",
+    "quests": {
+      "tablist": "Quest",
+      "active": "Quest attive",
+      "completed": "Quest completate",
+      "nextQuest": "[Prossima quest]",
+      "cta": "Esplora i progetti",
+      "fullPath": "Tutto il percorso",
+      "types": {
+        "work": "Lavoro",
+        "study": "Studio",
+        "project": "Progetto"
+      },
+      "completedLabel": "Completata"
+    }
   },
   "game": {
     "collection": "Collezione",
@@ -112,6 +111,7 @@
     },
     "experience": [
       {
+        "current": true,
         "period": "Novembre 2020 — Oggi",
         "role": "Business Data Analyst",
         "company": "AdKaora (Mondadori Digital)",
@@ -125,6 +125,7 @@
         ]
       },
       {
+        "current": false,
         "period": "Settembre 2019 — Novembre 2020",
         "role": "Business Intelligence Consultant",
         "company": "InfoEdge (Lutech)",
@@ -137,16 +138,19 @@
     ],
     "education": [
       {
+        "current": true,
         "period": "Settembre 2025 — Oggi",
         "degree": "Laurea Magistrale in Data Science",
         "school": "Università degli Studi di Milano-Bicocca"
       },
       {
+        "current": false,
         "period": "Aprile 2024 — Aprile 2025",
         "degree": "Master di I livello in Artificial Intelligence and Data Analytics for Business",
         "school": "Università degli Studi di Milano-Bicocca"
       },
       {
+        "current": false,
         "period": "Settembre 2015 — Settembre 2019",
         "degree": "Laurea Triennale in Statistica",
         "school": "Università degli Studi di Milano-Bicocca"
