@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 
 import portrait420 from '@/assets/portrait-card-420.webp'
 import portrait680 from '@/assets/portrait-card-680.webp'
+import portrait1020 from '@/assets/portrait-card-1020.webp'
 
 // Card width: full column on phones (minus page gutter and foil), 404px on lg.
 const PORTRAIT_SIZES = '(min-width: 1024px) 404px, calc(100vw - 48px)'
@@ -14,7 +15,7 @@ export const CardFront = () => {
     <>
       <img
         src={portrait420}
-        srcSet={`${portrait420} 420w, ${portrait680} 680w`}
+        srcSet={`${portrait420} 420w, ${portrait680} 680w, ${portrait1020} 1020w`}
         sizes={PORTRAIT_SIZES}
         alt={t('home.card.portraitAlt')}
         width={420}
