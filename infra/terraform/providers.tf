@@ -6,7 +6,7 @@
 #                      us-east-1, so the acm module uses this alias.
 
 terraform {
-  required_version = ">= 1.7"
+  required_version = ">= 1.10"
 
   required_providers {
     aws = {
@@ -19,21 +19,16 @@ terraform {
     }
   }
 
-  # Remote state backend (recommended).
+  # Remote state in S3 (partial configuration). The bucket is created by the
+  # separate bootstrap root (infra/terraform/bootstrap); the concrete values
+  # live in backend.hcl (gitignored, copy backend.hcl.example):
   #
-  # 1. Create the state bucket once (see infra/README.md, step 2):
-  #      aws s3api create-bucket --bucket <your-tf-state-bucket> \
-  #        --region eu-west-1 --create-bucket-configuration LocationConstraint=eu-west-1
-  # 2. Uncomment the block below, replace the bucket name, then run:
-  #      terraform init -migrate-state
+  #   terraform init -backend-config=backend.hcl
   #
-  # backend "s3" {
-  #   bucket       = "<your-tf-state-bucket>"
-  #   key          = "marcomanduca.dev/terraform.tfstate"
-  #   region       = "eu-west-1"
-  #   encrypt      = true
-  #   use_lockfile = true # S3-native state locking (Terraform >= 1.10)
-  # }
+  # State contains secrets (the origin-verify shared secret), hence the
+  # encrypted, TLS-only, private bucket. Locking is S3-native (use_lockfile),
+  # which needs Terraform >= 1.10. CI runs `terraform init -backend=false`.
+  backend "s3" {}
 }
 
 provider "aws" {

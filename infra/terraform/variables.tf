@@ -43,9 +43,9 @@ variable "cognito_domain_prefix" {
 }
 
 variable "backend_image_tag" {
-  description = "Tag of the backend image in ECR used by the Lambda function. The deploy script pushes immutable git-sha tags and moves 'latest'."
+  description = "ECR image tag used only when the Lambda function is first created (bootstrap). Afterwards deploy-backend.sh owns the image (git-sha tags) and Terraform ignores it."
   type        = string
-  default     = "latest"
+  default     = "bootstrap"
 }
 
 variable "backend_memory_mb" {
@@ -63,4 +63,61 @@ variable "backend_timeout_s" {
 variable "contact_email" {
   description = "Address that receives contact-form emails. Set it in terraform.tfvars (no default: the infra is not tied to a personal address)."
   type        = string
+}
+
+variable "alert_email" {
+  description = "Recipient of budget and alarm notifications. null = reuse contact_email."
+  type        = string
+  default     = null
+}
+
+variable "monthly_budget_usd" {
+  description = "Monthly AWS cost budget in USD (email at 80% actual, 100% forecasted)."
+  type        = number
+  default     = 10
+}
+
+variable "backend_reserved_concurrency" {
+  description = <<-EOT
+    Reserved concurrent executions for the backend Lambda (hard cost cap).
+    Accounts with a concurrency quota of 10 (typical for new accounts) cannot
+    reserve any: the apply fails. Set -1 (no reservation) in that case.
+  EOT
+  type        = number
+  default     = 5
+}
+
+variable "api_throttling_rate_limit" {
+  description = "API Gateway steady-state rate limit (requests/second) for all routes."
+  type        = number
+  default     = 20
+}
+
+variable "api_throttling_burst_limit" {
+  description = "API Gateway burst limit (requests) for all routes."
+  type        = number
+  default     = 40
+}
+
+variable "contact_rate_limit_daily_max" {
+  description = "Global daily cap on contact-form submissions (CONTACT_RATE_LIMIT_DAILY_MAX)."
+  type        = number
+  default     = 50
+}
+
+variable "cognito_mfa_configuration" {
+  description = "Cognito MFA enforcement: ON (TOTP required) or OPTIONAL."
+  type        = string
+  default     = "ON"
+
+  validation {
+    condition     = contains(["ON", "OPTIONAL"], var.cognito_mfa_configuration)
+    error_message = "cognito_mfa_configuration must be ON or OPTIONAL."
+  }
+}
+
+variable "enable_dev_client" {
+  description = "Create a second Cognito app client with localhost callback/logout URLs for local development."
+  type        = bool
+  default     = false
 }

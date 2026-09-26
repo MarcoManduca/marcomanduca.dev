@@ -30,12 +30,18 @@ coverage/
 # Local-only design assets (logo versions, not built/deployed)
 frontend/design/
 
-# Terraform
+# Terraform (patterns apply to every root, including infra/terraform/bootstrap)
 .terraform/
 *.tfstate
 *.tfstate.*
+.terraform.tfstate.lock.info
+*.tfplan
+crash.log
+crash.*.log
 *.tfvars
 !*.tfvars.example
+# Real S3 backend config (bucket name etc.); backend.hcl.example is committed.
+infra/terraform/backend.hcl
 # .terraform.lock.hcl is committed on purpose to pin provider hashes.
 
 # Docker

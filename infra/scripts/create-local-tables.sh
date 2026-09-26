@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 #
-# Create the three DynamoDB tables against DynamoDB Local.
+# Create the four DynamoDB tables (projects, learning, technologies,
+# ratelimit) against DynamoDB Local.
 #
 # Used by the docker-compose "dynamodb-init" service, but can also be run
 # manually against a local endpoint:
 #
 #   DYNAMODB_ENDPOINT_URL=http://localhost:8001 ./create-local-tables.sh
 #
-# Table names match the defaults expected by the backend in local mode
-# (no project prefix locally — the prefix only exists on AWS).
+# Table names default to the backend Settings defaults (portfolio-* locally;
+# on AWS Terraform names them <project_name>-* and injects them as env vars).
 
 set -euo pipefail
 

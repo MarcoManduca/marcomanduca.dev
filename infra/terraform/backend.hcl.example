@@ -1,0 +1,11 @@
+# Copy to backend.hcl (gitignored) and run:
+#   terraform init -backend-config=backend.hcl            # fresh checkout
+#   terraform init -backend-config=backend.hcl -migrate-state  # from local state
+#
+# bucket/region come from the bootstrap root outputs (infra/terraform/bootstrap).
+
+bucket       = "marcomanduca-dev-tfstate"
+key          = "marcomanduca.dev/terraform.tfstate"
+region       = "eu-west-1"
+encrypt      = true
+use_lockfile = true # S3-native state locking (Terraform >= 1.10)

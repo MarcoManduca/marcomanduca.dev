@@ -2,8 +2,14 @@
 #
 # Build the SPA and deploy it to S3 + CloudFront.
 #
-# Steps: npm ci -> npm run build -> aws s3 sync (assets) -> upload index.html
-#        with no-cache -> CloudFront invalidation.
+# Steps: npm ci -> npm run build -> upload hashed assets/ (immutable, 1 year)
+#        -> upload everything else (index.html, robots.txt, ...) with no-cache
+#        -> prune hashed assets older than ASSET_RETENTION_DAYS
+#        -> CloudFront invalidation.
+#
+# Order matters: new assets land before the new index.html references them,
+# and old hashed assets are kept for a while so browsers still running the
+# previous index.html keep loading their chunks (no --delete on assets/).
 #
 # Configuration (override via environment, values come from terraform output):
 #   FRONTEND_BUCKET    terraform output -raw frontend_bucket_name
@@ -19,6 +25,7 @@ set -euo pipefail
 FRONTEND_BUCKET="${FRONTEND_BUCKET:?Set FRONTEND_BUCKET (terraform output -raw frontend_bucket_name)}"
 DISTRIBUTION_ID="${DISTRIBUTION_ID:?Set DISTRIBUTION_ID (terraform output -raw cloudfront_distribution_id)}"
 AWS_REGION="${AWS_REGION:-eu-west-1}"
+ASSET_RETENTION_DAYS="${ASSET_RETENTION_DAYS:-7}"
 # ---------------------------------------------------------------------------
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -29,24 +36,38 @@ cd "${FRONTEND_DIR}"
 npm ci
 npm run build
 
-echo "Syncing assets to s3://${FRONTEND_BUCKET}..."
-# --delete removes assets from previous deploys (S3 versioning keeps a copy).
-# index.html is handled separately below so it can carry a different header;
-# assets are content-hashed, so their default (heuristic) caching is safe.
+echo "Uploading hashed assets/ (immutable, 1 year)..."
+# Vite content-hashes everything under assets/, so a given name never changes.
+aws s3 sync dist/assets/ "s3://${FRONTEND_BUCKET}/assets/" \
+  --region "${AWS_REGION}" \
+  --cache-control "public,max-age=31536000,immutable"
+
+echo "Uploading index.html and other root files (no-cache)..."
+# no-cache forces revalidation on every load, so a new deploy is picked up
+# immediately. --delete here only prunes stale non-asset files.
 aws s3 sync dist/ "s3://${FRONTEND_BUCKET}/" \
   --region "${AWS_REGION}" \
-  --delete \
-  --exclude index.html
-
-# The SPA entrypoint must never be cached by the browser: no-cache forces a
-# revalidation on every load, so a new deploy (with new hashed asset names) is
-# picked up immediately instead of serving a stale index that points at
-# deleted assets.
-echo "Uploading index.html with Cache-Control: no-cache..."
-aws s3 cp dist/index.html "s3://${FRONTEND_BUCKET}/index.html" \
-  --region "${AWS_REGION}" \
   --cache-control "no-cache" \
-  --content-type "text/html"
+  --exclude "assets/*" \
+  --delete
+
+echo "Pruning hashed assets older than ${ASSET_RETENTION_DAYS} days..."
+# Only objects NOT part of the current build and older than the retention
+# window are removed (S3 versioning still keeps a copy for 30 days).
+CUTOFF="$(date -u -v-"${ASSET_RETENTION_DAYS}"d +%Y-%m-%dT%H:%M:%S 2>/dev/null \
+  || date -u -d "${ASSET_RETENTION_DAYS} days ago" +%Y-%m-%dT%H:%M:%S)"
+aws s3api list-objects-v2 \
+  --bucket "${FRONTEND_BUCKET}" \
+  --prefix "assets/" \
+  --region "${AWS_REGION}" \
+  --query "Contents[?LastModified<'${CUTOFF}'].Key" \
+  --output text \
+  | tr '\t' '\n' \
+  | while read -r key; do
+      [[ -z "${key}" || "${key}" == "None" ]] && continue
+      [[ -f "dist/${key}" ]] && continue
+      aws s3 rm "s3://${FRONTEND_BUCKET}/${key}" --region "${AWS_REGION}"
+    done
 
 echo "Invalidating CloudFront cache..."
 aws cloudfront create-invalidation \

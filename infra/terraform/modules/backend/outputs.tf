@@ -18,3 +18,8 @@ output "origin_verify_secret_value" {
   value       = random_password.origin_verify.result
   sensitive   = true
 }
+
+output "api_id" {
+  description = "API Gateway HTTP API id (CloudWatch alarm dimension)."
+  value       = aws_apigatewayv2_api.backend.id
+}

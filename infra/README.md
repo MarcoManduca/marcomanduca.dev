@@ -42,11 +42,22 @@ Design decisions:
 - **No VPC.** The function talks only to public AWS APIs (DynamoDB, S3, SES,
   Cognito JWKS), so it runs outside a VPC: no subnets, no NAT gateway, no
   public IP to pay for.
-- **SPA routing caveat.** CloudFront rewrites 403/404 responses to
-  `/index.html` with status 200 so deep links work. This applies to `/api/*`
-  too: the backend should convey "not found" inside response bodies the SPA
-  inspects, or the frontend must treat an HTML body on an API call as an
-  error.
+- **SPA routing at the edge.** A viewer-request CloudFront Function on the
+  default behavior rewrites extension-less paths (`/projects/foo`, `/admin`)
+  to `/index.html`; paths with an extension go to S3 untouched. There is no
+  distribution-wide `custom_error_response`, so real API statuses
+  (401/403/404/429…) reach the SPA unchanged and a missing asset is a real
+  404. The same function 301-redirects `www.` to the apex.
+- **Real client IP.** A viewer-request function on `/api/*` overwrites the
+  `x-viewer-ip` header with the viewer IP (client-supplied values are
+  discarded); the backend rate limiter keys on it.
+- **Remote state.** Terraform state lives in a private, versioned,
+  encrypted, TLS-only S3 bucket with S3-native locking. The state contains
+  secrets (the origin-verify shared secret), hence the encryption.
+- **Cost guardrails.** Lambda reserved concurrency and API Gateway stage
+  throttling cap the blast radius of a traffic flood; a monthly AWS Budget
+  and CloudWatch alarms (Lambda errors/throttles, API 5xx/4xx spike) email
+  the owner.
 
 ## Layout
 
@@ -58,8 +69,10 @@ infra/
 │   ├── deploy-frontend.sh     # build + s3 sync + CloudFront invalidation
 │   └── deploy-backend.sh      # docker build/push + lambda update-function-code
 └── terraform/
+    ├── bootstrap/             # separate root (local state): the remote-state S3 bucket
     ├── main.tf                # module wiring
-    ├── providers.tf           # default region + us-east-1 alias (ACM/CloudFront)
+    ├── providers.tf           # S3 backend (partial config) + region/us-east-1 providers
+    ├── backend.hcl.example    # copy to backend.hcl (gitignored)
     ├── variables.tf
     ├── outputs.tf
     ├── terraform.tfvars.example
@@ -68,28 +81,24 @@ infra/
         ├── acm/               # us-east-1 certificate + DNS validation
         ├── storage/           # S3 frontend + media buckets
         ├── database/          # 4 DynamoDB tables (PAY_PER_REQUEST)
-        ├── auth/              # Cognito user pool, SPA client, hosted UI, group
+        ├── auth/              # Cognito user pool (TOTP MFA), SPA client, optional dev client, hosted UI, group
         ├── email/             # SES domain identity + DKIM records
-        ├── backend/           # ECR, Lambda + API Gateway HTTP API, origin secret, IAM, logs
-        └── cdn/               # CloudFront distribution + aliases + OAC (S3) + secret header
+        ├── backend/           # ECR, Lambda + API Gateway HTTP API (throttled), origin secret, IAM, logs
+        ├── cdn/               # CloudFront distribution, edge functions, headers policies, OAC
+        └── monitoring/        # monthly budget, SNS alert topic, CloudWatch alarms
 ```
 
 ---
 
 ## Deployment runbook
 
-### 1. Register marcomanduca.dev on Route 53
+### 1. Domain on Route 53
 
-The domain is **not yet purchased**. Register it manually:
-
-1. AWS Console → **Route 53 → Registered domains → Register domain**.
-2. Search `marcomanduca.dev`, add to cart, fill in contact details
-   (enable privacy protection), complete the purchase.
-3. Cost: `.dev` domains are **~14 USD/year**. Registration can take up to
-   ~30 minutes; you will receive a confirmation email.
-4. Route 53 automatically creates the **hosted zone** for the domain
-   (~0.50 USD/month). Keep `create_hosted_zone = false` in `terraform.tfvars`
-   so Terraform looks it up instead of creating a duplicate.
+`marcomanduca.dev` is registered through Route 53 (for a new domain:
+Console → **Route 53 → Registered domains → Register domain**, ~14 USD/year
+for `.dev`). Route 53 automatically creates the **hosted zone**
+(~0.50 USD/month), so keep `create_hosted_zone = false` in
+`terraform.tfvars` and Terraform looks it up instead of creating a duplicate.
 
 > `.dev` is on the HSTS preload list: browsers force HTTPS. CloudFront + ACM
 > below handle this — nothing extra to do.
@@ -97,52 +106,89 @@ The domain is **not yet purchased**. Register it manually:
 ### 2. Bootstrap Terraform
 
 Prerequisites: AWS account, AWS CLI v2 configured (`aws configure` or SSO),
-Terraform >= 1.7, Docker, Node.js 20, Python 3.12.
+Terraform >= 1.10 (S3-native state locking), Docker, Node.js 20, Python 3.12.
 
-Create the state bucket once (pick a globally unique name):
+#### 2a. Remote state bucket (once)
+
+The state bucket is created by a tiny separate root with **local** state
+(`infra/terraform/bootstrap`): versioning, SSE, full public access block,
+a deny-non-TLS bucket policy and `prevent_destroy`.
 
 ```bash
-aws s3api create-bucket \
-  --bucket <your-tf-state-bucket> \
-  --region eu-west-1 \
-  --create-bucket-configuration LocationConstraint=eu-west-1
+cd infra/terraform/bootstrap
+terraform init
+terraform apply            # optionally -var state_bucket_name=<unique-name>
 ```
 
-Then enable the backend and apply:
+Then point the main root at it:
+
+```bash
+cd ..                      # infra/terraform
+cp backend.hcl.example backend.hcl   # set bucket/region from the bootstrap outputs
+cp terraform.tfvars.example terraform.tfvars   # then edit
+```
+
+#### 2b. Migrating an existing local state (runbook)
+
+If the stack was previously applied with local state (a `terraform.tfstate`
+in `infra/terraform`):
 
 ```bash
 cd infra/terraform
+terraform init -backend-config=backend.hcl -migrate-state   # answer "yes"
+terraform plan             # verify: must show only the intended changes, no mass re-create
+aws s3 ls s3://<state-bucket>/marcomanduca.dev/            # terraform.tfstate is there
+rm terraform.tfstate terraform.tfstate.*backup             # local copies (they contain secrets)
+```
 
-# 1. Uncomment the backend "s3" block in providers.tf and set the bucket name.
-# 2. Provide your variables:
-cp terraform.tfvars.example terraform.tfvars   # then edit
+Delete the local files only after the plan against the remote state looks
+right. From then on a fresh checkout only needs
+`terraform init -backend-config=backend.hcl`. CI always runs
+`terraform init -backend=false` and never touches the state.
 
-terraform init
-terraform plan      # review: ~50 resources
+#### 2c. First apply (fresh account)
+
+```bash
+terraform init -backend-config=backend.hcl
+terraform plan      # review
 ```
 
 A container-image Lambda cannot be created before its (arm64) image exists in
-ECR, so the very first apply is two-phase:
+ECR, and ECR tags are **immutable** (no moving `latest`), so the very first
+apply is two-phase. `backend_image_tag` defaults to `bootstrap`:
 
 ```bash
 # 1. Create the ECR repository first...
 terraform apply -target=module.backend.aws_ecr_repository.backend
 
-# 2. ...build and push an arm64 image into it (the deploy script's final
-#    update-function-code step can't run yet, so push directly here)...
-ECR=$(terraform output -raw ecr_repository_url)
-aws ecr get-login-password --region eu-west-1 \
-  | docker login --username AWS --password-stdin "${ECR%%/*}"
-docker build --platform linux/arm64 -t "$ECR:latest" ../../backend
-docker push "$ECR:latest"
+# 2. ...push an arm64 image tagged "bootstrap" (no Lambda update yet)...
+IMAGE_TAG=bootstrap SKIP_LAMBDA_UPDATE=1 \
+ECR_REPOSITORY_URL=$(terraform output -raw ecr_repository_url) \
+../scripts/deploy-backend.sh
 
 # 3. ...then apply everything else.
 terraform apply
 ```
 
+Terraform ignores `image_uri` after creation (`lifecycle.ignore_changes`):
+`deploy-backend.sh` owns the running image and points the function at
+git-SHA tags, so a later `terraform apply` never rolls the backend back.
+
 The full apply takes ~10–15 minutes (CloudFront is the slow part). On
 subsequent deploys the Lambda already exists, so `deploy-backend.sh` alone
 ships backend changes — no Terraform needed.
+
+#### 2d. After the first apply
+
+- **Confirm the SNS subscription**: AWS emails the alert address
+  (`alert_email`, default `contact_email`) a confirmation link. Alarm emails
+  are not delivered until it is clicked. Budget emails need no confirmation.
+- **Lambda concurrency quota**: `backend_reserved_concurrency` (default 5)
+  reserves concurrency as a hard cost cap. New accounts often have an account
+  concurrency quota of **10**, and Lambda keeps 10 unreserved executions, so
+  any reservation makes the apply **fail**. Check it with
+  `aws lambda get-account-settings` (`ConcurrentExecutions`); if it is 10,
+  set `backend_reserved_concurrency = -1` or request a quota increase.
 
 ### 3. ACM certificate (automatic)
 
@@ -202,6 +248,16 @@ aws cognito-idp admin-set-user-password \
 Only members of the `Administrators` group can use `/admin` — the backend
 checks the `cognito:groups` claim in the JWT.
 
+**MFA (TOTP) is required** (`cognito_mfa_configuration = "ON"`). After this is
+applied, the admin is asked to enroll an authenticator app at the next hosted
+UI login. If AWS refuses to switch an existing pool from `OFF` to `ON`, set
+`cognito_mfa_configuration = "OPTIONAL"`, enroll TOTP, then switch back.
+
+The user pool has **deletion protection** on. The production app client only
+accepts `https://<domain>` redirects; for the Vite dev server set
+`enable_dev_client = true` and use the `cognito_dev_client_id` output as
+`VITE_COGNITO_CLIENT_ID` locally.
+
 ### 6. SES sandbox
 
 Terraform verifies the **domain identity** (DKIM + TXT records) automatically,
@@ -236,12 +292,16 @@ Backend variable names must match the `Settings` fields in
 | `dynamodb_table_names["technologies"]`       | `TECHNOLOGIES_TABLE_NAME`     | —                             |
 | `dynamodb_table_names["ratelimit"]`          | `RATELIMIT_TABLE_NAME`        | —                             |
 | `media_bucket_name`                          | `MEDIA_BUCKET_NAME`           | —                             |
-| `cognito_user_pool_id`                       | `COGNITO_USER_POOL_ID`        | `VITE_COGNITO_USER_POOL_ID`   |
-| `cognito_client_id`                          | `COGNITO_CLIENT_ID`           | `VITE_COGNITO_CLIENT_ID`      |
-| `cognito_hosted_ui_domain`                   | —                             | `VITE_COGNITO_DOMAIN`         |
+| `cognito_user_pool_id`                       | `COGNITO_USER_POOL_ID`        | `VITE_COGNITO_AUTHORITY` = `https://cognito-idp.<region>.amazonaws.com/<pool id>` |
+| `cognito_client_id` (dev: `cognito_dev_client_id`) | `COGNITO_CLIENT_ID`     | `VITE_COGNITO_CLIENT_ID`      |
+| `https://<domain>/admin/callback`            | —                             | `VITE_COGNITO_REDIRECT_URI`   |
+| `cognito_hosted_ui_domain`                   | —                             | `VITE_COGNITO_DOMAIN` = `https://<hosted ui domain>` |
 | `noreply@<domain>` (convention)              | `SES_SENDER_EMAIL`            | —                             |
 | contact recipient (tfvars `contact_email`)   | `SES_RECIPIENT_EMAIL`         | —                             |
 | `https://<domain>` (convention)              | `CORS_ORIGINS`                | —                             |
+| `prod` (fixed on Lambda)                     | `APP_ENV`                     | —                             |
+| generated by Terraform (`random_password`)   | `ORIGIN_VERIFY_SECRET`        | —                             |
+| tfvars `contact_rate_limit_daily_max` (50)   | `CONTACT_RATE_LIMIT_DAILY_MAX`| —                             |
 | `/api/v1` (relative; CloudFront routes to API Gateway)| —                    | `VITE_API_BASE_URL`           |
 | region (tfvars `aws_region`)                 | `AWS_REGION`                  | —                             |
 
@@ -258,6 +318,8 @@ Backend variable names must match the `Settings` fields in
 | Cognito                  | 0              | free tier: 10k MAU                      |
 | SES                      | ~0             | 0.10 per 1 000 emails                   |
 | ECR + CloudWatch logs    | < 1            | 10-image cap, 14-day log retention      |
+| CloudWatch alarms + SNS  | ~0–0.40        | 4 alarms (10 free), email delivery free |
+| AWS Budgets              | 0              | first 2 budgets are free                |
 | **Total**                | **~1–2**       | dominated by the Route 53 hosted zone   |
 
 The backend used to run on ECS Fargate behind an ALB (~30 USD/mo once the
@@ -265,7 +327,19 @@ always-on task, the ALB and public IPv4 charges are added up). Moving it to a
 Lambda container image (same code, Lambda Web Adapter) cut that to roughly the
 cost of the hosted zone. The trade-off is an occasional ~1–2 s cold start.
 
-### 9. Local development
+### 9. Cost guardrails
+
+| Guardrail                         | Variable (default)                                   | Effect |
+|-----------------------------------|------------------------------------------------------|--------|
+| Lambda reserved concurrency       | `backend_reserved_concurrency` (5; -1 = off)          | hard cap on parallel executions → throttles, not bills |
+| API Gateway stage throttling      | `api_throttling_rate_limit` (20 rps), `api_throttling_burst_limit` (40) | excess requests get 429 before Lambda runs |
+| Contact-form daily cap            | `contact_rate_limit_daily_max` (50)                  | global SES send cap in the backend |
+| Monthly budget                    | `monthly_budget_usd` (10)                            | email at 80% actual and 100% forecasted |
+| CloudWatch alarms → SNS email     | `alert_email` (null → `contact_email`)               | Lambda errors/throttles, API 5xx, API 4xx spike |
+
+Budgets and alarms only notify; the first two rows are the actual caps.
+
+### 10. Local development
 
 ```bash
 # Full stack
@@ -280,7 +354,7 @@ docker compose up --build
 
 Notes:
 
-- `dynamodb-init` runs once, creates the 3 tables (in-memory, recreated on
+- `dynamodb-init` runs once, creates the 4 tables (in-memory, recreated on
   every `up`) and exits — exit code 0 is normal.
 - For frontend work prefer the Vite dev server (`cd frontend && npm run dev`)
   for hot reload; the compose `frontend` service builds the production
@@ -297,3 +371,14 @@ Notes:
 | Deploy frontend            | `./infra/scripts/deploy-frontend.sh` (env vars from terraform output) |
 | Tail backend logs          | `aws logs tail /aws/lambda/marcomanduca-dev-backend --follow`      |
 | Infrastructure change      | edit Terraform → `terraform plan` → `terraform apply`              |
+| Roll back backend          | `IMAGE_TAG=<older-sha> ./infra/scripts/deploy-backend.sh` (tag exists → no rebuild) |
+| Rotate origin secret       | `terraform apply -replace=module.backend.random_password.origin_verify` |
+
+Frontend deploys upload hashed `assets/` first with
+`Cache-Control: public,max-age=31536000,immutable`, then `index.html` and the
+other root files with `no-cache`. Old hashed assets are kept for
+`ASSET_RETENTION_DAYS` (default 7) so visitors still on the previous
+`index.html` keep working, then pruned.
+
+Follow-up (not implemented): deploy automation (GitHub Actions with OIDC
+role assumption) — deploys are manual via the scripts today.

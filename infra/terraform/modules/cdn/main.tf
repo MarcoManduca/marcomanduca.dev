@@ -3,14 +3,14 @@
 #   default behavior : SPA assets from the private frontend bucket (OAC)
 #   /api/*           : FastAPI via the API Gateway HTTP API (secret header)
 #
-# Extras:
-#   - 403/404 from S3 are rewritten to /index.html so client-side routing
-#     works on deep links. Caveat: this applies distribution-wide, so raw
-#     API 403/404 bodies are also rewritten — the SPA must rely on status
-#     codes... which are rewritten to 200 as well; the backend therefore
-#     avoids bare 403/404 semantics for data the UI needs (documented in
-#     infra/README.md).
-#   - A tiny CloudFront Function 301-redirects www.<domain> to the apex.
+# Extras (see functions.tf / headers.tf):
+#   - SPA deep links: a viewer-request CloudFront Function on the DEFAULT
+#     behavior rewrites extension-less paths to /index.html. There is no
+#     distribution-wide custom_error_response, so real API statuses
+#     (401/403/404/429...) pass through untouched and a missing asset is a
+#     real 404 (the OAC may ListBucket) instead of index.html with a 200.
+#   - The same function 301-redirects www.<domain> to the apex.
+#   - /api/*: a viewer-request function sets x-viewer-ip (real client IP).
 
 data "aws_cloudfront_cache_policy" "caching_optimized" {
   name = "Managed-CachingOptimized"
@@ -24,54 +24,6 @@ data "aws_cloudfront_origin_request_policy" "all_viewer_except_host" {
   name = "Managed-AllViewerExceptHostHeader"
 }
 
-# Security headers applied to every SPA response at the edge. The SPA is
-# served from S3, so these cannot live in an origin web server — CloudFront
-# is the only place that sees every viewer response.
-resource "aws_cloudfront_response_headers_policy" "security" {
-  name = "${var.project_name}-security-headers"
-
-  security_headers_config {
-    content_type_options {
-      override = true
-    }
-
-    frame_options {
-      frame_option = "DENY"
-      override     = true
-    }
-
-    referrer_policy {
-      referrer_policy = "strict-origin-when-cross-origin"
-      override        = true
-    }
-
-    strict_transport_security {
-      access_control_max_age_sec = 63072000 # 2 years
-      include_subdomains         = true
-      preload                    = true
-      override                   = true
-    }
-
-    content_security_policy {
-      # Pragmatic policy: no inline scripts (Vite emits hashed bundles),
-      # inline styles allowed for KaTeX, images from S3/CloudFront over https,
-      # and cross-origin fetches (Cognito token exchange) over https.
-      content_security_policy = join("; ", [
-        "default-src 'self'",
-        "img-src 'self' data: https:",
-        "font-src 'self' data:",
-        "style-src 'self' 'unsafe-inline'",
-        "script-src 'self'",
-        "connect-src 'self' https:",
-        "object-src 'none'",
-        "base-uri 'self'",
-        "frame-ancestors 'none'",
-      ])
-      override = true
-    }
-  }
-}
-
 resource "aws_cloudfront_origin_access_control" "frontend" {
   name                              = "${var.project_name}-frontend"
   description                       = "OAC for the private frontend bucket"
@@ -80,30 +32,10 @@ resource "aws_cloudfront_origin_access_control" "frontend" {
   signing_protocol                  = "sigv4"
 }
 
-# Redirect www -> apex at the edge (viewer-request).
-resource "aws_cloudfront_function" "www_redirect" {
-  name    = "${var.project_name}-www-redirect"
-  runtime = "cloudfront-js-2.0"
-  comment = "301 redirect www.${var.domain_name} to ${var.domain_name}"
-  publish = true
-
-  code = <<-EOT
-    function handler(event) {
-      var request = event.request;
-      if (request.headers.host.value === 'www.${var.domain_name}') {
-        return {
-          statusCode: 301,
-          statusDescription: 'Moved Permanently',
-          headers: {
-            location: { value: 'https://${var.domain_name}' + request.uri }
-          }
-        };
-      }
-      return request;
-    }
-  EOT
-}
-
+# No WAF: a web ACL costs ~6+ USD/month, more than the whole stack. Abuse is
+# capped by API Gateway throttling, Lambda reserved concurrency and the
+# backend rate limiter instead.
+#trivy:ignore:AVD-AWS-0011
 resource "aws_cloudfront_distribution" "this" {
   enabled             = true
   is_ipv6_enabled     = true
@@ -147,32 +79,25 @@ resource "aws_cloudfront_distribution" "this" {
 
     function_association {
       event_type   = "viewer-request"
-      function_arn = aws_cloudfront_function.www_redirect.arn
+      function_arn = aws_cloudfront_function.site_viewer_request.arn
     }
   }
 
   ordered_cache_behavior {
-    path_pattern             = "/api/*"
-    target_origin_id         = "backend-lambda"
-    viewer_protocol_policy   = "redirect-to-https"
-    allowed_methods          = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
-    cached_methods           = ["GET", "HEAD"]
-    cache_policy_id          = data.aws_cloudfront_cache_policy.caching_disabled.id
-    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.all_viewer_except_host.id
-    compress                 = true
-  }
+    path_pattern               = "/api/*"
+    target_origin_id           = "backend-lambda"
+    viewer_protocol_policy     = "redirect-to-https"
+    allowed_methods            = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
+    cached_methods             = ["GET", "HEAD"]
+    cache_policy_id            = data.aws_cloudfront_cache_policy.caching_disabled.id
+    origin_request_policy_id   = data.aws_cloudfront_origin_request_policy.all_viewer_except_host.id
+    response_headers_policy_id = aws_cloudfront_response_headers_policy.api.id
+    compress                   = true
 
-  # SPA deep links: a private S3 origin answers 403 for unknown keys.
-  custom_error_response {
-    error_code         = 403
-    response_code      = 200
-    response_page_path = "/index.html"
-  }
-
-  custom_error_response {
-    error_code         = 404
-    response_code      = 200
-    response_page_path = "/index.html"
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.api_viewer_request.arn
+    }
   }
 
   restrictions {
@@ -188,7 +113,7 @@ resource "aws_cloudfront_distribution" "this" {
   }
 }
 
-# Only this distribution may read the frontend bucket.
+# Only this distribution may read the frontend bucket, and only over TLS.
 data "aws_iam_policy_document" "frontend_bucket" {
   statement {
     sid       = "AllowCloudFrontOAC"
@@ -204,6 +129,46 @@ data "aws_iam_policy_document" "frontend_bucket" {
       test     = "StringEquals"
       variable = "AWS:SourceArn"
       values   = [aws_cloudfront_distribution.this.arn]
+    }
+  }
+
+  # ListBucket lets S3 answer 404 (instead of 403) for a missing asset, so
+  # broken asset links surface as real "not found" responses.
+  statement {
+    sid       = "AllowCloudFrontOACList"
+    actions   = ["s3:ListBucket"]
+    resources = [var.frontend_bucket_arn]
+
+    principals {
+      type        = "Service"
+      identifiers = ["cloudfront.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "AWS:SourceArn"
+      values   = [aws_cloudfront_distribution.this.arn]
+    }
+  }
+
+  statement {
+    sid     = "DenyInsecureTransport"
+    effect  = "Deny"
+    actions = ["s3:*"]
+    resources = [
+      var.frontend_bucket_arn,
+      "${var.frontend_bucket_arn}/*",
+    ]
+
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+
+    condition {
+      test     = "Bool"
+      variable = "aws:SecureTransport"
+      values   = ["false"]
     }
   }
 }

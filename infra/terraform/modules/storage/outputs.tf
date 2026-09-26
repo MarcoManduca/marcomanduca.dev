@@ -22,3 +22,11 @@ output "media_bucket_arn" {
   description = "ARN of the media bucket."
   value       = aws_s3_bucket.this["media"].arn
 }
+
+output "media_bucket_domains" {
+  description = "Hostnames presigned media URLs may use (global and regional virtual-hosted style), for the CSP."
+  value = [
+    aws_s3_bucket.this["media"].bucket_domain_name,
+    aws_s3_bucket.this["media"].bucket_regional_domain_name,
+  ]
+}

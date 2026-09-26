@@ -21,3 +21,16 @@ contact_email = "you@example.com"
 # Backend sizing — the FastAPI app runs on Lambda (container image).
 backend_memory_mb = 512
 backend_timeout_s = 30
+
+# Cost guardrails (see infra/README.md, "Cost guardrails").
+# Set backend_reserved_concurrency = -1 if the account concurrency quota is 10.
+# alert_email = "alerts@example.com"   # default: contact_email
+monthly_budget_usd           = 10
+backend_reserved_concurrency = 5
+api_throttling_rate_limit    = 20
+api_throttling_burst_limit   = 40
+contact_rate_limit_daily_max = 50
+
+# Cognito: TOTP MFA required; dev client (localhost callbacks) off in prod.
+cognito_mfa_configuration = "ON"
+enable_dev_client         = false

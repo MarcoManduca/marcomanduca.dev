@@ -22,7 +22,8 @@ Browser → CloudFront → /api ───────┘
 | Auth     | AWS Cognito (Administrators group)               |
 | Hosting  | AWS Lambda + API Gateway (backend), S3 + CloudFront (SPA) |
 | DNS/TLS  | Route 53 + ACM                                   |
-| IaC      | Terraform                                        |
+| IaC      | Terraform (remote state in an encrypted, versioned S3 bucket) |
+| Ops      | AWS Budgets + CloudWatch alarms (SNS email), Lambda/API Gateway cost caps |
 
 ## Repository structure
 
@@ -64,7 +65,7 @@ npm run dev
 
 ```bash
 # Backend
-cd backend && pytest --cov=src --cov-report=term-missing
+cd backend && pytest --cov=src --cov-report=term-missing   # CI: tests/unit + tests/integration, combined gate
 
 # Frontend
 cd frontend && npx vitest run --coverage
@@ -77,9 +78,16 @@ Coverage threshold: 80% (enforced in CI).
 See [infra/README.md](infra/README.md) for the full AWS deployment guide, including:
 
 1. Registering `marcomanduca.dev` on Route 53
-2. Issuing the ACM certificate (us-east-1 for CloudFront)
-3. Provisioning all resources with Terraform
-4. Deploying backend (Lambda) and frontend (S3 + CloudFront invalidation)
+2. Bootstrapping the remote Terraform state bucket (`infra/terraform/bootstrap`)
+   and migrating to the S3 backend
+3. Issuing the ACM certificate (us-east-1 for CloudFront)
+4. Provisioning all resources with Terraform, including the `monitoring`
+   module (monthly budget, SNS alerts, CloudWatch alarms)
+5. Deploying backend (Lambda) and frontend (S3 + CloudFront invalidation)
+
+CI (`.github/workflows/ci.yml`) runs lint, tests with coverage gates,
+Terraform fmt/validate, gitleaks, hadolint, and Trivy IaC + image scans.
+Deploys are manual (scripts in `infra/scripts`).
 
 ## Documentation
 

@@ -39,7 +39,17 @@ variable "backend_origin_host" {
 }
 
 variable "origin_verify_secret_value" {
-  description = "Shared secret sent to the Function URL in the X-Origin-Verify header."
+  description = "Shared secret sent to the API Gateway origin in the X-Origin-Verify header."
   type        = string
   sensitive   = true
+}
+
+variable "media_bucket_domains" {
+  description = "Media bucket hostnames used by presigned URLs (CSP img-src/connect-src)."
+  type        = list(string)
+}
+
+variable "cognito_origins" {
+  description = "Cognito origins the SPA fetches from (CSP connect-src), e.g. https://<prefix>.auth.<region>.amazoncognito.com."
+  type        = list(string)
 }

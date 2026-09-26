@@ -51,6 +51,11 @@ output "cognito_client_id" {
   value       = module.auth.client_id
 }
 
+output "cognito_dev_client_id" {
+  description = "Cognito app client id for local development (null unless enable_dev_client = true)."
+  value       = module.auth.dev_client_id
+}
+
 output "cognito_hosted_ui_domain" {
   description = "Full Cognito hosted UI domain for the OIDC code flow."
   value       = module.auth.hosted_ui_domain
@@ -59,4 +64,9 @@ output "cognito_hosted_ui_domain" {
 output "ses_identity_arn" {
   description = "SES domain identity ARN."
   value       = module.email.identity_arn
+}
+
+output "alerts_topic_arn" {
+  description = "SNS topic for CloudWatch alarms (confirm the email subscription after apply)."
+  value       = module.monitoring.alerts_topic_arn
 }

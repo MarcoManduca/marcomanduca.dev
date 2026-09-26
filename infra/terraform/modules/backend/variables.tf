@@ -4,9 +4,9 @@ variable "project_name" {
 }
 
 variable "image_tag" {
-  description = "ECR image tag the Lambda function points to."
+  description = "ECR image tag used only when the function is first created (deploy-backend.sh owns it afterwards)."
   type        = string
-  default     = "latest"
+  default     = "bootstrap"
 }
 
 variable "architecture" {
@@ -46,4 +46,27 @@ variable "container_environment" {
   description = "Plain (non-secret) environment variables for the function."
   type        = map(string)
   default     = {}
+}
+
+variable "ses_sender_email" {
+  description = "Sender address the function may use (ses:FromAddress condition)."
+  type        = string
+}
+
+variable "reserved_concurrency" {
+  description = "Reserved concurrent executions (cost cap). -1 = no reservation (required on accounts with a concurrency quota of 10)."
+  type        = number
+  default     = 5
+}
+
+variable "throttling_rate_limit" {
+  description = "API Gateway stage steady-state request rate limit (requests/second)."
+  type        = number
+  default     = 20
+}
+
+variable "throttling_burst_limit" {
+  description = "API Gateway stage burst limit (requests)."
+  type        = number
+  default     = 40
 }
