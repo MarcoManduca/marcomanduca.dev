@@ -23,16 +23,29 @@
     "heroTagline": "Between raw data and strategic decisions lies a path built of architectures, algorithms and analysis. My job is to design that path and make it scalable, efficient and measurable.",
     "card": {
       "label": "Character card",
+      "portraitAlt": "Portrait of Marco Manduca",
       "level": "LV 5+",
       "levelLabel": "Level: over 5 years of experience",
-      "portraitAlt": "Portrait of Marco Manduca",
-      "type": "Type: {{role}}",
-      "abilityTitle": "Ability · Data path",
-      "ability": "Designs the path from raw data to decisions and makes it scalable, efficient and measurable.",
-      "evolutionsTitle": "Evolutions",
-      "evolutions": ["Statistics", "AI Master"],
-      "evolutionCurrent": "MSc Data Science (ongoing)",
-      "stack": "Python · SQL · AWS",
+      "showBack": "Flip the card: show the back",
+      "showFront": "Flip the card: show the front",
+      "flipHint": "Flip the card",
+      "skillsTitle": "Skills",
+      "skills": [
+        {
+          "title": "Programming",
+          "items": "Python · SQL"
+        },
+        {
+          "title": "Cloud",
+          "items": "AWS"
+        },
+        {
+          "title": "Data viz",
+          "items": "Power BI"
+        }
+      ],
+      "descriptionTitle": "Description",
+      "description": "I design the path from raw data to decisions and make it scalable, efficient and measurable.",
       "serial": "001 · marcomanduca.dev"
     },
     "energiesTitle": "Energies",

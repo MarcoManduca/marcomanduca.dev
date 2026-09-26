@@ -5,17 +5,17 @@ import { renderWithProviders } from '@/test/utils'
 import { Home } from './Home'
 
 describe('Home', () => {
-  it('renders the character card as the page heading', () => {
+  it('renders the flippable character card as the page heading', () => {
     renderWithProviders(<Home />)
 
-    const card = screen.getByRole('article', { name: 'Character card' })
+    expect(
+      screen.getByRole('article', { name: 'Character card' }),
+    ).toBeInTheDocument()
     expect(
       screen.getByRole('heading', { level: 1, name: 'Marco Manduca' }),
     ).toBeInTheDocument()
-    expect(card).toHaveTextContent('Type: Data Engineer & Data Scientist')
-    expect(card).toHaveTextContent('Level: over 5 years of experience')
     expect(
-      screen.getByRole('img', { name: 'Portrait of Marco Manduca' }),
+      screen.getByRole('button', { name: 'Flip the card: show the back' }),
     ).toBeInTheDocument()
   })
 

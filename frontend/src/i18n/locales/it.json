@@ -23,16 +23,29 @@
     "heroTagline": "Tra dati grezzi e decisioni strategiche c'è un percorso fatto di architetture, algoritmi e analisi. Il mio lavoro consiste nel progettare quel percorso e renderlo scalabile, efficiente e misurabile.",
     "card": {
       "label": "Carta personaggio",
+      "portraitAlt": "Ritratto di Marco Manduca",
       "level": "LV 5+",
       "levelLabel": "Livello: oltre 5 anni di esperienza",
-      "portraitAlt": "Ritratto di Marco Manduca",
-      "type": "Tipo: {{role}}",
-      "abilityTitle": "Abilità · Percorso del dato",
-      "ability": "Progetta il percorso tra dati grezzi e decisioni e lo rende scalabile, efficiente e misurabile.",
-      "evolutionsTitle": "Evoluzioni",
-      "evolutions": ["Statistica", "Master AI"],
-      "evolutionCurrent": "MSc Data Science (in corso)",
-      "stack": "Python · SQL · AWS",
+      "showBack": "Gira la carta: mostra il retro",
+      "showFront": "Gira la carta: mostra il fronte",
+      "flipHint": "Gira la carta",
+      "skillsTitle": "Abilità",
+      "skills": [
+        {
+          "title": "Programmazione",
+          "items": "Python · SQL"
+        },
+        {
+          "title": "Cloud",
+          "items": "AWS"
+        },
+        {
+          "title": "Data viz",
+          "items": "Power BI"
+        }
+      ],
+      "descriptionTitle": "Descrizione",
+      "description": "Progetto il percorso tra dati grezzi e decisioni e lo rendo scalabile, efficiente e misurabile.",
       "serial": "001 · marcomanduca.dev"
     },
     "energiesTitle": "Energie",

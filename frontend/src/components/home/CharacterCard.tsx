@@ -1,58 +1,60 @@
+import { useState } from 'react'
+
 import { useTranslation } from 'react-i18next'
 
-import { CardPortrait } from './CardPortrait'
+import { cn } from '@/utils/cn'
 
-const LABEL = 'font-display text-lg font-extrabold uppercase'
+import { CardBack } from './CardBack'
+import { CardFront } from './CardFront'
 
-/** Trading-card profile: foil frame, portrait, type, ability and evolutions. */
+const FACE =
+  'relative flex h-full flex-col overflow-hidden rounded-[20px] [backface-visibility:hidden] [grid-area:1/1]'
+
+/**
+ * Trading-card profile that flips on click (or Enter/Space) with a 3D turn.
+ * Both faces share one grid cell so the card keeps a single size; the hidden
+ * face is removed from the accessibility tree. Reduced motion: instant swap.
+ */
 export const CharacterCard = () => {
   const { t } = useTranslation()
-  const evolutions = t('home.card.evolutions', {
-    returnObjects: true,
-  }) as string[]
+  const [flipped, setFlipped] = useState(false)
 
   return (
     <article
       aria-label={t('home.card.label')}
-      className="mx-auto w-full max-w-[420px] rounded-[26px] bg-gradient-to-br from-brand-yellow via-brand-orange to-brand-teal p-2 shadow-2xl shadow-black/40 lg:-rotate-2 motion-safe:lg:transition-transform motion-safe:lg:hover:rotate-0"
+      className="relative mx-auto w-full max-w-[420px] [perspective:1600px] lg:-rotate-2"
     >
-      <div className="flex flex-col gap-3 rounded-[20px] bg-card p-4 text-card-ink sm:p-[18px]">
-        <div className="flex items-baseline justify-between gap-3">
-          <h1 className="text-3xl font-extrabold uppercase leading-none sm:text-[34px]">
-            {t('home.heroName')}
-          </h1>
-          <span className="font-display text-2xl font-extrabold text-card-accent">
-            <span aria-hidden="true">{t('home.card.level')}</span>
-            <span className="sr-only">{t('home.card.levelLabel')}</span>
-          </span>
+      <div
+        className={cn(
+          'grid aspect-[5/7] rounded-[26px] bg-gradient-to-br from-brand-yellow via-brand-orange to-brand-teal p-2 shadow-2xl shadow-black/40 transition-transform duration-700 ease-in-out [transform-style:preserve-3d] motion-reduce:transition-none',
+          flipped && '[transform:rotateY(180deg)]',
+        )}
+      >
+        <div
+          aria-hidden={flipped}
+          className={cn(FACE, 'bg-brand-teal p-5 sm:p-6')}
+        >
+          <CardFront />
         </div>
-
-        <CardPortrait />
-
-        <p className="rounded-md bg-card-ink px-2.5 py-1.5 font-display text-base font-bold uppercase tracking-wide text-brand-yellow">
-          {t('home.card.type', { role: t('home.heroRole') })}
-        </p>
-
-        <div className="flex flex-col gap-1 border-b-2 border-card-ink pb-2.5">
-          <h2 className={LABEL}>{t('home.card.abilityTitle')}</h2>
-          <p className="text-[15px] leading-snug">{t('home.card.ability')}</p>
+        <div
+          aria-hidden={!flipped}
+          className={cn(
+            FACE,
+            'gap-5 bg-brand-ink p-5 [transform:rotateY(180deg)] sm:p-6',
+          )}
+        >
+          <CardBack />
         </div>
-
-        <div className="flex flex-col gap-1">
-          <h2 className={LABEL}>{t('home.card.evolutionsTitle')}</h2>
-          <p className="text-[15px]">
-            {evolutions.map((step) => `${step} → `)}
-            <strong className="text-card-accent">
-              {t('home.card.evolutionCurrent')}
-            </strong>
-          </p>
-        </div>
-
-        <p className="flex justify-between gap-3 font-display text-sm font-semibold italic text-card-muted">
-          <span>{t('home.card.stack')}</span>
-          <span>{t('home.card.serial')}</span>
-        </p>
       </div>
+
+      {/* One control over the whole card, so headings stay out of the button. */}
+      <button
+        type="button"
+        aria-pressed={flipped}
+        aria-label={t(flipped ? 'home.card.showFront' : 'home.card.showBack')}
+        onClick={() => setFlipped((value) => !value)}
+        className="absolute inset-0 rounded-[26px] focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-highlight"
+      />
     </article>
   )
 }

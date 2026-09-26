@@ -37,7 +37,8 @@ them at runtime).
   and persists it. `brand.*` colours are fixed across themes (card foil).
 - **Fonts.** Barlow Condensed for headings/labels (`font-display`), Barlow for
   body text, JetBrains Mono for code.
-- **Home.** Character card (profile) + quest log + skill "energies" +
+- **Home.** Flippable character card (full-art portrait on the front; skills
+  and description on the back; 3D turn, instant under reduced motion) + quest log + skill "energies" +
   figurines. The quest log has two tabs built from the CV copy in the locale
   files (`about.experience` / `about.education`, each with `start`/`end` months
   and a `quest` block: guild, objective, final boss, rewards) plus the

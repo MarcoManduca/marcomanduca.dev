@@ -47,7 +47,19 @@ export default {
           cyan: '#03A9C1',
           cream: '#F4F0F0',
           ink: '#0D1B1F',
+          mist: '#C9D8DC',
+          fog: '#7F9AA1',
         },
+      },
+      backgroundImage: {
+        // Holographic sheen swept across the character card.
+        holo: 'linear-gradient(115deg, transparent 25%, rgb(255 255 255 / 0.22) 40%, rgb(244 223 109 / 0.18) 48%, rgb(3 169 193 / 0.18) 56%, transparent 70%)',
+        // Darkens the lower half of the portrait so the name stays legible.
+        'card-fade':
+          'linear-gradient(180deg, transparent 45%, rgb(13 27 31 / 0.95) 85%)',
+        // Criss-cross weave printed on the back of the card.
+        'card-weave':
+          'repeating-linear-gradient(45deg, rgb(244 223 109 / 0.06) 0 12px, transparent 12px 24px), repeating-linear-gradient(-45deg, rgb(3 169 193 / 0.06) 0 12px, transparent 12px 24px)',
       },
       fontFamily: {
         sans: ['Barlow', 'system-ui', 'sans-serif'],
