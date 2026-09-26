@@ -35,12 +35,8 @@ export const QuestLog = () => {
         aria-labelledby={questTabId(tab)}
         className="flex flex-col gap-3 sm:gap-4"
       >
-        {quests.map((quest, index) => (
-          <QuestCard
-            key={quest.key}
-            quest={quest}
-            featured={tab === 'active' && index === 0}
-          />
+        {quests.map((quest) => (
+          <QuestCard key={quest.key} quest={quest} />
         ))}
         {tab === 'active' && <NextQuestSlot />}
       </ul>
