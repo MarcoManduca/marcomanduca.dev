@@ -12,9 +12,9 @@ const TABS: QuestTab[] = ['active', 'completed']
 const ActiveMarker = () => (
   <span
     aria-hidden="true"
-    className="flex h-5 w-5 rotate-45 items-center justify-center rounded-[4px] bg-highlight sm:h-6 sm:w-6"
+    className="flex h-4 w-4 rotate-45 items-center justify-center rounded-[3px] bg-highlight sm:h-5 sm:w-5"
   >
-    <span className="-rotate-45 font-display text-sm font-extrabold leading-none text-background sm:text-base">
+    <span className="-rotate-45 font-display text-xs font-extrabold leading-none text-background sm:text-sm">
       !
     </span>
   </span>
@@ -51,7 +51,7 @@ export const QuestTabs = ({ selected, counts, onSelect }: QuestTabsProps) => {
       role="tablist"
       aria-label={t('home.quests.tablist')}
       onKeyDown={handleKeyDown}
-      className="flex overflow-x-auto border-b-2 border-edge"
+      className="flex overflow-x-auto border-b-2 border-edge pt-1.5"
     >
       {TABS.map((tab) => {
         const isSelected = tab === selected

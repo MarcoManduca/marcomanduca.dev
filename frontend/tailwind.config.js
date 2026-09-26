@@ -47,8 +47,6 @@ export default {
           cyan: '#03A9C1',
           cream: '#F4F0F0',
           ink: '#0D1B1F',
-          mist: '#C9D8DC',
-          fog: '#7F9AA1',
         },
       },
       backgroundImage: {
@@ -57,11 +55,6 @@ export default {
         // Darkens the lower half of the portrait so the name stays legible.
         'card-fade':
           'linear-gradient(180deg, transparent 45%, rgb(13 27 31 / 0.95) 85%)',
-        // Criss-cross weave printed on the back of the card.
-        'card-weave-light':
-          'repeating-linear-gradient(45deg, rgb(156 74 18 / 0.07) 0 12px, transparent 12px 24px), repeating-linear-gradient(-45deg, rgb(10 98 117 / 0.07) 0 12px, transparent 12px 24px)',
-        'card-weave':
-          'repeating-linear-gradient(45deg, rgb(244 223 109 / 0.04) 0 12px, transparent 12px 24px), repeating-linear-gradient(-45deg, rgb(3 169 193 / 0.04) 0 12px, transparent 12px 24px)',
       },
       fontFamily: {
         sans: ['Barlow', 'system-ui', 'sans-serif'],

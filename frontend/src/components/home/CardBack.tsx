@@ -14,26 +14,22 @@ interface CardSkill {
 }
 
 const SECTION_TITLE =
-  'font-display text-sm font-extrabold uppercase tracking-[0.12em] text-card-accent dark:text-brand-yellow'
+  'font-display text-sm font-extrabold uppercase tracking-[0.12em] text-highlight'
 
-/** Back of the card: core skills and a short description. */
+/** Back of the card, in the quest-card palette: skills and description. */
 export const CardBack = () => {
   const { t } = useTranslation()
   const skills = t('home.card.skills', { returnObjects: true }) as CardSkill[]
 
   return (
     <>
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-card-weave-light dark:bg-card-weave"
-      />
-      <section className="relative flex flex-col gap-2">
+      <section className="flex flex-col gap-2">
         <h2 className={SECTION_TITLE}>{t('home.card.skillsTitle')}</h2>
         <ul className="flex flex-col">
           {skills.map(({ title, items }, index) => (
             <li
               key={title}
-              className="flex items-center gap-3 border-b border-card-ink/15 py-2.5 dark:border-brand-cream/15 last:border-b-0"
+              className="flex items-center gap-3 border-b border-edge py-2.5 last:border-b-0"
             >
               <span
                 aria-hidden="true"
@@ -45,26 +41,24 @@ export const CardBack = () => {
                 {SKILL_TOKENS[index % SKILL_TOKENS.length].icon}
               </span>
               <span className="flex flex-col">
-                <span className="font-display text-lg font-bold uppercase leading-tight text-card-ink dark:text-brand-cream">
+                <span className="font-display text-lg font-bold uppercase leading-tight text-heading">
                   {title}
                 </span>
-                <span className="text-sm text-card-muted dark:text-brand-mist">
-                  {items}
-                </span>
+                <span className="text-sm text-muted">{items}</span>
               </span>
             </li>
           ))}
         </ul>
       </section>
 
-      <section className="relative flex flex-col gap-2 border-t-2 border-card-accent/30 pt-4 dark:border-brand-yellow/30">
+      <section className="flex flex-col gap-2 border-t-2 border-edge pt-4">
         <h2 className={SECTION_TITLE}>{t('home.card.descriptionTitle')}</h2>
-        <p className="text-base font-medium leading-relaxed text-card-ink dark:text-brand-cream">
+        <p className="text-base leading-relaxed text-body">
           {t('home.card.description')}
         </p>
       </section>
 
-      <p className="relative mt-auto text-right font-display text-sm font-bold italic text-card-muted dark:text-brand-fog">
+      <p className="mt-auto text-right font-display text-sm font-bold italic text-muted">
         {t('home.card.serial')}
       </p>
     </>
