@@ -51,7 +51,9 @@ export const QuestTabs = ({ selected, counts, onSelect }: QuestTabsProps) => {
       role="tablist"
       aria-label={t('home.quests.tablist')}
       onKeyDown={handleKeyDown}
-      className="flex overflow-x-auto border-b-2 border-edge pl-2 pt-1.5"
+      // Baseline drawn as an inset shadow: the tabs' underline paints over it
+      // without overflowing, so the row only ever scrolls horizontally.
+      className="flex overflow-x-auto overflow-y-hidden pl-2 pt-1.5 shadow-[inset_0_-2px_0_0_rgb(var(--color-edge))]"
     >
       {TABS.map((tab) => {
         const isSelected = tab === selected
@@ -69,7 +71,7 @@ export const QuestTabs = ({ selected, counts, onSelect }: QuestTabsProps) => {
             tabIndex={isSelected ? 0 : -1}
             onClick={() => onSelect(tab)}
             className={cn(
-              '-mb-0.5 flex items-center gap-1.5 whitespace-nowrap border-b-4 pb-3 font-display text-lg font-extrabold uppercase transition-colors min-[400px]:text-xl sm:gap-3 sm:text-[34px]',
+              'flex items-center gap-1.5 whitespace-nowrap border-b-4 pb-3 font-display text-lg font-extrabold uppercase transition-colors min-[400px]:text-xl sm:gap-3 sm:text-[34px]',
               tab === 'active' ? 'pr-2 sm:pr-5' : 'px-2 sm:px-5',
               isSelected
                 ? 'border-warm text-heading'
