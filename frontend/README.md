@@ -41,7 +41,7 @@ them at runtime).
   the level = calendar years since the first job's `start`; skills and
   description on the back; 3D turn, instant under reduced motion; leans
   toward the mouse pointer, the foil sheen sliding after it) + quest log +
-  skill "energies" + figurines. The quest log has two tabs built from the CV copy in the locale
+  skill "energies" + figurine collection. The quest log has two tabs built from the CV copy in the locale
   files (`about.experience` / `about.education`, each with `start`/`end` months
   and a `quest` block: guild, objective, final boss, rewards); projects will
   get a section of their own. Entries without an `end` are _Active Quests_ and
@@ -56,10 +56,11 @@ them at runtime).
 - **About timeline.** A scroll-spy (`useScrollSpy`) lights up the entry
   crossing a reading line at 35% of the viewport; an entry reached from a
   quest lands just above that line and stays lit until the reader scrolls.
-- **Game mode.** Seven figurines unlocked by exploring (first visit, card flip, 3 projects,
-  an article, language switch, theme switch, contact message). Progress lives
-  in the `game` Redux slice, persisted to `localStorage` only (never sent to
-  the backend); the header switch hides all gamified UI.
+- **Game mode.** Always on. Seven figurines unlocked by exploring (first
+  visit, card flip, 3 projects, an article, language switch, theme switch,
+  contact message), shown in the Home _Collection_ with a toast on each
+  unlock. Progress lives in the `game` Redux slice, persisted to
+  `localStorage` only (never sent to the backend).
 
 ## Scripts
 

@@ -4,7 +4,6 @@ import type { AchievementId, GameState } from '@/types'
 import { EXPLORER_GOAL } from '@/utils/achievements'
 
 export const initialGameState: GameState = {
-  gameMode: true,
   unlocked: [],
   visitedProjects: [],
   lastUnlocked: null,
@@ -31,14 +30,10 @@ export const gameSlice = createSlice({
         unlockIn(state, 'explorer')
       }
     },
-    toggleGameMode: (state) => {
-      state.gameMode = !state.gameMode
-    },
     dismissUnlock: (state) => {
       state.lastUnlocked = null
     },
   },
 })
 
-export const { unlock, visitProject, toggleGameMode, dismissUnlock } =
-  gameSlice.actions
+export const { unlock, visitProject, dismissUnlock } = gameSlice.actions

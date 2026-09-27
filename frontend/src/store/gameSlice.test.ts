@@ -2,7 +2,6 @@ import {
   dismissUnlock,
   gameSlice,
   initialGameState,
-  toggleGameMode,
   unlock,
   visitProject,
 } from './gameSlice'
@@ -36,14 +35,12 @@ describe('gameSlice', () => {
     expect(state.unlocked).toEqual([])
   })
 
-  it('toggles game mode and dismisses the pending toast', () => {
-    const toggled = reduce(initialGameState, toggleGameMode())
+  it('dismisses the pending toast', () => {
     const dismissed = reduce(
       { ...initialGameState, lastUnlocked: 'contact' },
       dismissUnlock(),
     )
 
-    expect(toggled.gameMode).toBe(false)
     expect(dismissed.lastUnlocked).toBeNull()
   })
 })

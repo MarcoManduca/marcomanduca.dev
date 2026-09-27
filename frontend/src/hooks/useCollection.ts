@@ -1,14 +1,11 @@
 import { useAppSelector } from '@/store/hooks'
 import { ACHIEVEMENT_IDS } from '@/types'
 
-/** Figurines collected so far, for counters and the figurine shelf. */
+/** Figurines collected so far, for the collection shelf. */
 export const useCollection = () => {
-  const { gameMode, unlocked, visitedProjects } = useAppSelector(
-    (state) => state.game,
-  )
+  const { unlocked, visitedProjects } = useAppSelector((state) => state.game)
 
   return {
-    gameMode,
     unlocked,
     visitedProjects,
     count: unlocked.length,

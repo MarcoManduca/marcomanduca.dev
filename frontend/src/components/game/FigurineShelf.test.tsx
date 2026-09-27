@@ -15,6 +15,7 @@ describe('FigurineShelf', () => {
       game: { unlocked: ['firstStep', 'reader'] },
     })
 
+    expect(screen.getByRole('heading', { name: 'Collection' })).toBeVisible()
     expect(screen.getAllByRole('listitem')).toHaveLength(7)
     expect(screen.getByText('2/7')).toBeInTheDocument()
     expect(
@@ -37,13 +38,5 @@ describe('FigurineShelf', () => {
     renderWithProviders(<FigurineShelf />, { game: { unlocked: ['secret'] } })
 
     expect(screen.getByText('Eclipse')).toBeInTheDocument()
-  })
-
-  it('renders nothing outside game mode', () => {
-    const { container } = renderWithProviders(<FigurineShelf />, {
-      game: { gameMode: false },
-    })
-
-    expect(container).toBeEmptyDOMElement()
   })
 })

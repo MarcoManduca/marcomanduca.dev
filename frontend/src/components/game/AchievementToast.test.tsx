@@ -34,12 +34,4 @@ describe('AchievementToast', () => {
     expect(store.getState().game.lastUnlocked).toBeNull()
     vi.useRealTimers()
   })
-
-  it('stays silent outside game mode', () => {
-    renderWithProviders(<AchievementToast />, {
-      game: { gameMode: false, lastUnlocked: 'reader' },
-    })
-
-    expect(screen.getByRole('status')).toBeEmptyDOMElement()
-  })
 })

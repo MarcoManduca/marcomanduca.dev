@@ -12,8 +12,6 @@ export const ACHIEVEMENT_IDS = [
 export type AchievementId = (typeof ACHIEVEMENT_IDS)[number]
 
 export interface GameState {
-  /** Whether gamified UI (collection, figurines, toasts) is shown. */
-  gameMode: boolean
   unlocked: AchievementId[]
   /** Distinct project slugs opened, towards the explorer figurine. */
   visitedProjects: string[]

@@ -71,9 +71,6 @@
   },
   "game": {
     "collection": "Collezione",
-    "collectionLabel": "Figurine raccolte: {{count}} su {{total}}",
-    "mode": "Modalità gioco",
-    "figurines": "Figurine",
     "unlocked": "Sbloccata",
     "locked": "Da sbloccare",
     "toast": "Figurina sbloccata: {{name}}",

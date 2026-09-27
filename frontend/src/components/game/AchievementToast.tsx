@@ -11,8 +11,8 @@ const TOAST_DURATION_MS = 5000
 export const AchievementToast = () => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
-  const { gameMode, lastUnlocked } = useAppSelector((state) => state.game)
-  const visible = gameMode && lastUnlocked !== null
+  const lastUnlocked = useAppSelector((state) => state.game.lastUnlocked)
+  const visible = lastUnlocked !== null
 
   useEffect(() => {
     if (!visible) return

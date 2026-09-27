@@ -71,9 +71,6 @@
   },
   "game": {
     "collection": "Collection",
-    "collectionLabel": "Figurines collected: {{count}} of {{total}}",
-    "mode": "Game mode",
-    "figurines": "Figurines",
     "unlocked": "Unlocked",
     "locked": "Locked",
     "toast": "Figurine unlocked: {{name}}",

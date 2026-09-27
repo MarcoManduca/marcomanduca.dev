@@ -38,15 +38,9 @@ describe('Home', () => {
     expect(screen.getByText('Python · R · SAS Base')).toBeInTheDocument()
   })
 
-  it('shows the figurines only in game mode', () => {
-    const { unmount } = renderWithProviders(<Home />)
-    expect(screen.getByRole('heading', { name: 'Figurines' })).toBeVisible()
-    unmount()
+  it('always shows the figurine collection', () => {
+    renderWithProviders(<Home />)
 
-    renderWithProviders(<Home />, { game: { gameMode: false } })
-
-    expect(
-      screen.queryByRole('heading', { name: 'Figurines' }),
-    ).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Collection' })).toBeVisible()
   })
 })

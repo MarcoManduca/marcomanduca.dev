@@ -1,8 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
-import { CollectionCounter } from '@/components/game/CollectionCounter'
-import { GameModeSwitch } from '@/components/game/GameModeSwitch'
 import { useMobileMenu } from '@/hooks/useMobileMenu'
 
 import { LanguageSwitcher } from './LanguageSwitcher'
@@ -37,9 +35,7 @@ export const Header = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="hidden items-center gap-3 lg:flex">
-            <CollectionCounter />
-            <GameModeSwitch />
+          <div className="hidden lg:block">
             <LanguageSwitcher />
           </div>
           <ThemeToggle />
@@ -67,13 +63,7 @@ export const Header = () => {
           className="absolute inset-x-0 top-full flex flex-col items-start gap-4 border-b border-edge bg-background px-4 py-4 shadow-lg lg:hidden"
         >
           <NavBar orientation="vertical" label="Mobile" onNavigate={close} />
-          <div className="flex w-full flex-wrap items-center justify-between gap-3">
-            <CollectionCounter />
-            <div className="flex items-center gap-3">
-              <GameModeSwitch />
-              <LanguageSwitcher />
-            </div>
-          </div>
+          <LanguageSwitcher />
         </div>
       )}
     </header>

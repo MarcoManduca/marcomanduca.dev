@@ -6,14 +6,12 @@ describe('gameStorage', () => {
 
   it('round-trips progress without the pending toast', () => {
     saveGameState({
-      gameMode: false,
       unlocked: ['firstStep'],
       visitedProjects: ['a'],
       lastUnlocked: 'firstStep',
     })
 
     expect(loadGameState()).toEqual({
-      gameMode: false,
       unlocked: ['firstStep'],
       visitedProjects: ['a'],
       lastUnlocked: null,
@@ -30,11 +28,22 @@ describe('gameStorage', () => {
     expect(loadGameState()).toEqual(initialGameState)
   })
 
+  it('keeps the progress of an older save with game mode off', () => {
+    localStorage.setItem(
+      'game',
+      JSON.stringify({ gameMode: false, unlocked: ['reader'] }),
+    )
+
+    expect(loadGameState()).toEqual({
+      ...initialGameState,
+      unlocked: ['reader'],
+    })
+  })
+
   it('drops unknown figurines and malformed fields', () => {
     localStorage.setItem(
       'game',
       JSON.stringify({
-        gameMode: 'yes',
         unlocked: ['reader', 'hacker'],
         visitedProjects: [42, 'b'],
       }),
