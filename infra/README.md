@@ -267,6 +267,18 @@ accepts `https://<domain>` redirects; for the Vite dev server set
 `enable_dev_client = true` and use the `cognito_dev_client_id` output as
 `VITE_COGNITO_CLIENT_ID` locally.
 
+The app clients allow **no direct sign-in flow**: `explicit_auth_flows` is
+only `ALLOW_REFRESH_TOKEN_AUTH`, because admins sign in through the hosted UI
+(OAuth authorization code). Left unset, AWS enables `USER_SRP_AUTH` and
+`CUSTOM_AUTH` by default, and anyone holding the public client id could try
+passwords against `InitiateAuth` outside the hosted UI. To check a client:
+
+```bash
+aws cognito-idp describe-user-pool-client --user-pool-id "$USER_POOL_ID" \
+  --client-id "$(terraform output -raw cognito_client_id)" \
+  --query 'UserPoolClient.ExplicitAuthFlows'
+```
+
 ### 6. SES sandbox
 
 Terraform verifies the **domain identity** (DKIM + TXT records) automatically
