@@ -13,6 +13,8 @@ import { Seo } from '@/components/seo/Seo'
 import { Card } from '@/components/ui/Card'
 import { Prose } from '@/components/ui/Prose'
 import { Tag } from '@/components/ui/Tag'
+import { useScrollSpy } from '@/hooks/useScrollSpy'
+import { timelineAnchor } from '@/utils/timelineAnchor'
 
 const SKILL_GROUPS = [
   'programming',
@@ -31,6 +33,10 @@ export const AboutMe = () => {
   const education = t('about.education', {
     returnObjects: true,
   }) as EducationEntry[]
+  const activeAnchor = useScrollSpy([
+    ...experience.map(({ start }) => timelineAnchor('work', start)),
+    ...education.map(({ start }) => timelineAnchor('study', start)),
+  ])
 
   return (
     <>
@@ -49,14 +55,14 @@ export const AboutMe = () => {
         {t('about.experienceTitle')}
       </h2>
       <Prose>
-        <ExperienceTimeline entries={experience} />
+        <ExperienceTimeline entries={experience} activeAnchor={activeAnchor} />
       </Prose>
 
       <h2 className="mt-8 text-2xl font-semibold text-heading">
         {t('about.educationTitle')}
       </h2>
       <Prose>
-        <EducationTimeline entries={education} />
+        <EducationTimeline entries={education} activeAnchor={activeAnchor} />
       </Prose>
 
       <h2 className="mt-8 text-2xl font-semibold text-heading">

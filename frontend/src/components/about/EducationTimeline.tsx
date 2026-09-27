@@ -17,13 +17,22 @@ export interface EducationEntry {
 
 interface EducationTimelineProps {
   entries: EducationEntry[]
+  /** Anchor of the entry the reader is looking at. */
+  activeAnchor: string | null
 }
 
 /** Vertical timeline of academic education. */
-export const EducationTimeline = ({ entries }: EducationTimelineProps) => (
+export const EducationTimeline = ({
+  entries,
+  activeAnchor,
+}: EducationTimelineProps) => (
   <ol className="mt-5 border-l border-edge">
     {entries.map(({ start, period, degree, school }) => (
-      <TimelineItem key={start} anchor={timelineAnchor('study', start)}>
+      <TimelineItem
+        key={start}
+        anchor={timelineAnchor('study', start)}
+        activeAnchor={activeAnchor}
+      >
         <p className="font-mono text-xs text-muted">{period}</p>
         <h3 className="mt-1 font-semibold text-heading">{degree}</h3>
         <p className="mt-1 text-sm text-accent">{school}</p>

@@ -19,14 +19,23 @@ export interface ExperienceEntry {
 
 interface ExperienceTimelineProps {
   entries: ExperienceEntry[]
+  /** Anchor of the entry the reader is looking at. */
+  activeAnchor: string | null
 }
 
 /** Vertical timeline of work experience, each entry with bullet highlights. */
-export const ExperienceTimeline = ({ entries }: ExperienceTimelineProps) => (
+export const ExperienceTimeline = ({
+  entries,
+  activeAnchor,
+}: ExperienceTimelineProps) => (
   <ol className="mt-5 border-l border-edge">
     {entries.map(
       ({ start, period, role, company, description, highlights }) => (
-        <TimelineItem key={start} anchor={timelineAnchor('work', start)}>
+        <TimelineItem
+          key={start}
+          anchor={timelineAnchor('work', start)}
+          activeAnchor={activeAnchor}
+        >
           <p className="font-mono text-xs text-muted">{period}</p>
           <h3 className="mt-1 font-semibold text-heading">
             {role} · <span className="text-accent">{company}</span>
