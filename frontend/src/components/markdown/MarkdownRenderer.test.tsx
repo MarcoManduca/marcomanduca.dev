@@ -1,5 +1,7 @@
 import { render, screen } from '@testing-library/react'
 
+import { markdownHeadings } from '@/utils/markdownHeadings'
+
 import { MarkdownRenderer } from './MarkdownRenderer'
 
 describe('MarkdownRenderer', () => {
@@ -18,6 +20,26 @@ describe('MarkdownRenderer', () => {
     expect(
       await screen.findByRole('heading', { level: 2, name: 'Il problema' }),
     ).toHaveAttribute('id', 'il-problema')
+  })
+
+  it('renders exactly the heading ids the table of contents links to', async () => {
+    const markdown = [
+      '## The load_data step',
+      '## Using [dbt](https://getdbt.com)',
+      '## Calling `fit()` with $O(n)$',
+      '## Results',
+      '## Results',
+    ].join('\n\n')
+    const { container } = render(<MarkdownRenderer content={markdown} />)
+    await screen.findByText('The load_data step')
+
+    // Plain DOM query: jsdom cannot compute accessible names over KaTeX MathML.
+    const rendered = Array.from(
+      container.querySelectorAll('h2'),
+      ({ id }) => id,
+    )
+
+    expect(rendered).toEqual(markdownHeadings(markdown).map(({ id }) => id))
   })
 
   it('renders a highlighted code block', async () => {
