@@ -12,7 +12,7 @@ from src.services.technology_service import get_technology_service
 def _names() -> list[str]:
     """Names of every registered technology."""
     technologies = get_technology_service().list_technologies()
-    return sorted(technology["name"] for technology in technologies)
+    return sorted(technology.name for technology in technologies)
 
 
 def test_seed_technologies_registers_the_real_file(

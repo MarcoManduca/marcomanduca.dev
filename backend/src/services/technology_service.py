@@ -4,8 +4,9 @@ from functools import lru_cache
 from typing import Any
 
 from src.models.technologies_table import TechnologiesTable
-from src.schemas.technology import TechnologyCreate
+from src.schemas.technology import TechnologyCreate, TechnologyResponse
 from src.services.errors import ConflictError, InvalidInputError, NotFoundError
+from src.services.parsing import parse_items
 from src.utils.slugify import slugify
 
 _EMPTY_SLUG_MESSAGE = "Name must contain at least one alphanumeric character."
@@ -23,16 +24,22 @@ class TechnologyService:
     def __init__(self, table: TechnologiesTable) -> None:
         self._table = table
 
-    def list_technologies(self) -> list[dict[str, Any]]:
+    def list_technologies(self) -> list[TechnologyResponse]:
         """Return all technologies sorted by name.
 
         Returns
         -------
-        list[dict[str, Any]]
-            Every technology item.
+        list[TechnologyResponse]
+            Every technology; one stored in an outdated shape is left out
+            (and logged) rather than failing the whole list.
         """
-        items = self._table.scan_all()
-        return sorted(items, key=lambda item: str(item.get("name", "")).lower())
+        technologies = parse_items(
+            TechnologyResponse,
+            self._table.scan_all(),
+            key="id",
+            event="technology_invalid_shape",
+        )
+        return sorted(technologies, key=lambda tech: tech.name.lower())
 
     def create_technology(self, payload: TechnologyCreate) -> dict[str, Any]:
         """Register a technology; the id derives from the name.
@@ -75,9 +82,8 @@ class TechnologyService:
         NotFoundError
             When the technology does not exist.
         """
-        if self._table.get(tech_id) is None:
+        if not self._table.delete_if_exists(tech_id):
             raise NotFoundError(f"Technology '{tech_id}' not found.")
-        self._table.delete(tech_id)
 
 
 @lru_cache

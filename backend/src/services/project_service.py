@@ -1,10 +1,7 @@
 """Business logic for portfolio projects."""
 
-import logging
 from functools import lru_cache
 from typing import Any
-
-from pydantic import ValidationError
 
 from src.models.projects_table import ProjectsTable
 from src.schemas.common import PublicationStatus
@@ -20,10 +17,11 @@ from src.schemas.project_taxonomy import (
     ProjectContext,
 )
 from src.services.errors import ConflictError, InvalidInputError, NotFoundError
+from src.services.parsing import parse_item, parse_items
 from src.services.timestamps import utc_now_iso
 from src.utils.slugify import slugify
 
-logger = logging.getLogger(__name__)
+_INVALID_SHAPE_EVENT = "project_invalid_shape"
 
 _EMPTY_SLUG_MESSAGE = "Title must contain at least one alphanumeric character."
 
@@ -71,11 +69,12 @@ class ProjectService:
         list[dict[str, Any]]
             Matching project cards, newest first.
         """
-        projects = [
-            project
-            for project in map(_parse, self._table.scan_all())
-            if project is not None
-        ]
+        projects = parse_items(
+            ProjectResponse,
+            self._table.scan_all(),
+            key="slug",
+            event=_INVALID_SHAPE_EVENT,
+        )
         if not include_unpublished:
             projects = [
                 project
@@ -121,7 +120,11 @@ class ProjectService:
             stored in a shape the current schema cannot read.
         """
         item = self._table.get(slug)
-        project = _parse(item) if item is not None else None
+        project = (
+            parse_item(ProjectResponse, item, key="slug", event=_INVALID_SHAPE_EVENT)
+            if item is not None
+            else None
+        )
         if project is None:
             raise NotFoundError(f"Project '{slug}' not found.")
         is_published = project.status is PublicationStatus.PUBLISHED
@@ -185,10 +188,12 @@ class ProjectService:
         existing = self._table.get(slug)
         if existing is None:
             raise NotFoundError(f"Project '{slug}' not found.")
+        now = utc_now_iso()
         item = payload.model_dump(mode="json") | {
             "slug": slug,
-            "created_at": existing["created_at"],
-            "updated_at": utc_now_iso(),
+            # Items written before created_at existed get it now.
+            "created_at": existing.get("created_at") or now,
+            "updated_at": now,
         }
         if not self._table.replace_if_exists(item):
             raise NotFoundError(f"Project '{slug}' not found.")
@@ -209,19 +214,6 @@ class ProjectService:
         """
         if not self._table.delete_if_exists(slug):
             raise NotFoundError(f"Project '{slug}' not found.")
-
-
-def _parse(item: dict[str, Any]) -> ProjectResponse | None:
-    """Read a stored item, or ``None`` when it predates the current schema.
-
-    An item in an older shape is left out (and logged by slug) rather than
-    failing the whole list; ``python -m seed.seed --replace`` rewrites it.
-    """
-    try:
-        return ProjectResponse.model_validate(item)
-    except ValidationError:
-        logger.warning("project_invalid_shape", extra={"slug": item.get("slug")})
-        return None
 
 
 def _to_card(project: ProjectResponse) -> dict[str, Any]:

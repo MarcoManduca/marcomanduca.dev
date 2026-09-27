@@ -3,7 +3,12 @@
 from typing import Any
 
 from src.config import get_settings
-from src.models.base import get_dynamodb_resource, put_if_absent, scan_all, to_native
+from src.models.base import (
+    delete_if_present,
+    get_dynamodb_resource,
+    put_if_absent,
+    scan_all,
+)
 
 
 class TechnologiesTable:
@@ -28,8 +33,8 @@ class TechnologiesTable:
         """
         return put_if_absent(self._table, item, "id")
 
-    def get(self, tech_id: str) -> dict[str, Any] | None:
-        """Fetch a technology by id.
+    def delete_if_exists(self, tech_id: str) -> bool:
+        """Delete a technology by id in one conditional write.
 
         Parameters
         ----------
@@ -38,22 +43,10 @@ class TechnologiesTable:
 
         Returns
         -------
-        dict[str, Any] or None
-            The item, or ``None`` when it does not exist.
+        bool
+            ``True`` when it was deleted, ``False`` when it did not exist.
         """
-        response = self._table.get_item(Key={"id": tech_id})
-        item = response.get("Item")
-        return to_native(item) if item else None
-
-    def delete(self, tech_id: str) -> None:
-        """Delete a technology by id.
-
-        Parameters
-        ----------
-        tech_id : str
-            Technology primary key.
-        """
-        self._table.delete_item(Key={"id": tech_id})
+        return delete_if_present(self._table, {"id": tech_id}, "id")
 
     def scan_all(self) -> list[dict[str, Any]]:
         """Return every technology item, following pagination.
