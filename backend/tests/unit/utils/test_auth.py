@@ -12,6 +12,7 @@ from fastapi import HTTPException
 from fastapi.security import HTTPAuthorizationCredentials
 
 from src.utils.auth import (
+    _get_jwks_client,
     decode_token,
     get_current_user,
     optional_admin,
@@ -262,3 +263,11 @@ def test_decode_token_raises_401_on_token_signed_by_another_key() -> None:
     with pytest.raises(HTTPException) as exc_info:
         decode_token(token)
     assert exc_info.value.status_code == 401
+
+
+def test_jwks_client_gives_up_well_before_the_lambda_timeout() -> None:
+    # Act
+    client = _get_jwks_client("https://cognito.example/jwks.json")
+
+    # Assert: a hung JWKS fetch must end as a 401, not a gateway timeout.
+    assert client.timeout < 30
