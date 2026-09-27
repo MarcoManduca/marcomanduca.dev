@@ -14,15 +14,18 @@ belonging to the `Administrators` group.
 - **Storage**: DynamoDB (on-demand) for content, S3 for media.
 - **Auth**: Cognito JWT validation (JWKS, PyJWT) in `src/utils/auth.py`.
 - **Email**: AWS SES for contact form delivery.
-- **Anti-spam**: honeypot field + per-IP fixed-window rate limit and a
+- **Anti-spam**: honeypot field + per-network fixed-window rate limit and a
   site-wide daily cap, backed by a DynamoDB TTL table
   (`src/utils/rate_limit.py`), so the limits are shared across Lambda
-  invocations and survive cold starts. The limiter fails closed (503) if
-  DynamoDB is unavailable.
+  invocations and survive cold starts. The per-network limit applies to
+  every request; the daily cap is only spent by submissions that are really
+  emailed, so honeypot hits and invalid payloads cannot exhaust it. The
+  limiter fails closed (503) if DynamoDB is unavailable.
 - **Client IP**: taken from the `x-viewer-ip` header, which a CloudFront
-  viewer-request function on `/api/*` overwrites with the real viewer IP.
-  `X-Forwarded-For` is never trusted. Locally (no CloudFront) the socket peer
-  address is used.
+  viewer-request function on `/api/*` overwrites with the real viewer IP
+  (`src/utils/client_ip.py`). `X-Forwarded-For` is never trusted. Locally
+  (no CloudFront) the socket peer address is used. IPv6 callers are grouped
+  by `/64`, the block a single subscriber usually holds.
 - **Origin lock**: CloudFront adds an `X-Origin-Verify` secret; the API
   Gateway endpoint rejects requests without it (constant-time comparison).
 - **Environments**: `APP_ENV=prod` (default, fail-secure) disables `/docs`,
@@ -88,9 +91,9 @@ See `.env.example` for the full annotated list.
 | `CORS_ORIGINS` | Comma-separated origins | `http://localhost:5173` |
 | `APP_ENV` | `local` or `prod` (see Architecture) | `prod` |
 | `ORIGIN_VERIFY_SECRET` | CloudFront `X-Origin-Verify` secret (required in prod; empty disables the check locally) | empty |
-| `CONTACT_RATE_LIMIT_MAX_REQUESTS` | Requests per window per IP | `5` |
+| `CONTACT_RATE_LIMIT_MAX_REQUESTS` | Requests per window per IP (IPv6: per `/64`) | `5` |
 | `CONTACT_RATE_LIMIT_WINDOW_SECONDS` | Window length | `900` |
-| `CONTACT_RATE_LIMIT_DAILY_MAX` | Accepted contact submissions per UTC day, all IPs | `50` |
+| `CONTACT_RATE_LIMIT_DAILY_MAX` | Emailed contact submissions per UTC day, all IPs | `50` |
 
 ## Local development
 

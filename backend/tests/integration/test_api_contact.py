@@ -195,3 +195,92 @@ async def test_submit_contact_returns_503_when_rate_limit_backend_fails(
     # Assert
     assert response.status_code == 503
     assert contact_stub.sent == []
+
+
+async def test_submit_contact_buckets_ipv6_viewers_by_64(
+    limited_client: AsyncClient,
+) -> None:
+    # Act: two addresses of the same /64 are one caller.
+    async with limited_client as client:
+        first = await client.post(
+            "/api/v1/contact",
+            json=_VALID_PAYLOAD,
+            headers={"X-Viewer-Ip": "2001:db8:1:2::1"},
+        )
+        same_network = await client.post(
+            "/api/v1/contact",
+            json=_VALID_PAYLOAD,
+            headers={"X-Viewer-Ip": "2001:db8:1:2::ffff"},
+        )
+
+    # Assert
+    assert first.status_code == 202
+    assert same_network.status_code == 429
+
+
+async def test_submit_contact_throttles_honeypot_hits_per_network(
+    limited_client: AsyncClient,
+) -> None:
+    # Arrange
+    spam_payload = _VALID_PAYLOAD | {"website": "http://spam.example.com"}
+
+    # Act
+    async with limited_client as client:
+        first = await client.post("/api/v1/contact", json=spam_payload)
+        second = await client.post("/api/v1/contact", json=spam_payload)
+
+    # Assert
+    assert first.status_code == 202
+    assert second.status_code == 429
+
+
+@pytest.fixture
+def daily_capped_client(
+    app: FastAPI, contact_stub: _StubContactService, monkeypatch: pytest.MonkeyPatch
+) -> AsyncClient:
+    """Client whose site-wide contact budget is one email per day."""
+    monkeypatch.setenv("CONTACT_RATE_LIMIT_DAILY_MAX", "1")
+    get_settings.cache_clear()
+    reset_contact_limiter()
+    return AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
+
+
+async def test_submit_contact_honeypot_does_not_spend_the_daily_cap(
+    daily_capped_client: AsyncClient, contact_stub: _StubContactService
+) -> None:
+    # Arrange
+    spam_payload = _VALID_PAYLOAD | {"website": "http://spam.example.com"}
+
+    # Act
+    async with daily_capped_client as client:
+        await client.post(
+            "/api/v1/contact", json=spam_payload, headers={"X-Viewer-Ip": "1.1.1.1"}
+        )
+        genuine = await client.post(
+            "/api/v1/contact", json=_VALID_PAYLOAD, headers={"X-Viewer-Ip": "2.2.2.2"}
+        )
+
+    # Assert
+    assert genuine.status_code == 202
+    assert len(contact_stub.sent) == 1
+
+
+async def test_submit_contact_invalid_payload_does_not_spend_the_daily_cap(
+    daily_capped_client: AsyncClient, contact_stub: _StubContactService
+) -> None:
+    # Arrange
+    bad_payload = _VALID_PAYLOAD | {"email": "not-an-email"}
+
+    # Act
+    async with daily_capped_client as client:
+        invalid = await client.post(
+            "/api/v1/contact", json=bad_payload, headers={"X-Viewer-Ip": "1.1.1.1"}
+        )
+        genuine = await client.post(
+            "/api/v1/contact", json=_VALID_PAYLOAD, headers={"X-Viewer-Ip": "2.2.2.2"}
+        )
+
+    # Assert
+    assert invalid.status_code == 422
+    assert genuine.status_code == 202
+    assert len(contact_stub.sent) == 1
