@@ -4,30 +4,31 @@ State lives in a small DynamoDB table with a TTL attribute instead of in
 process memory, so the limit is shared across every Lambda execution
 environment and survives cold starts. Two counters are enforced:
 
-* a per-IP fixed window (``<ip>#<window_start>``), and
+* a per-network fixed window (``<ip>#<window_start>``, IPv6 grouped by
+  ``/64``), checked on every request before the body is validated, and
 * a site-wide daily cap (``global#<YYYY-MM-DD>``, UTC), which bounds SES
-  cost and inbox flooding even when an attacker rotates IPs.
+  cost and inbox flooding even when an attacker rotates IPs. It is only
+  spent by submissions that will actually send an email, so honeypot hits
+  and invalid payloads cannot exhaust it for everyone else.
 
-Each request atomically increments the counters; DynamoDB drops the items
+Each check atomically increments its counter; DynamoDB drops the items
 automatically once their window has elapsed (TTL).
 
-Fixed windows allow a burst of up to twice the per-IP limit across a window
-boundary (``max_requests`` hits at the end of one window plus
+Fixed windows allow a burst of up to twice the per-network limit across a
+window boundary (``max_requests`` hits at the end of one window plus
 ``max_requests`` at the start of the next). This is accepted: the daily cap
 bounds the total, and a sliding window would need extra reads per request.
 
 The limiter fails closed: when DynamoDB is unavailable the request is
 rejected with 503 rather than letting unmetered traffic reach SES.
 
-The client IP comes from the ``x-viewer-ip`` header, which the CloudFront
-viewer-request function on ``/api/*`` overwrites with the true viewer IP.
-``X-Forwarded-For`` is never trusted: clients can prepend arbitrary values.
-Direct calls to API Gateway that could forge ``x-viewer-ip`` are rejected
-earlier by the origin-verify middleware.
+The caller is identified by ``src.utils.client_ip`` (CloudFront-set viewer
+IP, never ``X-Forwarded-For``).
 """
 
 import logging
 import time
+from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -36,12 +37,12 @@ from fastapi import HTTPException, Request, status
 
 from src.config import get_settings
 from src.models.base import get_dynamodb_resource
+from src.utils.client_ip import client_ip, network_key
 
 logger = logging.getLogger(__name__)
 
 # Small grace added to the TTL so an item never expires mid-window.
 _TTL_GRACE_SECONDS = 60
-_VIEWER_IP_HEADER = "x-viewer-ip"
 _GLOBAL_KEY_PREFIX = "global"
 
 
@@ -73,17 +74,14 @@ class DynamoRateLimiter:
         self._window_seconds = window_seconds
         self._daily_max = daily_max
 
-    def is_allowed(self, key: str, now: float | None = None) -> bool:
-        """Record a hit for ``key`` and report whether it is allowed.
-
-        The global counter is only incremented when the per-key limit
-        passes, so a single noisy caller cannot exhaust the daily budget
-        beyond its own per-window allowance.
+    def allow_key(self, key: str, now: float | None = None) -> bool:
+        """Record a hit for ``key`` in its window and report if it is allowed.
 
         Parameters
         ----------
         key : str
-            Identifier of the caller (typically a client IP).
+            Identifier of the caller (typically its network, see
+            :func:`src.utils.client_ip.network_key`).
         now : float, optional
             Epoch timestamp override, used by tests to control the clock.
             Defaults to ``time.time()``.
@@ -91,7 +89,7 @@ class DynamoRateLimiter:
         Returns
         -------
         bool
-            ``True`` if both limits allow the request, ``False`` otherwise.
+            ``True`` while ``key`` is within ``max_requests`` for the window.
 
         Raises
         ------
@@ -101,8 +99,28 @@ class DynamoRateLimiter:
         current = time.time() if now is None else now
         window_start = int(current // self._window_seconds) * self._window_seconds
         window_ttl = window_start + self._window_seconds + _TTL_GRACE_SECONDS
-        if self._hit(f"{key}#{window_start}", window_ttl) > self._max_requests:
-            return False
+        return self._hit(f"{key}#{window_start}", window_ttl) <= self._max_requests
+
+    def allow_daily(self, now: float | None = None) -> bool:
+        """Record a hit on the site-wide daily counter and report if allowed.
+
+        Parameters
+        ----------
+        now : float, optional
+            Epoch timestamp override, used by tests to control the clock.
+            Defaults to ``time.time()``.
+
+        Returns
+        -------
+        bool
+            ``True`` while the UTC day is within ``daily_max``.
+
+        Raises
+        ------
+        RateLimiterUnavailableError
+            When DynamoDB rejects or fails the counter update.
+        """
+        current = time.time() if now is None else now
         day = datetime.fromtimestamp(current, UTC).date()
         day_end = datetime(day.year, day.month, day.day, tzinfo=UTC) + timedelta(days=1)
         day_ttl = int(day_end.timestamp()) + _TTL_GRACE_SECONDS
@@ -156,21 +174,45 @@ def reset_contact_limiter() -> None:
 
 
 def enforce_contact_rate_limit(request: Request) -> None:
-    """FastAPI dependency that rejects rate-limited contact requests.
+    """FastAPI dependency enforcing the per-network contact limit.
+
+    It runs before the body is validated, so bots are throttled whatever
+    they send.
 
     Parameters
     ----------
     request : fastapi.Request
-        Incoming request, used to extract the client IP.
+        Incoming request, used to identify the caller.
 
     Raises
     ------
     fastapi.HTTPException
-        With status 429 when the per-IP or daily limit is exceeded, and
-        503 when the rate-limit backend is unavailable (fail closed).
+        With status 429 when the caller exceeded its window, and 503 when
+        the rate-limit backend is unavailable (fail closed).
     """
+    key = network_key(client_ip(request))
+    _enforce(lambda: get_contact_limiter().allow_key(key))
+
+
+def enforce_contact_daily_cap() -> None:
+    """Spend one unit of the site-wide daily contact budget.
+
+    Called only for a valid, non-honeypot submission, right before the
+    email is sent.
+
+    Raises
+    ------
+    fastapi.HTTPException
+        With status 429 when the daily cap is reached, and 503 when the
+        rate-limit backend is unavailable (fail closed).
+    """
+    _enforce(lambda: get_contact_limiter().allow_daily())
+
+
+def _enforce(check: Callable[[], bool]) -> None:
+    """Run a limiter check, mapping its outcome to HTTP errors."""
     try:
-        allowed = get_contact_limiter().is_allowed(client_ip(request))
+        allowed = check()
     except RateLimiterUnavailableError as exc:
         # No IP or payload in the log: only the failure class.
         logger.error("rate_limit_unavailable", extra={"error_type": str(exc)})
@@ -183,23 +225,3 @@ def enforce_contact_rate_limit(request: Request) -> None:
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Too many requests. Please try again later.",
         )
-
-
-def client_ip(request: Request) -> str:
-    """Return the viewer IP used as the rate-limit key.
-
-    Parameters
-    ----------
-    request : fastapi.Request
-        Incoming request.
-
-    Returns
-    -------
-    str
-        The CloudFront-set ``x-viewer-ip`` header when present, otherwise
-        the socket peer address (local development), or ``"unknown"``.
-    """
-    viewer_ip = request.headers.get(_VIEWER_IP_HEADER, "").strip()
-    if viewer_ip:
-        return viewer_ip
-    return request.client.host if request.client else "unknown"
