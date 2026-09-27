@@ -23,6 +23,10 @@ on:
   push:
     branches: [main]
   pull_request:
+  # Weekly run on main: new advisories surface in pip-audit, npm audit and the
+  # Trivy image scan even when the code does not change.
+  schedule:
+    - cron: "0 6 * * 1"
 
 # Least-privilege default token; jobs only need to read the repo.
 permissions:
