@@ -19,8 +19,10 @@
 services:
   backend:
     build: ./backend
+    # Loopback only, like DynamoDB Local: locally the API runs with docs on
+    # and the origin check off, so it must not be reachable from the LAN.
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     # backend/.env is optional (gitignored): create it from backend/.env.example
     # for local overrides. Everything required for local runs is set below.
     env_file:
@@ -58,8 +60,8 @@ services:
         VITE_COGNITO_REDIRECT_URI: ${VITE_COGNITO_REDIRECT_URI:-}
         VITE_COGNITO_DOMAIN: ${VITE_COGNITO_DOMAIN:-}
     ports:
-      # nginx-unprivileged listens on 8080 (non-root).
-      - "5173:8080"
+      # nginx-unprivileged listens on 8080 (non-root); loopback only.
+      - "127.0.0.1:5173:8080"
     depends_on:
       - backend
 

@@ -1,5 +1,8 @@
+# Base images pinned to a patch release and its multi-arch index digest, like
+# the backend, so rebuilds are reproducible; Dependabot bumps both together.
+
 # --- Build stage ---
-FROM node:24-slim AS build
+FROM node:24.21.0-slim@sha256:0e0ff40c39bc087845bfb27465a0df4ea419520094bc35842ff83dd8cbe6f9b6 AS build
 
 WORKDIR /app
 
@@ -23,8 +26,8 @@ COPY . .
 # `npm run build` also generates public/sitemap.xml before bundling.
 RUN npm run build
 
-# --- Serve stage (non-root nginx, listens on 8080) ---
-FROM nginxinc/nginx-unprivileged:1.27-alpine
+# --- Serve stage (non-root nginx on the stable branch, listens on 8080) ---
+FROM nginxinc/nginx-unprivileged:1.30.5-alpine@sha256:4714e0b1b2577eaa1a6131d07c958b67f0eb68e6d0521e90c6e5287db8cf0bc5
 
 # Backend upstream for the /api proxy, templated at container start
 ENV BACKEND_UPSTREAM=http://backend:8000

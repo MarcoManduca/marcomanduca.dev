@@ -22,8 +22,9 @@
 #   - The HTTP API is public, but CloudFront injects a secret X-Origin-Verify
 #     header that the app checks (backend/src/utils/origin_verify.py); direct
 #     hits on the execute-api endpoint without the header get a 403. Rotate the
-#     secret with:
-#     terraform apply -replace=module.backend.random_password.origin_verify
+#     secret in two applies (infra/README.md, "Rotate origin secret"): the
+#     old value stays accepted (ORIGIN_VERIFY_SECRET_PREVIOUS) until every
+#     CloudFront edge sends the new one.
 #
 # Files in this module:
 #   main.tf   — Lambda function, HTTP API, origin-verify secret, log group
@@ -39,7 +40,15 @@
 
 resource "aws_cloudwatch_log_group" "backend" {
   name              = "/aws/lambda/${var.project_name}-backend"
-  retention_in_days = 14
+  retention_in_days = var.log_retention_days
+}
+
+# One line per API Gateway request, including those it answers itself (429
+# from stage throttling never reaches the Lambda log). No client IP: behind
+# CloudFront it is the edge's address anyway, and no other personal data.
+resource "aws_cloudwatch_log_group" "api_access" {
+  name              = "/aws/apigateway/${var.project_name}-backend"
+  retention_in_days = var.log_retention_days
 }
 
 # Shared secret between CloudFront and the app. Only CloudFront knows it and
@@ -72,7 +81,8 @@ resource "aws_lambda_function" "backend" {
     # ORIGIN_VERIFY_SECRET is always set from random_password: the backend
     # refuses to start with APP_ENV=prod and an empty secret.
     variables = merge(var.container_environment, {
-      ORIGIN_VERIFY_SECRET = random_password.origin_verify.result
+      ORIGIN_VERIFY_SECRET          = random_password.origin_verify.result
+      ORIGIN_VERIFY_SECRET_PREVIOUS = var.origin_verify_secret_previous
     })
   }
 
@@ -124,6 +134,20 @@ resource "aws_apigatewayv2_stage" "backend" {
   default_route_settings {
     throttling_rate_limit  = var.throttling_rate_limit
     throttling_burst_limit = var.throttling_burst_limit
+  }
+
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.api_access.arn
+    format = jsonencode({
+      requestId         = "$context.requestId"
+      time              = "$context.requestTime"
+      method            = "$context.httpMethod"
+      path              = "$context.path"
+      status            = "$context.status"
+      latencyMs         = "$context.responseLatency"
+      integrationStatus = "$context.integrationStatus"
+      error             = "$context.error.message"
+    })
   }
 }
 

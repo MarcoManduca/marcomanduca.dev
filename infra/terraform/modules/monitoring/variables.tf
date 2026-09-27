@@ -47,3 +47,16 @@ variable "api_4xx_threshold" {
   type        = number
   default     = 100
 }
+
+variable "ses_bounce_rate_threshold" {
+  description = "SES reputation bounce rate (0-1) that triggers the alarm; SES reviews accounts at 0.05."
+  type        = number
+  default     = 0.04
+}
+
+variable "ses_complaint_rate_threshold" {
+  description = "SES reputation complaint rate (0-1) that triggers the alarm; SES reviews accounts at 0.001."
+  type        = number
+  default     = 0.0008
+}
+

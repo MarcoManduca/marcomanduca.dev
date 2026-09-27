@@ -57,8 +57,10 @@ module "auth" {
 module "email" {
   source = "./modules/email"
 
-  domain_name = var.domain_name
-  zone_id     = module.dns.zone_id
+  domain_name        = var.domain_name
+  zone_id            = module.dns.zone_id
+  dmarc_policy       = var.dmarc_policy
+  dmarc_report_email = var.dmarc_report_email
 }
 
 module "backend" {
@@ -104,6 +106,7 @@ module "backend" {
 
     CONTACT_RATE_LIMIT_DAILY_MAX = tostring(var.contact_rate_limit_daily_max)
   }
+  origin_verify_secret_previous = var.origin_verify_secret_previous
 }
 
 module "cdn" {

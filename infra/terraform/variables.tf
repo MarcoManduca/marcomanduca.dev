@@ -121,3 +121,27 @@ variable "enable_dev_client" {
   type        = bool
   default     = false
 }
+
+variable "dmarc_policy" {
+  description = "DMARC policy for mail claiming to be from the domain that fails SPF and DKIM alignment: none, quarantine or reject."
+  type        = string
+  default     = "quarantine"
+}
+
+variable "dmarc_report_email" {
+  description = "Mailbox for DMARC aggregate reports, or null for none (see modules/email)."
+  type        = string
+  default     = null
+}
+
+variable "origin_verify_secret_previous" {
+  description = <<-EOT
+    Former X-Origin-Verify secret, still accepted by the backend while a
+    rotation propagates to every CloudFront edge. Pass it only for the
+    rotation apply, via TF_VAR_origin_verify_secret_previous (never in a
+    tfvars file); see infra/README.md, "Rotate origin secret".
+  EOT
+  type        = string
+  default     = ""
+  sensitive   = true
+}

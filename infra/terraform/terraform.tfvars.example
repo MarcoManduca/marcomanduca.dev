@@ -18,6 +18,11 @@ cognito_domain_prefix = "marcomanduca-dev-auth"
 # In the SES sandbox this address must be a verified identity.
 contact_email = "you@example.com"
 
+# Email authentication (see infra/README.md step 6). DMARC defaults to
+# quarantine; reports are off unless you have an inbox that can receive them.
+# dmarc_policy       = "quarantine"
+# dmarc_report_email = "dmarc@example.com"
+
 # Backend sizing — the FastAPI app runs on Lambda (container image).
 backend_memory_mb = 512
 backend_timeout_s = 30

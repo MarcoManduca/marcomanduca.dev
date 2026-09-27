@@ -37,8 +37,9 @@ Design decisions:
 - **Origin protection.** The HTTP API is public, but CloudFront injects a
   secret `X-Origin-Verify` header that the app checks
   (`backend/src/utils/origin_verify.py`); direct hits on the execute-api
-  endpoint without it get a 403. Rotate the secret with
-  `terraform apply -replace=module.backend.random_password.origin_verify`.
+  endpoint without it get a 403. Rotation is two applies with no downtime
+  (the old value stays accepted meanwhile): see "Rotate origin secret" in
+  Day-2 operations.
 - **No VPC.** The function talks only to public AWS APIs (DynamoDB, S3, SES,
   Cognito JWKS), so it runs outside a VPC: no subnets, no NAT gateway, no
   public IP to pay for.
@@ -57,7 +58,9 @@ Design decisions:
 - **Cost guardrails.** API Gateway stage throttling (and Lambda reserved
   concurrency, where the account quota allows one) caps the blast radius of a
   traffic flood; a monthly AWS Budget and CloudWatch alarms (Lambda
-  errors/throttles, API 5xx/4xx spike) email the owner.
+  errors/throttles, API 5xx/4xx spike, SES bounce/complaint rate) email the
+  owner. API Gateway access logs (no client IPs) record every request,
+  including the 429s the stage answers itself.
 
 ## Layout
 
@@ -82,8 +85,8 @@ infra/
         ├── storage/           # S3 frontend + media buckets
         ├── database/          # 4 DynamoDB tables (PAY_PER_REQUEST)
         ├── auth/              # Cognito user pool (TOTP MFA), SPA client, optional dev client, hosted UI, group
-        ├── email/             # SES domain identity + DKIM records
-        ├── backend/           # ECR, Lambda + API Gateway HTTP API (throttled), origin secret, IAM, logs
+        ├── email/             # SES domain identity, DKIM, MAIL FROM (SPF) and DMARC records
+        ├── backend/           # ECR, Lambda + API Gateway HTTP API (throttled, access-logged), origin secret, IAM, logs
         ├── cdn/               # CloudFront distribution, edge functions, headers policies, OAC
         └── monitoring/        # monthly budget, SNS alert topic, CloudWatch alarms
 ```
@@ -266,8 +269,22 @@ accepts `https://<domain>` redirects; for the Vite dev server set
 
 ### 6. SES sandbox
 
-Terraform verifies the **domain identity** (DKIM + TXT records) automatically,
-but new AWS accounts start in the **SES sandbox**: you can only send **to**
+Terraform verifies the **domain identity** (DKIM + TXT records) automatically
+and sets up sender authentication:
+
+- a custom **MAIL FROM** domain `mail.<domain>` (MX + SPF records), so SPF
+  passes aligned with the From domain, not only DKIM;
+- a **DMARC** record (`_dmarc.<domain>`) with `p=quarantine` by default
+  (`dmarc_policy`): mail claiming to be from the domain that passes neither
+  aligned SPF nor DKIM, i.e. spoofing, goes to spam. SES is the only sender
+  for the domain (Cognito uses its own default sender), so legitimate mail
+  always aligns. Aggregate reports are off unless `dmarc_report_email` is
+  set; receivers only send them to another domain that authorizes it.
+
+Check after the apply: `dig +short TXT _dmarc.<domain>` and, in the SES
+console, the identity's custom MAIL FROM status "Success".
+
+New AWS accounts start in the **SES sandbox**: you can only send **to**
 verified addresses.
 
 Option A — verify the destination address (fine for a personal contact form):
@@ -324,7 +341,7 @@ Backend variable names must match the `Settings` fields in
 | Cognito                  | 0              | free tier: 10k MAU                      |
 | SES                      | ~0             | 0.10 per 1 000 emails                   |
 | ECR + CloudWatch logs    | < 1            | 10-image cap, 14-day log retention      |
-| CloudWatch alarms + SNS  | ~0–0.40        | 4 alarms (10 free), email delivery free |
+| CloudWatch alarms + SNS  | ~0–0.60        | 6 alarms (10 free), email delivery free |
 | AWS Budgets              | 0              | first 2 budgets are free                |
 | **Total**                | **~1–2**       | dominated by the Route 53 hosted zone   |
 
@@ -341,7 +358,7 @@ cost of the hosted zone. The trade-off is an occasional ~1–2 s cold start.
 | API Gateway stage throttling      | `api_throttling_rate_limit` (20 rps), `api_throttling_burst_limit` (40) | excess requests get 429 before Lambda runs |
 | Contact-form daily cap            | `contact_rate_limit_daily_max` (50)                  | global SES send cap in the backend |
 | Monthly budget                    | `monthly_budget_usd` (10)                            | email at 80% actual and 100% forecasted |
-| CloudWatch alarms → SNS email     | `alert_email` (null → `contact_email`)               | Lambda errors/throttles, API 5xx, API 4xx spike |
+| CloudWatch alarms → SNS email     | `alert_email` (null → `contact_email`)               | Lambda errors/throttles, API 5xx, API 4xx spike, SES bounce/complaint rate |
 
 Budgets and alarms only notify; the first two rows are the actual caps.
 With `backend_reserved_concurrency = -1` (accounts whose concurrency quota is
@@ -360,6 +377,10 @@ docker compose up --build
 | Backend API docs | http://localhost:8000/docs   |
 | Frontend (nginx) | http://localhost:5173        |
 | DynamoDB Local   | http://localhost:8001        |
+
+All three ports are bound to `127.0.0.1` only: locally the API runs with
+its docs on and the origin check off, so it must not be reachable from the
+LAN.
 
 Notes:
 
@@ -381,7 +402,7 @@ Notes:
 | Tail backend logs          | `aws logs tail /aws/lambda/marcomanduca-dev-backend --follow`      |
 | Infrastructure change      | edit Terraform → `terraform plan` → `terraform apply`              |
 | Roll back backend          | `IMAGE_TAG=<older-sha> ./infra/scripts/deploy-backend.sh` (no rebuild; the image must still be in ECR, which keeps the last 10) |
-| Rotate origin secret       | `terraform apply -replace=module.backend.random_password.origin_verify` |
+| Rotate origin secret       | two applies, see below                                             |
 
 Backend deploys only ever build the committed checkout, because an image
 pushed under the wrong immutable SHA tag cannot be fixed. The script refuses
@@ -398,6 +419,27 @@ Frontend deploys upload hashed `assets/` first with
 other root files with `no-cache`. Old hashed assets are kept for
 `ASSET_RETENTION_DAYS` (default 7) so visitors still on the previous
 `index.html` keep working, then pruned.
+
+### Rotate origin secret
+
+CloudFront takes minutes to push a new `X-Origin-Verify` value to every edge,
+while the Lambda switches in seconds. So the old value stays accepted
+(`ORIGIN_VERIFY_SECRET_PREVIOUS`) until the distribution is deployed:
+
+```bash
+cd infra/terraform
+# 1. New secret; the current one keeps working. The value only lives in
+#    this shell (never in a tfvars file).
+export TF_VAR_origin_verify_secret_previous="$(aws lambda get-function-configuration \
+  --function-name marcomanduca-dev-backend \
+  --query 'Environment.Variables.ORIGIN_VERIFY_SECRET' --output text)"
+terraform apply -replace=module.backend.random_password.origin_verify
+
+# 2. Once every edge sends the new value, stop accepting the old one.
+aws cloudfront wait distribution-deployed --id "$(terraform output -raw cloudfront_distribution_id)"
+unset TF_VAR_origin_verify_secret_previous
+terraform apply
+```
 
 Follow-up (not implemented): deploy automation (GitHub Actions with OIDC
 role assumption) — deploys are manual via the scripts today.
