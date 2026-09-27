@@ -50,8 +50,10 @@ export default {
         },
       },
       backgroundImage: {
-        // Holographic sheen swept across the character card.
-        holo: 'linear-gradient(115deg, transparent 25%, rgb(255 255 255 / 0.22) 40%, rgb(244 223 109 / 0.18) 48%, rgb(3 169 193 / 0.18) 56%, transparent 70%)',
+        // Holographic sheen swept across the character card. Drawn on a layer
+        // twice the card (the card shows its central half), so the stops are
+        // halved around 50%: the band spans 25–70% of the card when centred.
+        holo: 'linear-gradient(115deg, transparent 37.5%, rgb(255 255 255 / 0.22) 45%, rgb(244 223 109 / 0.18) 49%, rgb(3 169 193 / 0.18) 53%, transparent 60%)',
         // Darkens the lower half of the portrait so the name stays legible.
         'card-fade':
           'linear-gradient(180deg, transparent 45%, rgb(13 27 31 / 0.95) 85%)',

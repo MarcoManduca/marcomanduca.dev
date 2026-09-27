@@ -40,8 +40,8 @@ them at runtime).
 - **Home.** Flippable character card (full-art portrait on the front, with
   the level = calendar years since the first job's `start`; skills and
   description on the back; 3D turn, instant under reduced motion; leans
-  toward the mouse pointer) + quest log + skill "energies" +
-  figurines. The quest log has two tabs built from the CV copy in the locale
+  toward the mouse pointer, the foil sheen sliding after it) + quest log +
+  skill "energies" + figurines. The quest log has two tabs built from the CV copy in the locale
   files (`about.experience` / `about.education`, each with `start`/`end` months
   and a `quest` block: guild, objective, final boss, rewards); projects will
   get a section of their own. Entries without an `end` are _Active Quests_ and

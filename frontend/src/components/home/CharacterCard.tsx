@@ -8,8 +8,12 @@ import { CardBack } from './CardBack'
 import { CardFlipHint } from './CardFlipHint'
 import { CardFront } from './CardFront'
 
+// `isolate` makes each face a stacking context, so Safari composites the
+// foil and text of the front inside it, in paint order. Otherwise they join
+// the card's 3D space as siblings of the face, level with it, and Safari's
+// depth sort drops them behind the portrait as the card leans.
 const FACE =
-  'relative flex h-full flex-col overflow-hidden rounded-[20px] [-webkit-backface-visibility:hidden] [backface-visibility:hidden] [grid-area:1/1]'
+  'relative isolate flex h-full flex-col overflow-hidden rounded-[20px] [-webkit-backface-visibility:hidden] [backface-visibility:hidden] [grid-area:1/1]'
 
 /**
  * Trading-card profile that flips with a 3D turn on click, tap or horizontal
@@ -32,7 +36,7 @@ export const CharacterCard = () => {
         {/* Lean toward the pointer (useCardTilt), around the flip. */}
         <div
           ref={tiltRef}
-          className="relative transition-transform duration-200 ease-out [transform-style:preserve-3d] [transform:rotateX(var(--tilt-x,0deg))_rotateY(var(--tilt-y,0deg))] motion-reduce:[transform:none]"
+          className="relative [transform-style:preserve-3d] [transform:rotateX(var(--tilt-x,0deg))_rotateY(var(--tilt-y,0deg))] motion-reduce:[transform:none]"
         >
           <div
             className={cn(
@@ -40,10 +44,7 @@ export const CharacterCard = () => {
               flipped && '[transform:rotateY(180deg)]',
             )}
           >
-            <div
-              aria-hidden={flipped}
-              className={cn(FACE, 'bg-brand-teal p-5 sm:p-6')}
-            >
+            <div aria-hidden={flipped} className={cn(FACE, 'bg-brand-teal')}>
               <CardFront />
             </div>
             <div
