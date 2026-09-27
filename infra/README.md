@@ -54,10 +54,10 @@ Design decisions:
 - **Remote state.** Terraform state lives in a private, versioned,
   encrypted, TLS-only S3 bucket with S3-native locking. The state contains
   secrets (the origin-verify shared secret), hence the encryption.
-- **Cost guardrails.** Lambda reserved concurrency and API Gateway stage
-  throttling cap the blast radius of a traffic flood; a monthly AWS Budget
-  and CloudWatch alarms (Lambda errors/throttles, API 5xx/4xx spike) email
-  the owner.
+- **Cost guardrails.** API Gateway stage throttling (and Lambda reserved
+  concurrency, where the account quota allows one) caps the blast radius of a
+  traffic flood; a monthly AWS Budget and CloudWatch alarms (Lambda
+  errors/throttles, API 5xx/4xx spike) email the owner.
 
 ## Layout
 
@@ -146,6 +146,10 @@ right. From then on a fresh checkout only needs
 `terraform init -backend-config=backend.hcl`. CI always runs
 `terraform init -backend=false` and never touches the state.
 
+Saved plan files (`terraform plan -out=<file>`) embed the full state, secrets
+included, in plain text. They are gitignored (`*.tfplan`); delete them once
+the apply is done.
+
 #### 2c. First apply (fresh account)
 
 ```bash
@@ -188,7 +192,9 @@ ships backend changes — no Terraform needed.
   concurrency quota of **10**, and Lambda keeps 10 unreserved executions, so
   any reservation makes the apply **fail**. Check it with
   `aws lambda get-account-settings` (`ConcurrentExecutions`); if it is 10,
-  set `backend_reserved_concurrency = -1` or request a quota increase.
+  set `backend_reserved_concurrency = -1` or request a quota increase. With
+  `-1` there is no concurrency cap: API Gateway stage throttling is the only
+  hard limit left (see "Cost guardrails").
 
 ### 3. ACM certificate (automatic)
 
@@ -338,6 +344,9 @@ cost of the hosted zone. The trade-off is an occasional ~1–2 s cold start.
 | CloudWatch alarms → SNS email     | `alert_email` (null → `contact_email`)               | Lambda errors/throttles, API 5xx, API 4xx spike |
 
 Budgets and alarms only notify; the first two rows are the actual caps.
+With `backend_reserved_concurrency = -1` (accounts whose concurrency quota is
+10) the first row is off and stage throttling is the only cap; request a
+Lambda quota increase to get it back.
 
 ### 10. Local development
 
@@ -371,8 +380,18 @@ Notes:
 | Deploy frontend            | `./infra/scripts/deploy-frontend.sh` (env vars from terraform output) |
 | Tail backend logs          | `aws logs tail /aws/lambda/marcomanduca-dev-backend --follow`      |
 | Infrastructure change      | edit Terraform → `terraform plan` → `terraform apply`              |
-| Roll back backend          | `IMAGE_TAG=<older-sha> ./infra/scripts/deploy-backend.sh` (tag exists → no rebuild) |
+| Roll back backend          | `IMAGE_TAG=<older-sha> ./infra/scripts/deploy-backend.sh` (no rebuild; the image must still be in ECR, which keeps the last 10) |
 | Rotate origin secret       | `terraform apply -replace=module.backend.random_password.origin_verify` |
+
+Backend deploys only ever build the committed checkout, because an image
+pushed under the wrong immutable SHA tag cannot be fixed. The script refuses
+a dirty `backend/` (override with `ALLOW_DIRTY=1`), and refuses an
+`IMAGE_TAG` that names another commit when that image is no longer in ECR
+(for example a rollback older than the last 10 images). In that case check
+out the commit and deploy it without `IMAGE_TAG`.
+
+Frontend deploys stop before building if a `VITE_COGNITO_*` value is missing
+from both the environment and `frontend/.env.production`.
 
 Frontend deploys upload hashed `assets/` first with
 `Cache-Control: public,max-age=31536000,immutable`, then `index.html` and the

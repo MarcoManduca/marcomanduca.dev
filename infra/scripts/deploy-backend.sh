@@ -5,15 +5,23 @@
 # The ECR repository has IMMUTABLE tags: only the git short SHA is pushed
 # (no moving "latest"), and the function is pointed at that exact tag, so
 # each deploy is traceable and a rollback is re-pointing to an older SHA.
-# If the tag already exists (redeploy of the same commit) the build/push is
-# skipped and the function is simply pointed at it.
+# If the tag already exists (redeploy of the same commit, rollback) the
+# build/push is skipped and the function is simply pointed at it.
+#
+# Only the checked-out, committed code is ever built: with immutable tags a
+# wrong image under a commit SHA would stay wrong forever. So the script
+# refuses to build
+#   - a tag naming another commit than HEAD (e.g. a rollback target the ECR
+#     lifecycle rule already expired: it keeps the last 10 images), and
+#   - a dirty backend/ (override with ALLOW_DIRTY=1, e.g. a throwaway tag).
 #
 # Configuration (override via environment, values come from terraform output):
 #   ECR_REPOSITORY_URL  terraform output -raw ecr_repository_url
 #   FUNCTION_NAME       terraform output -raw backend_function_name
 #   AWS_REGION          deployment region
-#   IMAGE_TAG           image tag to push (default: git short SHA)
+#   IMAGE_TAG           image tag to deploy (default: git short SHA of HEAD)
 #   SKIP_LAMBDA_UPDATE  1 = push only (bootstrap, before the function exists)
+#   ALLOW_DIRTY         1 = build even with uncommitted changes in backend/
 #
 # Usage:
 #   ECR_REPOSITORY_URL=123.dkr.ecr.eu-west-1.amazonaws.com/marcomanduca-dev-backend \
@@ -31,16 +39,35 @@ if [[ "${SKIP_LAMBDA_UPDATE}" != "1" ]]; then
   FUNCTION_NAME="${FUNCTION_NAME:?Set FUNCTION_NAME (terraform output -raw backend_function_name)}"
 fi
 AWS_REGION="${AWS_REGION:-eu-west-1}"
+ALLOW_DIRTY="${ALLOW_DIRTY:-0}"
 # ---------------------------------------------------------------------------
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 ECR_REGISTRY="${ECR_REPOSITORY_URL%%/*}"
 REPOSITORY_NAME="${ECR_REPOSITORY_URL#*/}"
-IMAGE_TAG="${IMAGE_TAG:-$(git -C "${REPO_ROOT}" rev-parse --short HEAD)}"
+HEAD_SHA="$(git -C "${REPO_ROOT}" rev-parse --short HEAD)"
+IMAGE_TAG="${IMAGE_TAG:-${HEAD_SHA}}"
 
-if [[ -n "$(git -C "${REPO_ROOT}" status --porcelain -- backend)" ]]; then
-  echo "WARNING: backend/ has uncommitted changes; tag ${IMAGE_TAG} will not match the commit." >&2
-fi
+# A tag that names a commit must name HEAD: the build packages the checkout,
+# not that commit. Non-commit tags (e.g. "bootstrap") are free-form labels.
+assert_tag_matches_head() {
+  local tag_commit
+  tag_commit="$(git -C "${REPO_ROOT}" rev-parse --verify --quiet "${IMAGE_TAG}^{commit}" || true)"
+  if [[ -n "${tag_commit}" && "${tag_commit}" != "$(git -C "${REPO_ROOT}" rev-parse HEAD)" ]]; then
+    echo "ERROR: image ${IMAGE_TAG} is not in ECR (never pushed, or expired by the" >&2
+    echo "lifecycle rule) and HEAD is ${HEAD_SHA}. Building now would push HEAD's code" >&2
+    echo "under ${IMAGE_TAG}. Check out ${IMAGE_TAG} and run again without IMAGE_TAG." >&2
+    exit 1
+  fi
+}
+
+assert_clean_backend() {
+  if [[ -n "$(git -C "${REPO_ROOT}" status --porcelain -- backend)" && "${ALLOW_DIRTY}" != "1" ]]; then
+    echo "ERROR: backend/ has uncommitted changes, so image ${IMAGE_TAG} would not" >&2
+    echo "match its commit. Commit or stash them (or set ALLOW_DIRTY=1)." >&2
+    exit 1
+  fi
+}
 
 if aws ecr describe-images \
   --repository-name "${REPOSITORY_NAME}" \
@@ -48,6 +75,9 @@ if aws ecr describe-images \
   --region "${AWS_REGION}" > /dev/null 2>&1; then
   echo "Image ${IMAGE_TAG} already in ECR (immutable tags), skipping build/push."
 else
+  assert_tag_matches_head
+  assert_clean_backend
+
   echo "Logging in to ECR (${ECR_REGISTRY})..."
   aws ecr get-login-password --region "${AWS_REGION}" \
     | docker login --username AWS --password-stdin "${ECR_REGISTRY}"
