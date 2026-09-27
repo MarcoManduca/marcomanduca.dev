@@ -35,8 +35,8 @@ belonging to the `Administrators` group.
 | Method | Path | Auth | Description |
 |---|---|---|---|
 | GET | `/api/v1/health` | public | Liveness check |
-| GET | `/api/v1/projects` | public* | List projects (`category`, `technology`, `search` filters) |
-| GET | `/api/v1/projects/{slug}` | public* | Project detail |
+| GET | `/api/v1/projects` | public* | List light project cards (`area`, `context`, `technology`, `search` filters) |
+| GET | `/api/v1/projects/{slug}` | public* | Full project, as its page shows it |
 | POST | `/api/v1/projects` | admin | Create project |
 | PUT | `/api/v1/projects/{slug}` | admin | Replace project |
 | DELETE | `/api/v1/projects/{slug}` | admin | Delete project |

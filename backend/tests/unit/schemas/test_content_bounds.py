@@ -7,6 +7,8 @@ import pytest
 from pydantic import ValidationError
 
 from src.schemas.common import (
+    LABEL_MAX_LENGTH,
+    LINE_MAX_LENGTH,
     MARKDOWN_MAX_LENGTH,
     SUMMARY_MAX_LENGTH,
     TITLE_MAX_LENGTH,
@@ -16,6 +18,10 @@ from src.schemas.learning import ArticleCreate
 from src.schemas.project import ProjectCreate
 
 _LONG_URL = "https://example.com/" + "a" * URL_MAX_LENGTH
+_ALT = {"it": "Alt", "en": "Alt"}
+_METRIC = {"value": "1", "label": {"it": "m", "en": "m"}}
+_TOPIC = {"it": "t", "en": "t"}
+_LINK = {"kind": "repo", "url": "https://github.com/marco/demo"}
 
 
 @pytest.mark.parametrize(
@@ -27,10 +33,22 @@ _LONG_URL = "https://example.com/" + "a" * URL_MAX_LENGTH
         {"content_markdown": {"it": "M", "en": "x" * (MARKDOWN_MAX_LENGTH + 1)}},
         {"technologies": ["fastapi"] * 31},
         {"technologies": [""]},
-        {"images": ["img.png"] * 21},
-        {"images": ["x" * 1025]},
-        {"github_url": _LONG_URL},
-        {"demo_url": _LONG_URL},
+        {"media": [{"src": "img.png", "alt": _ALT}] * 21},
+        {"media": [{"src": "x" * 1025, "alt": _ALT}]},
+        {"cover": {"src": "img.png", "alt": {"it": "", "en": "Alt"}}},
+        {
+            "cover": {
+                "src": "img.png",
+                "alt": {"it": "x" * (LINE_MAX_LENGTH + 1), "en": "A"},
+            }
+        },
+        {"metrics": [_METRIC] * 5},
+        {"metrics": [{"value": "x" * 13, "label": {"it": "m", "en": "m"}}]},
+        {"topics": [_TOPIC] * 6},
+        {"topics": [{"it": "x" * (LABEL_MAX_LENGTH + 1), "en": "t"}]},
+        {"links": [_LINK] * 11},
+        {"links": [{"kind": "repo", "url": _LONG_URL}]},
+        {"license": "x" * 65},
     ],
 )
 def test_project_create_rejects_out_of_bounds_fields(
@@ -53,7 +71,10 @@ def test_project_create_accepts_fields_at_their_maximum_length(
         title={"it": "x" * TITLE_MAX_LENGTH, "en": "x" * TITLE_MAX_LENGTH},
         content_markdown={"it": "x" * MARKDOWN_MAX_LENGTH, "en": "#"},
         technologies=["t"] * 30,
-        images=["i"] * 20,
+        media=[{"src": "i", "alt": _ALT}] * 20,
+        metrics=[_METRIC] * 4,
+        topics=[_TOPIC] * 5,
+        links=[_LINK] * 10,
     )
 
     # Act
