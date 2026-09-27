@@ -8,6 +8,7 @@ import { useUnlockOnMount } from '@/hooks/useUnlockOnMount'
 
 import { BackgroundContours } from './BackgroundContours'
 import { Footer } from './Footer'
+import { Footprints } from './Footprints'
 import { Header } from './Header'
 import { ScrollToTop } from './ScrollToTop'
 import { MAIN_CONTENT_ID, SkipLink } from './SkipLink'
@@ -19,6 +20,7 @@ export const PublicLayout = () => {
   return (
     <div className="relative isolate flex min-h-screen flex-col overflow-x-clip">
       <BackgroundContours />
+      <Footprints />
       <ScrollToTop />
       <SkipLink />
       <Header />

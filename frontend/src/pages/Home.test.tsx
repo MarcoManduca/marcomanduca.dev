@@ -27,15 +27,26 @@ describe('Home', () => {
       'true',
     )
     expect(
-      screen.getByRole('link', { name: 'Explore projects' }),
-    ).toHaveAttribute('href', '/projects')
+      screen.getByRole('link', { name: 'Full journey →' }),
+    ).toHaveAttribute('href', '/about-me')
   })
 
-  it('renders the skill energies from the CV', () => {
+  it('renders the stats radar and the side quests deck', async () => {
     renderWithProviders(<Home />)
 
-    expect(screen.getByRole('heading', { name: 'Energies' })).toBeVisible()
-    expect(screen.getByText('Python · R · SAS Base')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Statistics' })).toBeVisible()
+    expect(screen.getByRole('heading', { name: 'Side Quests' })).toBeVisible()
+    expect(await screen.findByText('SQ: 01/02')).toBeInTheDocument()
+  })
+
+  it('links to the projects once, from the side quests', () => {
+    renderWithProviders(<Home />)
+
+    const links = screen
+      .getAllByRole('link')
+      .filter((link) => link.getAttribute('href') === '/projects')
+    expect(links).toHaveLength(1)
+    expect(links[0]).toHaveAccessibleName('All projects →')
   })
 
   it('always shows the figurine collection', () => {

@@ -2,7 +2,8 @@ import { useTranslation } from 'react-i18next'
 
 import { FigurineShelf } from '@/components/game/FigurineShelf'
 import { CharacterCard } from '@/components/home/CharacterCard'
-import { EnergySection } from '@/components/home/EnergySection'
+import { SideQuestsSection } from '@/components/home/sideQuests/SideQuestsSection'
+import { StatsSection } from '@/components/home/stats/StatsSection'
 import { QuestLog } from '@/components/quests/QuestLog'
 import { Seo } from '@/components/seo/Seo'
 
@@ -17,7 +18,11 @@ export const Home = () => {
         <CharacterCard />
         <QuestLog />
       </div>
-      <EnergySection />
+      {/* Side by side from lg, stacked on smaller screens. */}
+      <div className="grid items-start gap-12 lg:grid-cols-2">
+        <StatsSection />
+        <SideQuestsSection />
+      </div>
       <FigurineShelf />
     </div>
   )

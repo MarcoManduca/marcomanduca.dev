@@ -114,14 +114,14 @@ describe('QuestLog', () => {
     expect(panel()).toHaveAttribute('aria-labelledby', completedTab.id)
   })
 
-  it('links to the projects and the full journey', () => {
+  it('links to the full journey, leaving the projects to the side quests', () => {
     renderWithProviders(<QuestLog />)
 
     expect(
-      screen.getByRole('link', { name: 'Explore projects' }),
-    ).toHaveAttribute('href', '/projects')
-    expect(
       screen.getByRole('link', { name: 'Full journey →' }),
     ).toHaveAttribute('href', '/about-me')
+    expect(
+      screen.queryByRole('link', { name: /projects/i }),
+    ).not.toBeInTheDocument()
   })
 })

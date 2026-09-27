@@ -1,0 +1,24 @@
+{
+  "title": {
+    "it": "Demo · Pipeline ETL serverless",
+    "en": "Demo · Serverless ETL pipeline"
+  },
+  "description": {
+    "it": "Progetto dimostrativo: una pipeline che raccoglie dati da API esterne, li valida e li carica su DynamoDB con funzioni Lambda.",
+    "en": "Demo project: a pipeline that collects data from external APIs, validates it and loads it into DynamoDB with Lambda functions."
+  },
+  "content_markdown": {
+    "it": "# Pipeline ETL serverless\n\n> Progetto **dimostrativo**, caricato solo con `python -m seed.seed --demo`.\n\nCategoria `cloud` senza immagini: la carta disegna la copertina dei servizi collegati.",
+    "en": "# Serverless ETL pipeline\n\n> **Demo** project, loaded only by `python -m seed.seed --demo`.\n\nA `cloud` project without images: its card draws the connected-services cover."
+  },
+  "technologies": [
+    "Python",
+    "AWS",
+    "DynamoDB"
+  ],
+  "category": "cloud",
+  "images": [],
+  "github_url": "https://github.com/MarcoManduca/demo-serverless-etl",
+  "demo_url": null,
+  "status": "published"
+}

@@ -44,20 +44,13 @@ export const QuestLog = () => {
         {tab === 'active' && <NextQuestSlot />}
       </div>
 
-      <div className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <Link
-          to="/projects"
-          className="flex min-h-14 items-center justify-center rounded-xl bg-warm px-7 font-display text-xl font-extrabold uppercase tracking-wide text-background transition-colors hover:bg-warm-hover"
-        >
-          {t('home.quests.cta')}
-        </Link>
-        <Link
-          to="/about-me"
-          className="text-center font-display text-lg font-bold uppercase tracking-wider text-highlight hover:text-heading"
-        >
-          {t('home.quests.fullPath')} →
-        </Link>
-      </div>
+      {/* The projects are one section down, behind the side quests deck. */}
+      <Link
+        to="/about-me"
+        className="self-end font-display text-[15px] font-bold uppercase tracking-wider text-highlight hover:text-heading sm:text-base"
+      >
+        {t('home.quests.fullPath')} →
+      </Link>
     </section>
   )
 }

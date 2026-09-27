@@ -74,10 +74,17 @@ export default {
           from: { opacity: '0', transform: 'scale(0.96)' },
           to: { opacity: '1', transform: 'scale(1)' },
         },
+        // A footprint on the background: pressed quickly, then it fades.
+        footprint: {
+          '0%': { opacity: '0' },
+          '8%, 45%': { opacity: '1' },
+          '100%': { opacity: '0' },
+        },
       },
       animation: {
         'fade-in-up': 'fade-in-up 0.3s ease-out both',
         'fade-in-scale': 'fade-in-scale 0.5s ease-out both',
+        footprint: 'footprint 1.8s ease-out both',
       },
     },
   },

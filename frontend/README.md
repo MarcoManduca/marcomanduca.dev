@@ -37,22 +37,40 @@ them at runtime).
   and persists it. `brand.*` colours are fixed across themes (card foil).
 - **Fonts.** Barlow Condensed for headings/labels (`font-display`), Barlow for
   body text, JetBrains Mono for code.
+- **Footprints.** On the public pages the mouse leaves bare footprints on the
+  background, left and right in turn every `STRIDE` pixels, fading after
+  ~2 s (`useFootprints`, drawn by `components/layout/Footprints.tsx` behind
+  the content, above the contour lines). A print lands only where the pointer
+  and the whole print, toe to heel, rest on the empty background
+  (`utils/isFloor.ts`: no text, control or media, and no surface with a
+  background or border around it), so none slips under a card. Mouse only;
+  off under reduced motion.
 - **Home.** Flippable character card (full-art portrait on the front, with
   the level = calendar years since the first job's `start`; skills and
   description on the back; 3D turn, instant under reduced motion; leans
   toward the mouse pointer, the foil sheen sliding after it) + quest log +
-  skill "energies" + figurine collection. The quest log has two tabs built from the CV copy in the locale
-  files (`about.experience` / `about.education`, each with `start`/`end` months
-  and a `quest` block: guild, objective, final boss, rewards); projects will
-  get a section of their own. Entries without an `end` are _Active Quests_ and
-  show every detail; the rest are _Completed Quests_ (guild and dates, newest
-  first). Each row carries the domain symbol (work, study) and links to its
+  stats + side quests + figurine collection. The quest log has two tabs built
+  from the CV copy in the locale files (`about.experience` /
+  `about.education`, each with `start`/`end` months and a `quest` block:
+  guild, objective, final boss, rewards). Entries without an `end` are
+  _Active Quests_ and show every detail; the rest are _Completed Quests_
+  (guild and dates, newest first). Each row carries the domain symbol (work, study) and links to its
   entry on the About page timeline (`/about-me#work-2020-11`); the "next
   quest" slot links to the contacts page. The cards of a tab share one height
   (a grid of equal rows) that stays put when the language changes: minimum
   heights in `components/quests/questCardLayout.ts` come from a line budget
   with clamped text from `sm`, and from the tallest card of either language on
   phones (re-measure them when the quest copy changes).
+- **Stats and side quests.** Side by side from `lg`, stacked on phones.
+  _Stats_ plots the CV skill groups on a radar (`utils/radarGeometry.ts`); the
+  levels live in `utils/statLevels.ts` (placeholders until their scoring is
+  settled). Each point shows the group's level and tools on hover, focus or
+  tap; from `lg` a list of the levels alone sits beside the chart. _Side Quests_ deals
+  the published projects as a fanned deck, oldest first and numbered
+  `SQ: 01/NN`, closed by a face-down card that links to the contacts page.
+  Drag the top card away (or press ←/→ on the deck) to flip through it
+  (`useCardDeck`, poses in `utils/deckPose.ts`); a project without images
+  gets a cover drawn for its category.
 - **About timeline.** A scroll-spy (`useScrollSpy`) lights up the entry
   crossing a reading line at 35% of the viewport; an entry reached from a
   quest lands just above that line and stays lit until the reader scrolls.

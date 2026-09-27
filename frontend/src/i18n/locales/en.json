@@ -45,14 +45,43 @@
       "descriptionTitle": "Description",
       "description": "I design the path from raw data to decisions and make it scalable, efficient and measurable."
     },
-    "energiesTitle": "Energies",
+    "stats": {
+      "title": "Statistics",
+      "axis": {
+        "programming": "Programming",
+        "dataEngineering": "Data Eng.",
+        "dataViz": "Data Viz",
+        "versioning": "Version control",
+        "storage": "Storage",
+        "crm": "CRM"
+      },
+      "level": "Level {{level}}/{{max}}",
+      "point": "{{name}}: level {{level}} of {{max}}",
+      "hint": "Tap a point to see its level and tools"
+    },
+    "sideQuests": {
+      "title": "Side Quests",
+      "all": "All projects",
+      "deck": "deck of cards",
+      "number": "SQ: {{index}}/{{total}}",
+      "current": "Card {{index}} of {{total}}: {{title}}",
+      "hint": "Drag the card to flip through the deck",
+      "hintKeys": ", or use the left and right arrow keys",
+      "open": "Open the quest",
+      "code": "Source code on GitHub",
+      "next": {
+        "label": "Face-down card",
+        "title": "[Next side quest]",
+        "text": "Got a project for me?",
+        "cta": "Get in touch"
+      }
+    },
     "quests": {
       "tablist": "Quests",
       "active": "Active Quests",
       "completed": "Completed Quests",
       "nextQuest": "[Next quest]",
       "nextQuestHint": "Got a quest for me? Get in touch",
-      "cta": "Explore projects",
       "fullPath": "Full journey",
       "types": {
         "work": "Work",

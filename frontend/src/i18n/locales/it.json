@@ -45,14 +45,43 @@
       "descriptionTitle": "Descrizione",
       "description": "Progetto il percorso tra dati grezzi e decisioni e lo rendo scalabile, efficiente e misurabile."
     },
-    "energiesTitle": "Energie",
+    "stats": {
+      "title": "Statistiche",
+      "axis": {
+        "programming": "Programmazione",
+        "dataEngineering": "Data Eng.",
+        "dataViz": "Data Viz",
+        "versioning": "Versionamento",
+        "storage": "Storage",
+        "crm": "CRM"
+      },
+      "level": "Livello {{level}}/{{max}}",
+      "point": "{{name}}: livello {{level}} su {{max}}",
+      "hint": "Tocca un punto per vedere livello e strumenti"
+    },
+    "sideQuests": {
+      "title": "Quest secondarie",
+      "all": "Tutti i progetti",
+      "deck": "mazzo di carte",
+      "number": "SQ: {{index}}/{{total}}",
+      "current": "Carta {{index}} di {{total}}: {{title}}",
+      "hint": "Trascina la carta per sfogliare il mazzo",
+      "hintKeys": ", oppure usa le frecce sinistra e destra",
+      "open": "Apri la quest",
+      "code": "Codice su GitHub",
+      "next": {
+        "label": "Carta coperta",
+        "title": "[Prossima side quest]",
+        "text": "Hai un progetto da propormi?",
+        "cta": "Scrivimi"
+      }
+    },
     "quests": {
       "tablist": "Quest",
       "active": "Quest attive",
       "completed": "Quest completate",
       "nextQuest": "[Prossima quest]",
       "nextQuestHint": "Hai una missione da propormi? Scrivimi",
-      "cta": "Esplora i progetti",
       "fullPath": "Tutto il percorso",
       "types": {
         "work": "Lavoro",

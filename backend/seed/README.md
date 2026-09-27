@@ -105,6 +105,16 @@ templates):
 python -m seed.seed --demo
 ```
 
+The `_demo-*` projects are published, so they deal onto the Home _Side
+Quests_ deck, each exercising one case of the card: a `cloud` project with
+no images (drawn cover), a `backend` one with a long title, a long
+description and six technologies (trimmed to two lines, three lines and five
+tags), and a `frontend` one whose image is the site's own
+`http://localhost:5173/og-image.png`. `_example.json` stays a draft, off the
+Home. Their titles start with "Demo ·": never run `--demo` against AWS. Run
+the seeder twice (without and with `--demo`) to see them next to the real
+projects.
+
 ### Against AWS (production)
 
 Use real AWS credentials/region and the deployed table names, and **do not**
