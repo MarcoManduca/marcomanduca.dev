@@ -12,6 +12,14 @@ describe('MarkdownRenderer', () => {
     expect(screen.getByText('Some paragraph.')).toBeInTheDocument()
   })
 
+  it('gives second-level headings the anchor id of their text', async () => {
+    render(<MarkdownRenderer content={'## Il *problema*\n\nText.'} />)
+
+    expect(
+      await screen.findByRole('heading', { level: 2, name: 'Il problema' }),
+    ).toHaveAttribute('id', 'il-problema')
+  })
+
   it('renders a highlighted code block', async () => {
     const { container } = render(
       <MarkdownRenderer

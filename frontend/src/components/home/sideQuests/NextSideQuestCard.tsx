@@ -2,8 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
 import { Logo } from '@/components/layout/Logo'
-
-import { ContourArt } from './CategoryArt'
+import { ContourArt } from '@/components/projects/AreaArt'
 
 interface NextSideQuestCardProps {
   /** Only the top card of the deck takes focus. */

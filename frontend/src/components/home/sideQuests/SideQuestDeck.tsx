@@ -3,6 +3,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { THROW_DISTANCE, THROW_MS, useCardDeck } from '@/hooks/useCardDeck'
+import { cn } from '@/utils/cn'
 import { deckPose, dragPose, throwPose } from '@/utils/deckPose'
 
 import { DeckCard } from './DeckCard'
@@ -15,6 +16,13 @@ export interface DeckItem {
   /** The card's face; `interactive` is true on the top card only. */
   render: (interactive: boolean) => ReactNode
 }
+
+/**
+ * Height of the deck, fanned cards included. It fits the fullest card: three
+ * areas and a title on two lines each, three lines of description and two
+ * rows of technologies, down to 360px wide screens.
+ */
+export const DECK_HEIGHT = 'h-[552px] lg:h-[556px]'
 
 interface SideQuestDeckProps {
   items: DeckItem[]
@@ -78,7 +86,10 @@ export const SideQuestDeck = ({
           previous()
         }
       }}
-      className="relative mx-auto h-[496px] w-full max-w-[406px] rounded-[22px] focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-highlight lg:h-[526px]"
+      className={cn(
+        'relative mx-auto w-full max-w-[406px] rounded-[22px] focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-highlight',
+        DECK_HEIGHT,
+      )}
     >
       {items.map((item, index) => {
         const depth = (index - top + count) % count

@@ -2,7 +2,7 @@ import { fireEvent, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 
-import { projectsFixture } from '@/test/mocks/fixtures'
+import { projectSummariesFixture } from '@/test/mocks/fixtures'
 import { API_URL } from '@/test/mocks/handlers'
 import { server } from '@/test/mocks/server'
 import { renderWithProviders } from '@/test/utils'
@@ -96,8 +96,8 @@ describe('SideQuestsSection', () => {
     server.use(
       http.get(`${API_URL}/projects`, () =>
         HttpResponse.json([
-          ...projectsFixture,
-          { ...projectsFixture[0], slug: 'draft', status: 'draft' },
+          ...projectSummariesFixture,
+          { ...projectSummariesFixture[0], slug: 'draft', status: 'draft' },
         ]),
       ),
     )

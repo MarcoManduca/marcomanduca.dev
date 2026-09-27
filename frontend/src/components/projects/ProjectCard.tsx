@@ -1,33 +1,30 @@
-import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
-import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
 import { Tag } from '@/components/ui/Tag'
 import { useLanguage } from '@/hooks/useLanguage'
-import type { Project } from '@/types'
+import type { ProjectSummary } from '@/types'
+
+import { AreaChips } from './AreaChips'
 
 interface ProjectCardProps {
-  project: Project
+  project: ProjectSummary
 }
 
 export const ProjectCard = ({ project }: ProjectCardProps) => {
-  const { t } = useTranslation()
   const { localize } = useLanguage()
 
   return (
     <Card className="flex h-full flex-col gap-3">
-      <div className="flex items-start justify-between gap-2">
-        <h3 className="text-lg font-semibold text-heading">
-          <Link
-            to={`/projects/${project.slug}`}
-            className="hover:text-accent-hover"
-          >
-            {localize(project.title)}
-          </Link>
-        </h3>
-        <Badge>{t(`projectCategories.${project.category}`)}</Badge>
-      </div>
+      <AreaChips areas={project.areas} />
+      <h3 className="text-lg font-semibold text-heading">
+        <Link
+          to={`/projects/${project.slug}`}
+          className="hover:text-accent-hover"
+        >
+          {localize(project.title)}
+        </Link>
+      </h3>
       <p className="flex-1 text-sm text-body">
         {localize(project.description)}
       </p>

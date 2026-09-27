@@ -12,10 +12,11 @@ import {
   useGetProjectsQuery,
   useUpdateProjectMutation,
 } from '@/services/projectsApi'
-import type { Project, ProjectInput } from '@/types'
+import type { ProjectInput, ProjectSummary } from '@/types'
 
 import { DeleteConfirm } from './DeleteConfirm'
 import { ProjectForm } from './ProjectForm'
+import { ProjectFormLoader } from './ProjectFormLoader'
 import { ProjectRow } from './ProjectRow'
 import { useAdminEditor } from './useAdminEditor'
 
@@ -26,12 +27,17 @@ export const AdminProjects = () => {
   const [createProject, { isLoading: isCreating }] = useCreateProjectMutation()
   const [updateProject, { isLoading: isUpdating }] = useUpdateProjectMutation()
   const [deleteProject, { isLoading: isDeleting }] = useDeleteProjectMutation()
-  const editor = useAdminEditor<Project, ProjectInput>({
+  const editor = useAdminEditor<ProjectSummary, ProjectInput>({
     create: (body) => createProject(body).unwrap(),
     update: (slug, body) => updateProject({ slug, body }).unwrap(),
     remove: (slug) => deleteProject(slug).unwrap(),
   })
   const { editing, pendingDelete } = editor
+  const formProps = {
+    isSaving: isCreating || isUpdating,
+    onSubmit: editor.save,
+    onCancel: editor.cancel,
+  }
 
   if (isLoading) return <Spinner />
 
@@ -51,13 +57,15 @@ export const AdminProjects = () => {
           )}
           error={editor.saveError}
         >
-          <ProjectForm
-            key={editor.formKey}
-            initial={editing.mode === 'edit' ? editing.item : null}
-            isSaving={isCreating || isUpdating}
-            onSubmit={editor.save}
-            onCancel={editor.cancel}
-          />
+          {editing.mode === 'edit' ? (
+            <ProjectFormLoader
+              key={editor.formKey}
+              slug={editing.item.slug}
+              {...formProps}
+            />
+          ) : (
+            <ProjectForm key={editor.formKey} initial={null} {...formProps} />
+          )}
         </EditorPanel>
       )}
       <AdminErrorAlert
@@ -65,7 +73,7 @@ export const AdminProjects = () => {
         error={editor.deleteError}
         className="mt-6"
       />
-      <AdminTable columns={['title', 'category', 'status']}>
+      <AdminTable columns={['title', 'areas', 'status']}>
         {data?.map((project) => (
           <ProjectRow
             key={project.slug}

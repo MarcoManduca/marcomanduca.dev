@@ -1,13 +1,15 @@
 import { render } from '@testing-library/react'
 
-import { CategoryArt } from './CategoryArt'
+import type { ProjectArea } from '@/types'
 
-const drawing = (category: string) =>
-  render(<CategoryArt category={category} />).container.innerHTML
+import { AreaArt } from './AreaArt'
 
-describe('CategoryArt', () => {
+const drawing = (area: ProjectArea) =>
+  render(<AreaArt area={area} />).container.innerHTML
+
+describe('AreaArt', () => {
   it('draws a decorative cover, hidden from assistive tech', () => {
-    const { container } = render(<CategoryArt category="data" />)
+    const { container } = render(<AreaArt area="data" />)
 
     expect(container.querySelector('svg')).toHaveAttribute(
       'aria-hidden',
@@ -29,7 +31,7 @@ describe('CategoryArt', () => {
     expect(drawing('backend')).toBe(drawing('cloud'))
   })
 
-  it('falls back to the generic cover for unknown categories', () => {
-    expect(drawing('quantum')).toBe(drawing('other'))
+  it('gives the other areas the generic cover', () => {
+    expect(drawing('dl')).toBe(drawing('frontend'))
   })
 })

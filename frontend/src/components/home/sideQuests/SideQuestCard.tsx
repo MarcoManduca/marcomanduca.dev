@@ -1,19 +1,18 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
+import { AreaArt } from '@/components/projects/AreaArt'
+import { AreaChips } from '@/components/projects/AreaChips'
 import { Tag } from '@/components/ui/Tag'
 import { useLanguage } from '@/hooks/useLanguage'
-import type { Project } from '@/types'
-import { safeExternalUrl } from '@/utils/safeUrl'
-
-import { CategoryArt } from './CategoryArt'
-import { CategoryChip } from './CategoryChip'
+import type { ProjectSummary } from '@/types'
+import { safeExternalUrl, safeMediaUrl } from '@/utils/safeUrl'
 
 /** Technologies that fit on the card; the project page lists them all. */
 const TECH_SHOWN = 5
 
 interface SideQuestCardProps {
-  project: Project
+  project: ProjectSummary
   /** "SQ: 01/02": the project's place among the published ones. */
   number: string
   /** Only the top card of the deck takes focus. */
@@ -28,44 +27,44 @@ export const SideQuestCard = ({
 }: SideQuestCardProps) => {
   const { t } = useTranslation()
   const { localize } = useLanguage()
-  const cover = safeExternalUrl(project.images[0])
-  const github = safeExternalUrl(project.github_url)
+  const cover = safeMediaUrl(project.cover?.src)
+  const github = safeExternalUrl(project.repo_url)
   const tabIndex = interactive ? undefined : -1
 
   return (
     <div className="flex h-full flex-col gap-2.5 overflow-hidden rounded-[17px] bg-surface p-4">
-      <div className="flex items-center justify-between gap-2">
-        <CategoryChip category={project.category} />
-        <span className="font-display text-[13px] font-bold tracking-[0.08em] text-muted">
+      <div className="flex shrink-0 items-start justify-between gap-2">
+        <AreaChips areas={project.areas} />
+        <span className="shrink-0 pt-1 font-display text-[13px] font-bold tracking-[0.08em] text-muted">
           {number}
         </span>
       </div>
-      <h3 className="line-clamp-2 text-[26px] font-extrabold uppercase leading-none text-heading lg:text-[30px]">
+      <h3 className="line-clamp-2 shrink-0 text-[26px] font-extrabold uppercase leading-none text-heading lg:text-[30px]">
         {localize(project.title)}
       </h3>
       <div className="h-[120px] shrink-0 overflow-hidden rounded-xl border border-edge bg-background lg:h-[150px]">
-        {cover ? (
+        {cover && project.cover ? (
           <img
             src={cover}
-            alt=""
+            alt={localize(project.cover.alt)}
             draggable={false}
             loading="lazy"
             decoding="async"
             className="h-full w-full object-cover"
           />
         ) : (
-          <CategoryArt category={project.category} />
+          <AreaArt area={project.areas[0]} />
         )}
       </div>
-      <p className="line-clamp-3 text-sm leading-relaxed text-body">
+      <p className="line-clamp-3 shrink-0 text-sm leading-relaxed text-body">
         {localize(project.description)}
       </p>
-      <div className="flex flex-wrap gap-1.5">
+      <div className="flex shrink-0 flex-wrap gap-1.5">
         {project.technologies.slice(0, TECH_SHOWN).map((tech) => (
           <Tag key={tech} label={tech} />
         ))}
       </div>
-      <div className="mt-auto flex items-center justify-between gap-3">
+      <div className="mt-auto flex shrink-0 items-center justify-between gap-3">
         <Link
           to={`/projects/${project.slug}`}
           tabIndex={tabIndex}

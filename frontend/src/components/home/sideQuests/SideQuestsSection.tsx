@@ -3,16 +3,18 @@ import { useId } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
+import { areaStyle } from '@/components/projects/areaStyles'
 import { Spinner } from '@/components/ui/Spinner'
 import { useLanguage } from '@/hooks/useLanguage'
 import { useSideQuests } from '@/hooks/useSideQuests'
+import { twoDigits } from '@/utils/twoDigits'
 
-import { NEXT_CARD_FRAME, categoryStyle } from './categoryStyles'
 import { NextSideQuestCard } from './NextSideQuestCard'
 import { SideQuestCard } from './SideQuestCard'
-import { SideQuestDeck, type DeckItem } from './SideQuestDeck'
+import { DECK_HEIGHT, SideQuestDeck, type DeckItem } from './SideQuestDeck'
 
-const twoDigits = (value: number) => String(value).padStart(2, '0')
+/** Frame of the face-down card that closes the deck. */
+const NEXT_CARD_FRAME = 'from-edge via-surface to-edge'
 
 /**
  * Home "Side Quests": the published projects as a deck to flip through,
@@ -29,7 +31,7 @@ export const SideQuestsSection = () => {
     ...projects.map((project, index) => ({
       key: project.slug,
       title: localize(project.title),
-      frame: categoryStyle(project.category).frame,
+      frame: areaStyle(project.areas[0]).frame,
       render: (interactive: boolean) => (
         <SideQuestCard
           project={project}
@@ -72,7 +74,7 @@ export const SideQuestsSection = () => {
         </Link>
       </div>
       {isLoading ? (
-        <Spinner className="h-[496px] lg:h-[526px]" />
+        <Spinner className={DECK_HEIGHT} />
       ) : (
         <SideQuestDeck
           items={items}

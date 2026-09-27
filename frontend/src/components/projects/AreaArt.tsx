@@ -1,3 +1,5 @@
+import type { ProjectArea } from '@/types'
+
 const ART_PROPS = {
   viewBox: '0 0 296 120',
   fill: 'none',
@@ -83,13 +85,13 @@ export const ContourArt = () => (
   </svg>
 )
 
-interface CategoryArtProps {
-  category: string
+interface AreaArtProps {
+  area: ProjectArea
 }
 
-/** Cover of a project that has no images yet, drawn for its category. */
-export const CategoryArt = ({ category }: CategoryArtProps) => {
-  if (category === 'data') return <GraphArt />
-  if (category === 'cloud' || category === 'backend') return <FlowArt />
+/** Cover of a project without a cover image, drawn for its area. */
+export const AreaArt = ({ area }: AreaArtProps) => {
+  if (area === 'data') return <GraphArt />
+  if (area === 'cloud' || area === 'backend') return <FlowArt />
   return <ContourArt />
 }
