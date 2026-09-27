@@ -16,11 +16,42 @@ describe('QuestLog', () => {
       'aria-selected',
       'true',
     )
-    expect(questLinks()).toHaveLength(2)
+    expect(questLinks()).toHaveLength(3)
     expect(questLinks()[0]).toHaveTextContent('Business Data Analyst')
     expect(questLinks()[0]).toHaveTextContent('Work')
     expect(questLinks()[1]).toHaveTextContent('Study')
-    expect(within(panel()).getByText('[Next quest]')).toBeInTheDocument()
+    expect(questLinks()[2]).toHaveTextContent('[Next quest]')
+  })
+
+  it('links each CV quest to its entry on the About page timeline', async () => {
+    renderWithProviders(<QuestLog />)
+
+    expect(questLinks()[0]).toHaveAttribute('href', '/about-me#work-2020-11')
+    expect(questLinks()[1]).toHaveAttribute('href', '/about-me#study-2025-09')
+
+    await userEvent.click(screen.getByRole('tab', { name: /Completed Quests/ }))
+
+    expect(
+      within(panel()).getByRole('link', { name: /InfoEdge/ }),
+    ).toHaveAttribute('href', '/about-me#work-2019-09')
+  })
+
+  it('turns the next quest slot into a link to the contacts page', () => {
+    renderWithProviders(<QuestLog />)
+
+    expect(
+      within(panel()).getByRole('link', { name: /Next quest.*Get in touch/ }),
+    ).toHaveAttribute('href', '/contacts')
+  })
+
+  it('shows the full quest name as a tooltip, since long names are clamped', async () => {
+    renderWithProviders(<QuestLog />)
+
+    await userEvent.click(screen.getByRole('tab', { name: /Completed Quests/ }))
+
+    const name =
+      '1st-Level Master in Artificial Intelligence and Data Analytics for Business'
+    expect(within(panel()).getByTitle(name)).toHaveTextContent(name)
   })
 
   it('expands active quests with guild, start, objective, boss and rewards', () => {

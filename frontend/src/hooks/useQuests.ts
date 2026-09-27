@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next'
 import type { EducationEntry } from '@/components/about/EducationTimeline'
 import type { ExperienceEntry } from '@/components/about/ExperienceTimeline'
 import { useGetProjectsQuery } from '@/services/projectsApi'
-import type { Quest } from '@/types'
+import type { Quest, QuestDetails } from '@/types'
+import { timelineAnchor, type TimelineKind } from '@/utils/timelineAnchor'
 
 import { useLanguage } from './useLanguage'
 
@@ -12,6 +13,26 @@ const TAGS_COUNT = 3
 /** Newest completion first; `YYYY-MM` strings sort chronologically. */
 const byEndDesc = (a: Quest, b: Quest) =>
   (b.end ?? '').localeCompare(a.end ?? '')
+
+interface CvEntry {
+  start: string
+  end: string | null
+  quest: QuestDetails
+}
+
+/** A CV entry as a quest, linked to its entry on the About page timeline. */
+const cvQuest = (kind: TimelineKind, title: string, entry: CvEntry): Quest => {
+  const anchor = timelineAnchor(kind, entry.start)
+  return {
+    key: anchor,
+    kind,
+    to: `/about-me#${anchor}`,
+    title,
+    start: entry.start,
+    end: entry.end ?? undefined,
+    ...entry.quest,
+  }
+}
 
 export interface QuestLog {
   active: Quest[]
@@ -34,25 +55,9 @@ export const useQuests = (): QuestLog => {
     returnObjects: true,
   }) as EducationEntry[]
 
-  const cvQuests: Quest[] = [
-    ...experience.map(({ start, end, role, quest }) => ({
-      key: `work-${start}`,
-      kind: 'work' as const,
-      to: '/about-me',
-      title: role,
-      start,
-      end: end ?? undefined,
-      ...quest,
-    })),
-    ...education.map(({ start, end, degree, quest }) => ({
-      key: `study-${start}`,
-      kind: 'study' as const,
-      to: '/about-me',
-      title: degree,
-      start,
-      end: end ?? undefined,
-      ...quest,
-    })),
+  const cvQuests = [
+    ...experience.map((entry) => cvQuest('work', entry.role, entry)),
+    ...education.map((entry) => cvQuest('study', entry.degree, entry)),
   ]
   const projectQuests = projects.map((project): Quest => ({
     key: `project-${project.slug}`,

@@ -52,6 +52,7 @@
       "active": "Active Quests",
       "completed": "Completed Quests",
       "nextQuest": "[Next quest]",
+      "nextQuestHint": "Got a quest for me? Get in touch",
       "cta": "Explore projects",
       "fullPath": "Full journey",
       "types": {

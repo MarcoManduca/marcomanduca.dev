@@ -31,6 +31,28 @@ describe('AboutMe', () => {
     expect(screen.getByText('Power BI')).toBeInTheDocument()
   })
 
+  it('gives every timeline entry an anchor for the home quests', () => {
+    renderWithProviders(<AboutMe />)
+
+    expect(document.getElementById('work-2020-11')).toHaveTextContent(
+      'Business Data Analyst',
+    )
+    expect(document.getElementById('study-2015-09')).toHaveTextContent(
+      'BSc in Statistics',
+    )
+  })
+
+  it('marks the entry the URL points at as the current location', () => {
+    renderWithProviders(<AboutMe />, { route: '/about-me#study-2015-09' })
+
+    const entries = screen.getAllByRole('listitem')
+    const current = entries.filter(
+      (entry) => entry.getAttribute('aria-current') === 'location',
+    )
+    expect(current).toHaveLength(1)
+    expect(current[0]).toHaveTextContent('BSc in Statistics')
+  })
+
   it('renders the CV download button', () => {
     renderWithProviders(<AboutMe />)
 

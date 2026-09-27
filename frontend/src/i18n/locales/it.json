@@ -52,6 +52,7 @@
       "active": "Quest attive",
       "completed": "Quest completate",
       "nextQuest": "[Prossima quest]",
+      "nextQuestHint": "Hai una missione da propormi? Scrivimi",
       "cta": "Esplora i progetti",
       "fullPath": "Tutto il percorso",
       "types": {

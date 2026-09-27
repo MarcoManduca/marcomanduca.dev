@@ -44,7 +44,12 @@ them at runtime).
   and a `quest` block: guild, objective, final boss, rewards) plus the
   published projects. Entries without an `end` are _Active Quests_ and show
   every detail; the rest are _Completed Quests_ (guild and dates, newest
-  first). Each row carries the domain symbol (work, study, project).
+  first). Each row carries the domain symbol (work, study, project). CV
+  quests link to their entry on the About page timeline
+  (`/about-me#work-2020-11`, highlighted on arrival); the "next quest" slot
+  links to the contacts page. Cards have fixed heights from a line budget
+  (`components/quests/questCardLayout.ts`) with clamped text, so every card
+  of a tab matches and nothing moves when the language changes.
 - **Game mode.** Seven figurines unlocked by exploring (first visit, card flip, 3 projects,
   an article, language switch, theme switch, contact message). Progress lives
   in the `game` Redux slice, persisted to `localStorage` only (never sent to
