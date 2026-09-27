@@ -24,8 +24,8 @@
     "card": {
       "label": "Character card",
       "portraitAlt": "Portrait of Marco Manduca",
-      "level": "LV 5+",
-      "levelLabel": "Level: over 5 years of experience",
+      "level": "LV {{years}}",
+      "levelLabel": "Level: {{years}} years of experience",
       "flip": "Flip the character card",
       "skillsTitle": "Skills",
       "skills": [

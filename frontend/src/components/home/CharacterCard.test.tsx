@@ -19,6 +19,10 @@ const swipe = (element: HTMLElement, dx: number, dy = 0) => {
 }
 
 describe('CharacterCard', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   it('shows the front: role, name, level and portrait', () => {
     renderWithProviders(<CharacterCard />)
 
@@ -30,12 +34,24 @@ describe('CharacterCard', () => {
     expect(
       screen.getByText('Data Engineer & Data Scientist'),
     ).toBeInTheDocument()
-    expect(
-      screen.getByText('Level: over 5 years of experience'),
-    ).toBeInTheDocument()
+    expect(screen.getByText(/^Level: \d+ years of experience$/)).toBeVisible()
     expect(
       screen.getByRole('img', { name: 'Portrait of Marco Manduca' }),
     ).toBeInTheDocument()
+  })
+
+  it('levels up with the years since the first job started', () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    // First job in the CV copy: 2019. Level 7 all through 2026, 8 in 2027.
+    vi.setSystemTime(new Date(2026, 11, 31))
+    const { unmount } = renderWithProviders(<CharacterCard />)
+    expect(screen.getByText('LV 7')).toBeInTheDocument()
+    expect(screen.getByText('Level: 7 years of experience')).toBeInTheDocument()
+    unmount()
+
+    vi.setSystemTime(new Date(2027, 0, 1))
+    renderWithProviders(<CharacterCard />)
+    expect(screen.getByText('LV 8')).toBeInTheDocument()
   })
 
   it('flips to the back when the card is clicked', async () => {
