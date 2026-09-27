@@ -10,19 +10,21 @@ so seeded items are shaped exactly like API writes.
 seed/
 ├── seed.py                       # the loader (python -m seed.seed)
 └── data/
-    ├── technologies.json         # YOUR data — array of technologies (starts empty)
-    ├── _technologies.example.json# template (ignored unless --demo)
-    ├── projects/
-    │   ├── _example.json         # template (ignored unless --demo)
-    │   └── <your-project>.json   # one file per project
+    ├── technologies.json         # the technology registry (name, icon, category)
+    ├── projects/                 # one file per project shown on the site
+    │   ├── child-well-being.json
+    │   ├── deep-layers.json
+    │   └── marcomanduca-dev.json
     └── learning/
         ├── _example.json         # template (ignored unless --demo)
         └── <your-article>.json   # one file per article
 ```
 
-**Convention:** files whose name starts with `_` are templates. They are
-ignored by a normal run and only loaded with `--demo`. Add your real content
-as `technologies.json` and one `*.json` per project/article.
+The project files are the real content, the same in development and
+production. Their images live in the frontend, under
+`frontend/public/images/projects/<slug>/`, and are referenced by path
+(`/images/projects/deep-layers/cover.webp`). Learning files whose name starts
+with `_` are templates, loaded only with `--demo`.
 
 ## Content shapes
 
@@ -37,26 +39,66 @@ content is visible to the public site** (drafts show only in the admin panel).
 ```
 
 The technology **id** is derived from the name (slugified): `"FastAPI"` →
-`fastapi`. Reference these ids in a project's `technologies` array.
+`fastapi`. Projects list technologies by **name** (`"FastAPI"`): the Projects
+filter matches on it, and the project page groups the stack by `category`
+(`language`, `data`, `ml`, `frontend`, `backend`, `cloud`, `testing`,
+`tooling`; see `technologyCategories` in the frontend locales).
 
 ### Projects — one file per project under `data/projects/`
+
+The site lists only finished projects, so a project has no progress, period
+or team. Each classification answers one question:
+
+| Field | Question | Values |
+|---|---|---|
+| `areas` | In which fields? (1–3, all shown; the first colours the card) | `frontend` `backend` `cloud` `data` `ml` `dl` `ai` |
+| `context` | Where was it born? | `academic` `personal` `work` |
+| `technologies` | With what? (in display order, cards show 5) | technology names |
+| `topics` | About what? (0–5, bilingual) | free labels |
 
 ```json
 {
   "title":       { "it": "...", "en": "..." },
   "description": { "it": "...", "en": "..." },
+  "areas": ["ml", "dl"],
+  "context": "academic",
+  "cover": { "src": "https://...", "alt": { "it": "...", "en": "..." } },
+  "metrics": [{ "value": "15", "label": { "it": "modelli", "en": "models" } }],
+  "technologies": ["TensorFlow", "Python"],
+  "brief": {
+    "objective": { "it": "...", "en": "..." },
+    "boss":      { "it": "...", "en": "..." },
+    "rewards":   { "it": "...", "en": "..." }
+  },
   "content_markdown": { "it": "# ...", "en": "# ..." },
-  "technologies": ["python", "fastapi"],
-  "category": "fullstack",
-  "images": [],
-  "github_url": "https://github.com/MarcoManduca/...",
-  "demo_url": null,
+  "topics": [{ "it": "beni culturali", "en": "cultural heritage" }],
+  "media": [{ "src": "https://...", "alt": { "it": "...", "en": "..." }, "caption": null }],
+  "links": [{ "kind": "repo", "url": "https://github.com/MarcoManduca/..." }],
+  "license": "CC BY-NC-SA 4.0",
+  "quest": "study-2025-09",
+  "lab": null,
   "status": "draft"
 }
 ```
 
-The **slug** (URL) is derived from `title.en`. `images` are S3 object keys
-(upload via the admin Media page, then paste the returned keys here).
+The **slug** (URL) is derived from `title.en`. `cards` (the list endpoint)
+carry `title`, `description`, `areas`, `context`, `cover`, up to four
+`metrics` (cards show three) and `technologies`, plus the first `repo` link;
+the project page gets everything. `brief` tells the project as a quest
+(objective, final boss, rewards). `links[].kind` is one of `repo` `paper`
+`docs` `live` `video` `dataset`. `license` is **required**: every project
+states it on the opening of its page (a dual licence fits in one line, e.g.
+`GPL-3.0 · CC BY-SA 4.0`). `quest` is the About page anchor of the CV entry
+the project was born in (`work-2020-11`, `study-2025-09`).
+
+`lab` is optional and the page shows it, when present, at the end, after the
+gallery. Today it is an `image-compare` demo: up to six `samples`, each a
+`base` image with one to four `layers` (id, label, image, alt text, how to
+read it) that a divider dragged across the image reveals over it, plus an
+optional `model` name.
+
+Images (`cover`, `media`, lab images) are URLs or media-bucket keys (upload
+via the admin Media page, then paste the returned keys here).
 
 ### Learning — one file per article under `data/learning/`
 
@@ -82,7 +124,9 @@ the backend. Run it from the `backend/` directory.
 
 ### Against DynamoDB Local (with the dev stack running)
 
-Make sure the stack is up (`docker compose up`) so the tables exist, then:
+Make sure the stack is up (`docker compose up`; the backend waits for
+`dynamodb-init` to create the tables). The database lives in memory, so seed
+it again after every restart:
 
 ```bash
 cd backend
@@ -96,14 +140,22 @@ python -m seed.seed
 ```
 
 Tip: put those variables in `backend/.env` (gitignored) once, then just run
-`python -m seed.seed`.
+`python -m seed.seed`. Without `DYNAMODB_ENDPOINT_URL` the seeder writes to
+**AWS**: it prints its target first, and `--demo` refuses to run there.
 
-Preview the site with sample content (loads the `_*.example` / `_*.json`
-templates):
+Development shows the same projects as production:
 
 ```bash
 python -m seed.seed --demo
 ```
+
+`--demo` loads a **DEMO copy of every real project**: the same content, with
+the title prefixed `DEMO · ` in both languages (so `deep-layers` becomes
+`demo-deep-layers`), to try each project page before it goes live. It also
+registers the technologies and the learning templates. Run only `--demo`
+locally: a plain run on top would add the real projects a second time,
+without the prefix. Every demo title starts with "DEMO ·": `--demo` refuses to
+run without `DYNAMODB_ENDPOINT_URL`, so it never reaches AWS.
 
 ### Against AWS (production)
 
@@ -118,8 +170,18 @@ AWS_REGION=eu-west-1 python -m seed.seed
 
 (The table names are Terraform outputs — see `infra/README.md` §7.)
 
-## Idempotency
+## Idempotency and migrations
 
 Re-running is safe. Projects, articles and technologies are created only if
 their key does not already exist (otherwise skipped — edit those via the admin
 panel).
+
+`--replace` rewrites projects that already exist from their files, keeping
+their creation time. It is how items stored in an older project schema are
+migrated: the API leaves those out of lists (and logs their slug) until they
+are rewritten.
+
+```bash
+python -m seed.seed --replace          # real content
+python -m seed.seed --demo --replace   # demo content, DynamoDB Local only
+```

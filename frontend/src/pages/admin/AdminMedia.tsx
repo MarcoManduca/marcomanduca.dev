@@ -67,9 +67,9 @@ export const AdminMedia = () => {
       {status === 'success' && key && (
         <div
           role="status"
-          className="mt-6 rounded-lg bg-emerald-500/15 p-4 text-sm"
+          className="mt-6 rounded-lg bg-success/15 p-4 text-sm"
         >
-          <p className="text-emerald-400">{t('admin.media.success')}</p>
+          <p className="text-success">{t('admin.media.success')}</p>
           <p className="mt-2 font-mono text-xs text-body">
             {t('admin.media.objectKey')}: {key}
           </p>
@@ -78,7 +78,7 @@ export const AdminMedia = () => {
       {status === 'error' && (
         <p
           role="alert"
-          className="mt-6 rounded-lg bg-red-500/15 p-4 text-sm text-red-400"
+          className="mt-6 rounded-lg bg-danger/15 p-4 text-sm text-danger"
         >
           {t('admin.media.error')}
         </p>

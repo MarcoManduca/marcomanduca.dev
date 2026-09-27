@@ -3,49 +3,25 @@ import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { ProjectCard } from '@/components/projects/ProjectCard'
-import {
-  ProjectFilters,
-  type ProjectFiltersValue,
-} from '@/components/projects/ProjectFilters'
+import { ProjectFilters } from '@/components/projects/ProjectFilters'
 import { Seo } from '@/components/seo/Seo'
 import { Spinner } from '@/components/ui/Spinner'
 import { useLanguage } from '@/hooks/useLanguage'
 import { useGetProjectsQuery } from '@/services/projectsApi'
 import { useGetTechnologiesQuery } from '@/services/technologiesApi'
-import type { Project } from '@/types'
-
-const matchesSearch = (
-  project: Project,
-  search: string,
-  localize: (text: Project['title']) => string,
-): boolean => {
-  const haystack =
-    `${localize(project.title)} ${localize(project.description)}`.toLowerCase()
-  return haystack.includes(search.toLowerCase())
-}
+import { EMPTY_PROJECT_FILTERS, filterProjects } from '@/utils/filterProjects'
 
 export const Projects = () => {
   const { t } = useTranslation()
   const { localize } = useLanguage()
   const { data, isLoading, isError } = useGetProjectsQuery()
   const { data: technologies = [] } = useGetTechnologiesQuery()
+  const [filters, setFilters] = useState(EMPTY_PROJECT_FILTERS)
 
-  const [filters, setFilters] = useState<ProjectFiltersValue>({
-    search: '',
-    category: '',
-    technology: '',
-  })
-
-  const filtered = useMemo(() => {
-    const items = data ?? []
-    return items.filter(
-      (project) =>
-        (!filters.category || project.category === filters.category) &&
-        (!filters.technology ||
-          project.technologies.includes(filters.technology)) &&
-        (!filters.search || matchesSearch(project, filters.search, localize)),
-    )
-  }, [data, filters, localize])
+  const filtered = useMemo(
+    () => filterProjects(data ?? [], filters, localize),
+    [data, filters, localize],
+  )
 
   return (
     <>
@@ -60,7 +36,7 @@ export const Projects = () => {
         />
       </div>
       {isLoading && <Spinner />}
-      {isError && <p className="mt-8 text-red-400">{t('common.error')}</p>}
+      {isError && <p className="mt-8 text-danger">{t('common.error')}</p>}
       {data && (
         <div className="mt-8 grid gap-4 sm:grid-cols-2">
           {filtered.map((project) => (

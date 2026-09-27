@@ -5,36 +5,26 @@ import { useTranslation } from 'react-i18next'
 
 import { BilingualFields } from '@/components/admin/BilingualFields'
 import { FormActions } from '@/components/admin/FormActions'
-import { readBilingual } from '@/components/admin/readBilingual'
+import { FormSection } from '@/components/admin/FormSection'
+import { JsonField } from '@/components/admin/JsonField'
 import { StatusSelect } from '@/components/admin/StatusSelect'
 import { TechnologyPicker } from '@/components/projects/TechnologyPicker'
 import { Input } from '@/components/ui/Input'
-import { Select } from '@/components/ui/Select'
-import type { Project, ProjectInput, ProjectStatus } from '@/types'
-import { PROJECT_CATEGORIES } from '@/types'
-import { parseLines } from '@/utils/parseList'
+import type { Project, ProjectInput } from '@/types'
 
-import { ProjectLinksFields } from './ProjectLinksFields'
+import { ProjectClassificationFields } from './ProjectClassificationFields'
+import { ProjectCoverFields } from './ProjectCoverFields'
+import { InvalidJsonError, toProjectInput } from './projectFormInput'
+import { ProjectPageFields } from './ProjectPageFields'
 
-interface ProjectFormProps {
+export interface ProjectFormProps {
   initial: Project | null
   isSaving: boolean
   onSubmit: (input: ProjectInput) => void
   onCancel: () => void
 }
 
-const toInput = (data: FormData, technologies: string[]): ProjectInput => ({
-  title: readBilingual(data, 'title'),
-  description: readBilingual(data, 'description'),
-  content_markdown: readBilingual(data, 'content'),
-  category: String(data.get('category')),
-  status: String(data.get('status')) as ProjectStatus,
-  technologies,
-  images: parseLines(String(data.get('images'))),
-  github_url: String(data.get('githubUrl')),
-  demo_url: String(data.get('demoUrl')) || null,
-})
-
+/** Create / edit form of a project: its card, its page and its lab. */
 export const ProjectForm = ({
   initial,
   isSaving,
@@ -42,48 +32,69 @@ export const ProjectForm = ({
   onCancel,
 }: ProjectFormProps) => {
   const { t } = useTranslation()
-  const [technologies, setTechnologies] = useState<string[]>(
-    initial?.technologies ?? [],
-  )
+  const [technologies, setTechnologies] = useState(initial?.technologies ?? [])
+  const [jsonError, setJsonError] = useState<string | null>(null)
+  const listHint = t('admin.form.jsonListHint')
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    onSubmit(toInput(new FormData(event.currentTarget), technologies))
+    try {
+      const input = toProjectInput(
+        new FormData(event.currentTarget),
+        technologies,
+      )
+      setJsonError(null)
+      onSubmit(input)
+    } catch (error) {
+      if (!(error instanceof InvalidJsonError)) throw error
+      const field = t(`admin.form.${error.field}`)
+      setJsonError(t('admin.form.invalidJson', { field }))
+    }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
-      {initial && (
-        <Input
-          label={t('admin.form.slug')}
-          name="slug"
-          defaultValue={initial.slug}
-          disabled
+    <form onSubmit={handleSubmit} className="grid gap-6">
+      <FormSection legend={t('admin.form.cardSection')}>
+        {initial && (
+          <div className="sm:col-span-2">
+            <Input
+              label={t('admin.form.slug')}
+              name="slug"
+              defaultValue={initial.slug}
+              disabled
+            />
+          </div>
+        )}
+        <ProjectClassificationFields initial={initial} />
+        <BilingualFields name="title" defaultValue={initial?.title} required />
+        <BilingualFields
+          name="description"
+          rows={3}
+          defaultValue={initial?.description}
         />
-      )}
-      <Select
-        label={t('admin.form.category')}
-        name="category"
-        defaultValue={initial?.category}
-        options={PROJECT_CATEGORIES.map((value) => ({
-          value,
-          label: t(`projectCategories.${value}`),
-        }))}
-      />
-      <BilingualFields name="title" defaultValue={initial?.title} required />
-      <BilingualFields
-        name="description"
-        rows={3}
-        defaultValue={initial?.description}
-      />
-      <BilingualFields
-        name="content"
-        rows={8}
-        defaultValue={initial?.content_markdown}
-      />
-      <TechnologyPicker value={technologies} onChange={setTechnologies} />
+        <ProjectCoverFields cover={initial?.cover ?? null} />
+        <JsonField
+          name="metrics"
+          value={initial?.metrics ?? []}
+          hint={listHint}
+        />
+        <TechnologyPicker value={technologies} onChange={setTechnologies} />
+      </FormSection>
+      <ProjectPageFields initial={initial} />
+      <FormSection legend={t('admin.form.labSection')}>
+        <JsonField
+          name="lab"
+          value={initial?.lab ?? null}
+          hint={t('admin.form.labHint')}
+          rows={6}
+        />
+      </FormSection>
       <StatusSelect defaultValue={initial?.status} />
-      <ProjectLinksFields initial={initial} />
+      {jsonError && (
+        <p role="alert" className="text-sm text-danger">
+          {jsonError}
+        </p>
+      )}
       <FormActions isSaving={isSaving} onCancel={onCancel} />
     </form>
   )

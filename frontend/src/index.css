@@ -1,8 +1,11 @@
 /* Fonts (self-hosted) */
-@import '@fontsource/inter/400.css';
-@import '@fontsource/inter/500.css';
-@import '@fontsource/inter/600.css';
-@import '@fontsource/inter/700.css';
+@import '@fontsource/barlow/400.css';
+@import '@fontsource/barlow/500.css';
+@import '@fontsource/barlow/600.css';
+@import '@fontsource/barlow/700.css';
+@import '@fontsource/barlow-condensed/600.css';
+@import '@fontsource/barlow-condensed/700.css';
+@import '@fontsource/barlow-condensed/800.css';
 @import '@fontsource/jetbrains-mono/400.css';
 @import '@fontsource/jetbrains-mono/600.css';
 
@@ -10,9 +13,71 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Theme tokens as RGB channels (see tailwind.config.js). The dark theme is
+ * the default; public/theme-init.js sets `data-theme` before first paint
+ * from the stored choice or the OS preference.
+ */
 @layer base {
+  :root,
+  [data-theme='dark'] {
+    color-scheme: dark;
+    --color-background: 13 27 31; /* #0D1B1F */
+    --color-surface: 19 40 46; /* #13282E */
+    --color-raised: 26 52 59; /* #1A343B */
+    --color-edge: 38 68 76; /* #26444C */
+    --color-accent: 3 169 193; /* #03A9C1 */
+    --color-accent-hover: 47 195 214; /* #2FC3D6 */
+    --color-accent-deep: 3 114 139; /* #03728B */
+    --color-warm: 243 140 48; /* #F38C30 */
+    --color-warm-hover: 247 164 85; /* #F7A455 */
+    --color-highlight: 244 223 109; /* #F4DF6D */
+    --color-body: 201 216 220; /* #C9D8DC */
+    --color-heading: 244 240 240; /* #F4F0F0 */
+    --color-muted: 127 154 161; /* #7F9AA1 */
+    --color-success: 52 211 153; /* #34D399 */
+    --color-danger: 248 113 113; /* #F87171 */
+    --color-card: 244 240 240; /* #F4F0F0 */
+    --color-card-ink: 13 27 31; /* #0D1B1F */
+    --color-card-accent: 168 80 26; /* #A8501A */
+    --color-card-muted: 63 90 97; /* #3F5A61 */
+  }
+
+  [data-theme='light'] {
+    color-scheme: light;
+    --color-background: 239 227 200; /* #EFE3C8 */
+    --color-surface: 246 237 215; /* #F6EDD7 */
+    --color-raised: 251 245 230; /* #FBF5E6 */
+    --color-edge: 201 183 143; /* #C9B78F */
+    --color-accent: 10 98 117; /* #0A6275 */
+    --color-accent-hover: 156 74 18; /* #9C4A12 */
+    --color-accent-deep: 11 58 68; /* #0B3A44 */
+    --color-warm: 156 74 18; /* #9C4A12 */
+    --color-warm-hover: 126 58 12; /* #7E3A0C */
+    --color-highlight: 122 90 18; /* #7A5A12 */
+    --color-body: 46 58 51; /* #2E3A33 */
+    --color-heading: 11 58 68; /* #0B3A44 */
+    --color-muted: 110 94 62; /* #6E5E3E */
+    --color-success: 47 107 58; /* #2F6B3A */
+    --color-danger: 168 50 42; /* #A8322A */
+    --color-card: 251 245 230; /* #FBF5E6 */
+    --color-card-ink: 11 58 68; /* #0B3A44 */
+    --color-card-accent: 156 74 18; /* #9C4A12 */
+    --color-card-muted: 110 94 62; /* #6E5E3E */
+  }
+
   body {
-    @apply bg-background font-sans text-body antialiased;
+    @apply bg-background font-sans text-body antialiased transition-colors;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-display tracking-wide;
+  }
+
+  h1 {
+    @apply uppercase;
   }
 }
 
@@ -28,7 +93,7 @@
     @apply mb-3 mt-8 font-semibold text-heading;
   }
   .markdown h1 {
-    @apply text-3xl;
+    @apply text-3xl normal-case;
   }
   .markdown h2 {
     @apply text-2xl;
@@ -55,7 +120,7 @@
     @apply rounded bg-surface px-1.5 py-0.5 font-mono text-sm hyphens-none;
   }
   .markdown pre {
-    @apply my-4 overflow-x-auto rounded-lg border border-edge bg-surface p-4 text-left hyphens-none;
+    @apply my-4 overflow-x-auto rounded-lg border border-edge bg-brand-ink p-4 text-left text-brand-cream hyphens-none;
   }
   .markdown pre code {
     @apply bg-transparent p-0;

@@ -4,31 +4,40 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, status
 
-from src.schemas.project import ProjectCreate, ProjectResponse, ProjectUpdate
+from src.schemas.project import (
+    ProjectCard,
+    ProjectCreate,
+    ProjectResponse,
+    ProjectUpdate,
+)
+from src.schemas.project_taxonomy import ProjectArea, ProjectContext
 from src.services.project_service import ProjectService, get_project_service
 from src.utils.auth import optional_admin, require_admin
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
 
-@router.get("", response_model=list[ProjectResponse])
+@router.get("", response_model=list[ProjectCard])
 def list_projects(
-    category: str | None = None,
+    area: ProjectArea | None = None,
+    context: ProjectContext | None = None,
     technology: str | None = None,
     search: str | None = None,
     admin: dict[str, Any] | None = Depends(optional_admin),
     service: ProjectService = Depends(get_project_service),
 ) -> list[dict[str, Any]]:
-    """List projects; anonymous callers only see published ones.
+    """List project cards; anonymous callers only see published ones.
 
     Parameters
     ----------
-    category : str, optional
-        Exact category filter.
+    area : ProjectArea, optional
+        Area filter.
+    context : ProjectContext, optional
+        Context filter.
     technology : str, optional
         Technology id filter.
     search : str, optional
-        Free-text search on title and description.
+        Free-text search on title, description and topics.
     admin : dict or None
         Admin claims when the caller is an authenticated administrator.
     service : ProjectService
@@ -37,10 +46,11 @@ def list_projects(
     Returns
     -------
     list[dict[str, Any]]
-        Matching projects.
+        Matching project cards, newest first.
     """
     return service.list_projects(
-        category=category,
+        area=area,
+        context=context,
         technology=technology,
         search=search,
         include_unpublished=admin is not None,
@@ -67,7 +77,7 @@ def get_project(
     Returns
     -------
     dict[str, Any]
-        The project item.
+        The full project, as the project page shows it.
     """
     return service.get_project(slug, include_unpublished=admin is not None)
 

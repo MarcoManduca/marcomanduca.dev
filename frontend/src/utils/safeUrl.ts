@@ -15,3 +15,15 @@ export const safeExternalUrl = (url?: string | null): string | undefined => {
     return undefined
   }
 }
+
+/** A path on this site, like `/images/…`; not `//host` nor `/\host`. */
+const SITE_PATH = /^\/(?![/\\])/
+
+/**
+ * Return an image source the page may load, else `undefined`: an http(s)
+ * URL, or a path on the site itself (images shipped in `public/`).
+ */
+export const safeMediaUrl = (src?: string | null): string | undefined => {
+  if (!src) return undefined
+  return SITE_PATH.test(src) ? src : safeExternalUrl(src)
+}

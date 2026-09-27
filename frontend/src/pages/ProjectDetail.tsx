@@ -1,23 +1,32 @@
-import { useTranslation } from 'react-i18next'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 
-import { MarkdownRenderer } from '@/components/markdown/MarkdownRenderer'
+import { ProjectAside } from '@/components/projects/detail/ProjectAside'
+import { ProjectBody } from '@/components/projects/detail/ProjectBody'
+import { ProjectHero } from '@/components/projects/detail/ProjectHero'
+import { ProjectMetrics } from '@/components/projects/detail/ProjectMetrics'
+import { ProjectPager } from '@/components/projects/detail/ProjectPager'
+import { ProjectTopBar } from '@/components/projects/detail/ProjectTopBar'
+import { QuestBriefCards } from '@/components/projects/detail/QuestBriefCards'
+import { LabSection } from '@/components/projects/lab/LabSection'
 import { ProjectGallery } from '@/components/projects/ProjectGallery'
 import { Seo } from '@/components/seo/Seo'
-import { Badge } from '@/components/ui/Badge'
 import { ErrorState } from '@/components/ui/ErrorState'
-import { Prose } from '@/components/ui/Prose'
 import { Spinner } from '@/components/ui/Spinner'
-import { Tag } from '@/components/ui/Tag'
 import { useLanguage } from '@/hooks/useLanguage'
+import { useProjectNeighbours } from '@/hooks/useProjectNeighbours'
+import { useTrackProjectVisit } from '@/hooks/useTrackProjectVisit'
 import { useGetProjectBySlugQuery } from '@/services/projectsApi'
 import { isNotFoundError } from '@/utils/isNotFoundError'
-import { safeExternalUrl } from '@/utils/safeUrl'
+import { markdownHeadings } from '@/utils/markdownHeadings'
 
 import { NotFound } from './NotFound'
 
+/**
+ * A project page: hero, quest brief and key numbers, the long read with its
+ * side column, the gallery, the optional lab last, and the nearby side
+ * quests.
+ */
 export const ProjectDetail = () => {
-  const { t } = useTranslation()
   const { localize } = useLanguage()
   const { slug = '' } = useParams()
   const {
@@ -27,6 +36,8 @@ export const ProjectDetail = () => {
     isError,
     refetch,
   } = useGetProjectBySlugQuery(slug)
+  const neighbours = useProjectNeighbours(slug)
+  useTrackProjectVisit(project?.slug)
 
   if (isLoading) return <Spinner />
   if (isError && !isNotFoundError(error)) {
@@ -34,60 +45,31 @@ export const ProjectDetail = () => {
   }
   if (!project) return <NotFound />
 
-  const githubUrl = safeExternalUrl(project.github_url)
-  const demoUrl = safeExternalUrl(project.demo_url)
+  const markdown = localize(project.content_markdown)
 
   return (
-    <article>
+    <article className="flex flex-col gap-16 lg:gap-20">
       <Seo
         title={localize(project.title)}
         description={localize(project.description)}
         type="article"
-        image={project.images[0]}
+        image={project.cover?.src ?? project.media[0]?.src}
       />
-      <Link
-        to="/projects"
-        className="text-sm text-accent hover:text-accent-hover"
-      >
-        ← {t('projects.backToProjects')}
-      </Link>
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        <h1 className="text-3xl font-bold text-heading">
-          {localize(project.title)}
-        </h1>
-        <Badge>{t(`projectCategories.${project.category}`)}</Badge>
+      <div className="flex flex-col gap-6">
+        <ProjectTopBar neighbours={neighbours} />
+        <ProjectHero project={project} />
       </div>
-      <div className="mt-4 flex flex-wrap gap-1.5">
-        {project.technologies.map((tech) => (
-          <Tag key={tech} label={tech} />
-        ))}
+      <div className="flex flex-col gap-4">
+        <QuestBriefCards brief={project.brief} />
+        <ProjectMetrics metrics={project.metrics} />
       </div>
-      <div className="mt-4 flex gap-4 text-sm">
-        {githubUrl && (
-          <a
-            href={githubUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="text-accent hover:text-accent-hover"
-          >
-            {t('projects.github')} ↗
-          </a>
-        )}
-        {demoUrl && (
-          <a
-            href={demoUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="text-accent hover:text-accent-hover"
-          >
-            {t('projects.demo')} ↗
-          </a>
-        )}
+      <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-16">
+        <ProjectBody markdown={markdown} />
+        <ProjectAside project={project} headings={markdownHeadings(markdown)} />
       </div>
-      <Prose className="mt-8">
-        <MarkdownRenderer content={localize(project.content_markdown)} />
-      </Prose>
-      <ProjectGallery title={localize(project.title)} images={project.images} />
+      <ProjectGallery media={project.media} />
+      {project.lab && <LabSection lab={project.lab} />}
+      <ProjectPager neighbours={neighbours} />
     </article>
   )
 }

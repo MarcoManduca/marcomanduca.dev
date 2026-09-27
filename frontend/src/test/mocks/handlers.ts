@@ -2,6 +2,7 @@ import { HttpResponse, http } from 'msw'
 
 import {
   articlesFixture,
+  projectSummariesFixture,
   projectsFixture,
   technologiesFixture,
   versionsFixture,
@@ -13,8 +14,10 @@ export const API_URL = 'http://localhost/api/v1'
 export const S3_UPLOAD_URL = 'http://localhost/s3-upload'
 
 export const handlers = [
-  // Projects — list is a bare array (no { items, total } wrapper).
-  http.get(`${API_URL}/projects`, () => HttpResponse.json(projectsFixture)),
+  // Projects — the list is a bare array of cards; the detail is the full item.
+  http.get(`${API_URL}/projects`, () =>
+    HttpResponse.json(projectSummariesFixture),
+  ),
   http.get(`${API_URL}/projects/:slug`, ({ params }) => {
     const project = projectsFixture.find((p) => p.slug === params.slug)
     return project

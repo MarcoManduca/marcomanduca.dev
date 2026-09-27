@@ -10,6 +10,8 @@ from pydantic import BaseModel, Field
 # (~120 KB for mostly-ASCII text) plus metadata still leave ample headroom.
 TITLE_MAX_LENGTH = 200
 SUMMARY_MAX_LENGTH = 1000
+LABEL_MAX_LENGTH = 60
+LINE_MAX_LENGTH = 280
 MARKDOWN_MAX_LENGTH = 60_000
 URL_MAX_LENGTH = 512
 
@@ -61,6 +63,36 @@ class LocalizedSummary(BaseModel):
 
     it: str = Field(min_length=1, max_length=SUMMARY_MAX_LENGTH)
     en: str = Field(min_length=1, max_length=SUMMARY_MAX_LENGTH)
+
+
+class LocalizedLabel(BaseModel):
+    """A few words in both languages (1-60 chars each), e.g. a tag or label.
+
+    Attributes
+    ----------
+    it : str
+        Italian translation.
+    en : str
+        English translation.
+    """
+
+    it: str = Field(min_length=1, max_length=LABEL_MAX_LENGTH)
+    en: str = Field(min_length=1, max_length=LABEL_MAX_LENGTH)
+
+
+class LocalizedLine(BaseModel):
+    """One sentence in both languages (1-280 chars each), e.g. an alt text.
+
+    Attributes
+    ----------
+    it : str
+        Italian translation.
+    en : str
+        English translation.
+    """
+
+    it: str = Field(min_length=1, max_length=LINE_MAX_LENGTH)
+    en: str = Field(min_length=1, max_length=LINE_MAX_LENGTH)
 
 
 class LocalizedMarkdown(BaseModel):

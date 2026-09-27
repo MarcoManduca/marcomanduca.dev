@@ -24,6 +24,15 @@ describe('PublicLayout', () => {
     expect(screen.getByRole('contentinfo')).toBeInTheDocument()
   })
 
+  it('unlocks the first figurine on arrival and announces it', async () => {
+    const { store } = renderLayout()
+
+    expect(store.getState().game.unlocked).toEqual(['firstStep'])
+    expect(
+      await screen.findByText('Figurine unlocked: First step'),
+    ).toBeInTheDocument()
+  })
+
   it('offers a skip link as the first focusable element, targeting main', async () => {
     renderLayout()
 

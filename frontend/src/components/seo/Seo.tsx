@@ -39,7 +39,10 @@ export const Seo = ({
   const fullTitle = title ? `${title} — ${SITE_NAME}` : SITE_NAME
   const canonical = `${SITE_URL}${pathname}`
   const alternateLanguage: Language = language === 'it' ? 'en' : 'it'
-  const shareImage = image ?? DEFAULT_IMAGE
+  // Images shipped with the site come as paths; OpenGraph needs a full URL.
+  const shareImage = image?.startsWith('/')
+    ? `${SITE_URL}${image}`
+    : (image ?? DEFAULT_IMAGE)
 
   return (
     <Helmet>

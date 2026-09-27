@@ -85,7 +85,58 @@ async def test_get_project_returns_item_by_slug(
 
     # Assert
     assert response.status_code == 200
-    assert response.json()["title"]["en"] == "Demo Project"
+    body = response.json()
+    assert body["title"]["en"] == "Demo Project"
+    assert body["brief"]["objective"]["en"] == "Objective"
+    assert body["links"][0]["kind"] == "repo"
+    assert body["lab"] is None
+
+
+async def test_list_projects_returns_cards_without_the_page_content(
+    admin_client: AsyncClient,
+    public_client: AsyncClient,
+    project_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange
+    await admin_client.post("/api/v1/projects", json=project_payload_factory())
+
+    # Act
+    response = await public_client.get("/api/v1/projects")
+
+    # Assert
+    [card] = response.json()
+    assert card["repo_url"] == "https://github.com/marco/demo"
+    assert "content_markdown" not in card
+    assert "brief" not in card
+
+
+async def test_list_projects_filters_by_area(
+    admin_client: AsyncClient,
+    public_client: AsyncClient,
+    project_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange
+    await admin_client.post("/api/v1/projects", json=project_payload_factory())
+    data = project_payload_factory(
+        title={"it": "Dati", "en": "Data Project"}, areas=["data"]
+    )
+    await admin_client.post("/api/v1/projects", json=data)
+
+    # Act
+    response = await public_client.get("/api/v1/projects", params={"area": "data"})
+
+    # Assert
+    assert [item["slug"] for item in response.json()] == ["data-project"]
+
+
+async def test_list_projects_rejects_an_unknown_area(
+    public_client: AsyncClient,
+) -> None:
+    # Act
+    response = await public_client.get("/api/v1/projects", params={"area": "fullstack"})
+
+    # Assert
+    assert response.status_code == 422
 
 
 async def test_get_project_returns_404_for_missing_slug(
@@ -104,14 +155,14 @@ async def test_update_project_replaces_content(
 ) -> None:
     # Arrange
     await admin_client.post("/api/v1/projects", json=project_payload_factory())
-    updated = project_payload_factory(category="data")
+    updated = project_payload_factory(areas=["data"])
 
     # Act
     response = await admin_client.put("/api/v1/projects/demo-project", json=updated)
 
     # Assert
     assert response.status_code == 200
-    assert response.json()["category"] == "data"
+    assert response.json()["areas"] == ["data"]
 
 
 async def test_delete_project_returns_204(

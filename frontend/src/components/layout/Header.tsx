@@ -7,6 +7,7 @@ import { LanguageSwitcher } from './LanguageSwitcher'
 import { Logo } from './Logo'
 import { MenuToggleIcon } from './MenuToggleIcon'
 import { NavBar } from './NavBar'
+import { ThemeToggle } from './ThemeToggle'
 
 export const Header = () => {
   const { t } = useTranslation()
@@ -16,24 +17,25 @@ export const Header = () => {
   return (
     <header
       ref={containerRef}
-      className="sticky top-0 z-40 border-b border-edge bg-background/90 backdrop-blur"
+      className="sticky top-0 z-40 border-b border-edge/60 bg-background/85 backdrop-blur"
     >
-      <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
+      <div className="mx-auto flex h-[72px] max-w-6xl items-center justify-between gap-4 px-4">
         <Link
           to="/"
           onClick={close}
-          className="flex items-center gap-2 font-mono text-sm font-semibold text-heading hover:text-accent-hover"
+          className="flex items-center gap-3 font-display text-xl font-extrabold uppercase tracking-wide text-heading hover:text-highlight"
         >
-          <Logo className="h-7 w-7" />
-          <span>
-            marcomanduca<span className="text-accent">.dev</span>
-          </span>
+          <Logo className="h-7 w-9" />
+          <span>Marco Manduca</span>
         </Link>
 
-        {/* Desktop navigation */}
-        <div className="hidden items-center gap-4 md:flex">
+        {/* Desktop navigation and settings */}
+        <div className="hidden lg:block">
           <NavBar />
+        </div>
+        <div className="hidden items-center gap-3 lg:flex">
           <LanguageSwitcher />
+          <ThemeToggle />
         </div>
 
         {/* Mobile menu toggle: hamburger when closed, X when open */}
@@ -44,7 +46,7 @@ export const Header = () => {
           aria-expanded={open}
           aria-controls="mobile-menu"
           onClick={toggle}
-          className="text-body transition-colors hover:text-heading md:hidden"
+          className="flex h-10 w-10 items-center justify-center text-body transition-colors hover:text-heading lg:hidden"
         >
           <MenuToggleIcon open={open} />
         </button>
@@ -55,10 +57,13 @@ export const Header = () => {
         <div
           ref={menuRef}
           id="mobile-menu"
-          className="absolute inset-x-0 top-full flex flex-col items-start gap-4 border-b border-edge bg-background px-4 py-4 shadow-lg md:hidden"
+          className="absolute inset-x-0 top-full flex flex-col items-start gap-4 border-b border-edge bg-background px-4 py-4 shadow-lg lg:hidden"
         >
           <NavBar orientation="vertical" label="Mobile" onNavigate={close} />
-          <LanguageSwitcher />
+          <div className="flex items-center gap-3">
+            <LanguageSwitcher />
+            <ThemeToggle />
+          </div>
         </div>
       )}
     </header>

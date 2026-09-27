@@ -18,15 +18,125 @@
     "readMore": "Read more"
   },
   "home": {
-    "heroGreeting": "Hi, I am",
     "heroName": "Marco Manduca",
     "heroRole": "Data Engineer & Data Scientist",
     "heroTagline": "Between raw data and strategic decisions lies a path built of architectures, algorithms and analysis. My job is to design that path and make it scalable, efficient and measurable.",
-    "ctaProjects": "Explore projects",
-    "ctaLearning": "Read the knowledge base",
-    "ctaContacts": "Get in touch",
-    "latestProjects": "Latest projects",
-    "latestArticles": "Latest articles"
+    "card": {
+      "label": "Character card",
+      "portraitAlt": "Portrait of Marco Manduca",
+      "level": "LV {{years}}",
+      "levelLabel": "Level: {{years}} years of experience",
+      "flip": "Flip the character card",
+      "skillsTitle": "Skills",
+      "skills": [
+        {
+          "title": "Programming",
+          "items": "Python · SQL"
+        },
+        {
+          "title": "Cloud",
+          "items": "AWS"
+        },
+        {
+          "title": "Data viz",
+          "items": "Power BI"
+        }
+      ],
+      "descriptionTitle": "Description",
+      "description": "I design the path from raw data to decisions and make it scalable, efficient and measurable."
+    },
+    "stats": {
+      "title": "Statistics",
+      "axis": {
+        "programming": "Programming",
+        "dataEngineering": "Data Eng.",
+        "dataViz": "Data Viz",
+        "versioning": "Version control",
+        "crmStorage": "CRM & Storage",
+        "ai": "AI & Agents"
+      },
+      "level": "Level {{level}}/{{max}}",
+      "point": "{{name}}: level {{level}} of {{max}}",
+      "hint": "Tap a point to see its level and tools"
+    },
+    "sideQuests": {
+      "title": "Side Quests",
+      "all": "All projects",
+      "deck": "deck of cards",
+      "number": "SQ: {{index}}/{{total}}",
+      "current": "Card {{index}} of {{total}}: {{title}}",
+      "hint": "Drag the card to flip through the deck",
+      "hintKeys": ", or use the left and right arrow keys",
+      "open": "Open the quest",
+      "code": "Source code on GitHub",
+      "next": {
+        "label": "Face-down card",
+        "title": "[Next side quest]",
+        "text": "Got a project for me?",
+        "cta": "Get in touch"
+      }
+    },
+    "quests": {
+      "tablist": "Quests",
+      "active": "Active Quests",
+      "completed": "Completed Quests",
+      "nextQuest": "[Next quest]",
+      "nextQuestHint": "Got a quest for me? Get in touch",
+      "fullPath": "Full journey",
+      "types": {
+        "work": "Work",
+        "study": "Study"
+      },
+      "fields": {
+        "guild": "Guild",
+        "started": "Started",
+        "completed": "Completed",
+        "objective": "Objective",
+        "boss": "Final Boss",
+        "rewards": "Rewards"
+      }
+    }
+  },
+  "game": {
+    "collection": "Collection",
+    "unlocked": "Unlocked",
+    "locked": "Locked",
+    "toast": "Figurine unlocked: {{name}}",
+    "dismiss": "Dismiss notification",
+    "achievements": {
+      "firstStep": {
+        "name": "First step",
+        "hint": "Enter the site"
+      },
+      "curious": {
+        "name": "Curious",
+        "hint": "Flip the character card"
+      },
+      "explorer": {
+        "name": "Explorer",
+        "hint": "Open {{goal}} different projects"
+      },
+      "polyglot": {
+        "name": "Polyglot",
+        "hint": "Switch the site language"
+      },
+      "eclipse": {
+        "name": "Eclipse",
+        "hint": "Switch the site theme"
+      },
+      "contact": {
+        "name": "Contact",
+        "hint": "Send me a message"
+      },
+      "levelUp": {
+        "name": "Level Up",
+        "hint": "Leave {{goal}} footprints with the mouse"
+      }
+    }
+  },
+  "theme": {
+    "toLight": "Switch to light theme",
+    "toDark": "Switch to dark theme"
   },
   "about": {
     "title": "About me",
@@ -36,17 +146,27 @@
     "bio": "Data professional with over five years of experience across the full data lifecycle — from data collection and validation to operational dashboards and strategic insights for commercial and C-level teams. I pair a strong statistical foundation (BSc in Statistics, MSc in Data Science in progress) with a practical, result-driven mindset. I work mainly with Python, SQL and cloud tooling on AWS, with experience in process automation and Machine/Deep Learning. Passionate about AI and emerging technologies, I enjoy turning complex data into clear, actionable strategies for both technical and non-technical stakeholders.",
     "experienceTitle": "Experience",
     "educationTitle": "Education",
+    "courseFacts": "Course facts",
+    "courseAreas": "Areas of study",
+    "coursePage": "Official course page",
+    "coursePlan_one": "Study plan · {{count}} course",
+    "coursePlan_other": "Study plan · {{count}} courses",
+    "certificate": "Certification",
+    "certificateSince": "Active since {{date}}",
+    "certificateVerify": "Verify credential",
     "skillsTitle": "Skills",
     "skillGroups": {
       "programming": "Programming",
       "dataEngineering": "Data Engineering",
       "dataViz": "Data Visualization",
       "versioning": "Version Control",
-      "storage": "Storage",
-      "crm": "CRM"
+      "crmStorage": "CRM & Storage",
+      "ai": "AI & Agents"
     },
     "experience": [
       {
+        "start": "2020-11",
+        "end": null,
         "period": "November 2020 — Present",
         "role": "Business Data Analyst",
         "company": "AdKaora (Mondadori Digital)",
@@ -57,9 +177,17 @@
           "Data governance: documentation of analytical processes, business metrics and BI team standards.",
           "SQL & Python analytics: scripts and queries for advanced extractions, anomaly detection, trend analysis and reporting.",
           "Dashboards & reporting: interactive Power BI dashboards for digital performance, traffic, engagement and campaign KPIs."
-        ]
+        ],
+        "quest": {
+          "guild": "AdKaora (Mondadori Digital)",
+          "objective": "Turn data into dashboards and insights",
+          "boss": "Automate the ETL pipelines on AWS",
+          "rewards": "Python · SQL · AWS · Power BI"
+        }
       },
       {
+        "start": "2019-09",
+        "end": "2020-11",
         "period": "September 2019 — November 2020",
         "role": "Business Intelligence Consultant",
         "company": "InfoEdge (Lutech)",
@@ -67,24 +195,171 @@
         "highlights": [
           "Reporting & data management: development and maintenance of SAS Viya reports with back-end and front-end data management, integrated into operational dashboards.",
           "Compliance & data governance: led a cross-functional project monitoring report access, ensuring GDPR compliance and data quality."
-        ]
+        ],
+        "quest": {
+          "guild": "InfoEdge (Lutech) · UniCredit Services"
+        }
       }
     ],
     "education": [
       {
+        "start": "2025-09",
+        "end": null,
         "period": "September 2025 — Present",
         "degree": "MSc in Data Science",
-        "school": "Università degli Studi di Milano-Bicocca"
+        "school": "Università degli Studi di Milano-Bicocca",
+        "department": "Department of Informatics, Systems and Communication (DISCo)",
+        "summary": "An English-taught master's degree on the value-driven analysis of big data with cutting-edge statistical techniques and computational models: a solid basis in statistics and computer science, with a multidisciplinary eye on legal, social and economic issues.",
+        "facts": [
+          {
+            "label": "Class",
+            "value": "LM-Data"
+          },
+          {
+            "label": "Duration",
+            "value": "2 years"
+          },
+          {
+            "label": "Credits",
+            "value": "120 ECTS"
+          },
+          {
+            "label": "Language",
+            "value": "English"
+          }
+        ],
+        "areas": [
+          "Machine Learning",
+          "Deep Learning",
+          "Big Data & Business Intelligence",
+          "Data Management & Visualization",
+          "Statistical Modelling",
+          "Text & Social Media Analytics"
+        ],
+        "plan": [
+          "Business Intelligence and Big Data Analytics",
+          "Data Management and Data Visualization",
+          "Data Science Lab",
+          "Foundations of Computer Science",
+          "Foundations of Deep Learning",
+          "Juridical and Social Issues in Information Society",
+          "Machine Learning and Decision Models",
+          "Marketing Analytics",
+          "Reinforcement Learning",
+          "Social Media Analytics",
+          "Statistical Modelling",
+          "Streaming Data Management and Time Series Analysis",
+          "Text Mining & Search"
+        ],
+        "url": "https://www.unimib.it/graduate/data-science",
+        "quest": {
+          "guild": "University of Milano-Bicocca",
+          "objective": "Earn the MSc in Data Science",
+          "boss": "Master's thesis",
+          "rewards": "Machine Learning · Deep Learning · Big Data"
+        }
       },
       {
+        "start": "2024-04",
+        "end": "2025-04",
         "period": "April 2024 — April 2025",
-        "degree": "1st-Level Master in Artificial Intelligence and Data Analytics for Business",
-        "school": "Università degli Studi di Milano-Bicocca"
+        "degree": "Master in AI & Data Analytics for Business",
+        "school": "Università degli Studi di Milano-Bicocca",
+        "department": "Department of Statistics and Quantitative Methods",
+        "summary": "Trains professionals to collect, manage, process and analyse big data with AI, statistics and analytics techniques in support of data-driven decisions. Hands-on with Python, SQL and NoSQL databases and AWS, it ends with a 300-hour project work.",
+        "facts": [
+          {
+            "label": "Level",
+            "value": "1st level"
+          },
+          {
+            "label": "Duration",
+            "value": "12 months"
+          },
+          {
+            "label": "Credits",
+            "value": "60 ECTS"
+          },
+          {
+            "label": "Language",
+            "value": "Italian"
+          }
+        ],
+        "areas": [
+          "Big Data Processing and Data Engineering",
+          "Statistical Modelling and Machine Learning",
+          "AI & Computer Vision",
+          "Data Analytics and Management for Business"
+        ],
+        "url": "https://academy.unimib.it/ai-data-analytics-business",
+        "quest": {
+          "guild": "University of Milano-Bicocca"
+        }
       },
       {
+        "start": "2015-09",
+        "end": "2019-09",
         "period": "September 2015 — September 2019",
         "degree": "BSc in Statistics",
-        "school": "Università degli Studi di Milano-Bicocca"
+        "school": "Università degli Studi di Milano-Bicocca",
+        "department": "Department of Statistics and Quantitative Methods",
+        "summary": "The Statistics and Information Management programme pairs statistical methods with computing skills to collect, manage and process qualitative and quantitative data in business, socio-demographic and biomedical settings.",
+        "facts": [
+          {
+            "label": "Class",
+            "value": "L-41"
+          },
+          {
+            "label": "Duration",
+            "value": "3 years"
+          },
+          {
+            "label": "Credits",
+            "value": "180 ECTS"
+          },
+          {
+            "label": "Language",
+            "value": "Italian"
+          }
+        ],
+        "areas": [
+          "Statistics",
+          "Mathematics & Probability",
+          "Computing & Databases",
+          "Data Mining",
+          "Applied Statistics"
+        ],
+        "plan": [
+          "Calculus I",
+          "Calculus II",
+          "Complex Data Analysis",
+          "Computer Lab",
+          "Computer Science",
+          "Data Analysis",
+          "Data Mining and Computational Statistics",
+          "Data Science and Statistical Models for Unstructured Data",
+          "Databases",
+          "Demography",
+          "Design of Experiments",
+          "Information Systems",
+          "Linear Algebra",
+          "Medical Statistics",
+          "Multivariate Statistical Analysis",
+          "Probability",
+          "Social Statistics",
+          "Statistics I",
+          "Statistics I - Further Topics",
+          "Statistics II"
+        ],
+        "certificate": {
+          "name": "SAS Certified Specialist: Base Programming Using SAS 9.4",
+          "since": "November 2019",
+          "url": "https://cp.certmetrics.com/SAS/en/public/verify/credential/QN5RHZB12ERE1L9X"
+        },
+        "url": "https://www.unimib.it/triennale/statistica-gestione-informazioni",
+        "quest": {
+          "guild": "University of Milano-Bicocca"
+        }
       }
     ],
     "skills": {
@@ -98,7 +373,8 @@
       ],
       "dataViz": ["Power BI", "Tableau", "SAS Viya", "Looker Studio"],
       "versioning": ["GitHub", "Bitbucket"],
-      "storage": [
+      "crmStorage": [
+        "Salesforce",
         "AWS S3",
         "MongoDB",
         "Neo4j",
@@ -107,7 +383,7 @@
         "Oracle",
         "PostgreSQL"
       ],
-      "crm": ["Salesforce"]
+      "ai": ["Claude Code", "Claude", "ChatGPT", "Gemini"]
     }
   },
   "projects": {
@@ -115,22 +391,75 @@
     "subtitle": "A selection of things I have designed and built.",
     "searchLabel": "Search projects",
     "searchPlaceholder": "Search by title or description…",
-    "categoryLabel": "Category",
     "technologyLabel": "Technology",
-    "allCategories": "All categories",
     "allTechnologies": "All technologies",
     "empty": "No projects match the current filters.",
-    "github": "GitHub",
-    "demo": "Live demo",
     "gallery": "Gallery",
     "backToProjects": "Back to projects",
-    "galleryImageAlt": "{{title}} — image {{index}} of {{total}}"
+    "areaLabel": "Area",
+    "allAreas": "All areas",
+    "contextLabel": "Context",
+    "allContexts": "All contexts",
+    "links": "Resources",
+    "detail": {
+      "classification": "Classification",
+      "tryModel": "Try the model",
+      "openLab": "Open the lab",
+      "license": "License",
+      "brief": "Quest sheet",
+      "objective": "Objective",
+      "boss": "Final Boss",
+      "rewards": "Rewards",
+      "metrics": "Key numbers",
+      "toc": "On this page",
+      "stack": "Stack",
+      "topics": "Topics",
+      "questOrigin": "Born during the quest",
+      "pager": "More side quests",
+      "previous": "Previous side quest:",
+      "next": "Next side quest:"
+    },
+    "lab": {
+      "title": "Lab",
+      "intro": "Drag the divider across the image to compare the photo with what the model produced.",
+      "model": "Model",
+      "base": "Photo",
+      "compare": "Compare",
+      "samples": "Samples",
+      "view": "View"
+    }
   },
-  "projectCategories": {
-    "data": "Data",
-    "backend": "Backend",
+  "projectAreas": {
     "frontend": "Frontend",
-    "cloud": "Cloud",
+    "backend": "Backend",
+    "cloud": "Cloud & DevOps",
+    "data": "Data & Analytics",
+    "ml": "Machine Learning",
+    "dl": "Deep Learning",
+    "ai": "Applied AI"
+  },
+  "projectContexts": {
+    "academic": "Academic",
+    "personal": "Personal",
+    "work": "Work"
+  },
+  "projectLinks": {
+    "repo": "Source code",
+    "paper": "Report",
+    "docs": "Documentation",
+    "live": "Live site",
+    "video": "Video",
+    "dataset": "Dataset"
+  },
+  "technologyCategories": {
+    "language": "Languages",
+    "data": "Data and computing",
+    "ml": "Machine and deep learning",
+    "frontend": "Frontend",
+    "backend": "Backend",
+    "cloud": "Cloud and infrastructure",
+    "testing": "Testing",
+    "tooling": "Tools",
     "other": "Other"
   },
   "learning": {
@@ -164,7 +493,7 @@
   "privacy": {
     "title": "Privacy Policy",
     "subtitle": "How your personal data is handled when you use this website.",
-    "lastUpdated": "Last updated: 13 June 2026",
+    "lastUpdated": "Last updated: 26 September 2026",
     "sections": [
       {
         "heading": "Data Controller",
@@ -201,7 +530,7 @@
       },
       {
         "heading": "Cookies and local storage",
-        "body": "This website does not use profiling or third-party tracking cookies. It only uses technical local storage that is strictly necessary for the site to work, such as remembering your preferred language."
+        "body": "This website does not use profiling or third-party tracking cookies. It only uses your browser's local storage to remember your preferences (language and theme) and your game mode progress (figurines collected and projects visited). This data stays on your device, is never sent to the server and can be deleted at any time from your browser settings."
       },
       {
         "heading": "Changes to this policy",
@@ -260,7 +589,8 @@
       "category": "Category",
       "status": "Status",
       "version": "Version",
-      "actions": "Actions"
+      "actions": "Actions",
+      "areas": "Areas"
     },
     "projects": {
       "title": "Manage projects",
@@ -297,9 +627,33 @@
       "addTag": "Add a tag",
       "addTagPlaceholder": "e.g. algorithms",
       "noTags": "No tags yet — add one below.",
-      "githubUrl": "GitHub URL",
-      "demoUrl": "Demo URL",
-      "images": "Image URLs (one per line)"
+      "cardSection": "Card",
+      "pageSection": "Project page",
+      "labSection": "Lab",
+      "mainArea": "Main area (colours the card)",
+      "secondArea": "Second area (optional)",
+      "thirdArea": "Third area (optional)",
+      "noArea": "—",
+      "context": "Context",
+      "coverSrc": "Cover image URL",
+      "coverAltIt": "Cover alt text (IT)",
+      "coverAltEn": "Cover alt text (EN)",
+      "briefObjectiveIt": "Objective (IT)",
+      "briefObjectiveEn": "Objective (EN)",
+      "briefBossIt": "Final boss (IT)",
+      "briefBossEn": "Final boss (EN)",
+      "briefRewardsIt": "Rewards (IT)",
+      "briefRewardsEn": "Rewards (EN)",
+      "linkUrl": "{{kind}} — URL",
+      "license": "Licence",
+      "quest": "Quest (About page anchor, e.g. study-2025-09)",
+      "metrics": "Key numbers (JSON)",
+      "topics": "Topics (JSON)",
+      "media": "Gallery (JSON)",
+      "lab": "Lab (JSON)",
+      "jsonListHint": "A JSON list; [] for none.",
+      "labHint": "A lab object, or null for none.",
+      "invalidJson": "{{field}}: this is not valid JSON."
     },
     "media": {
       "title": "Media upload",

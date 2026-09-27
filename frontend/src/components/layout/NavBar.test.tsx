@@ -8,10 +8,7 @@ describe('NavBar', () => {
   it('renders every primary navigation link', () => {
     renderWithProviders(<NavBar />)
 
-    expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute(
-      'href',
-      '/',
-    )
+    expect(screen.queryByRole('link', { name: 'Home' })).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'About me' })).toHaveAttribute(
       'href',
       '/about-me',
@@ -26,7 +23,7 @@ describe('NavBar', () => {
     renderWithProviders(<NavBar />, { route: '/projects' })
 
     expect(screen.getByRole('link', { name: 'Projects' })).toHaveClass(
-      'bg-highlight/80',
+      'bg-highlight',
     )
   })
 })

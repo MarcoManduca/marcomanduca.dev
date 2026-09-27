@@ -1,10 +1,15 @@
-import type { Project, ProjectInput, ProjectQuery } from '@/types'
+import type {
+  Project,
+  ProjectSummary,
+  ProjectInput,
+  ProjectQuery,
+} from '@/types'
 
 import { api } from './api'
 
 export const projectsApi = api.injectEndpoints({
   endpoints: (build) => ({
-    getProjects: build.query<Project[], ProjectQuery | void>({
+    getProjects: build.query<ProjectSummary[], ProjectQuery | void>({
       query: (params) => ({ url: '/projects', params: params ?? undefined }),
       providesTags: ['Project'],
     }),

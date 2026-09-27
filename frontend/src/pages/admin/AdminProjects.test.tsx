@@ -84,7 +84,23 @@ describe('AdminProjects', () => {
     expect(
       screen.getByRole('heading', { name: 'Edit project' }),
     ).toBeInTheDocument()
-    expect(screen.getByLabelText('Slug')).toHaveValue('data-pipeline')
+    expect(await screen.findByLabelText('Slug')).toHaveValue('data-pipeline')
+  })
+
+  it('shows an error instead of the form when the project cannot be loaded', async () => {
+    server.use(
+      http.get(`${API_URL}/projects/:slug`, () =>
+        HttpResponse.json({ detail: 'boom' }, { status: 500 }),
+      ),
+    )
+    await renderPage()
+
+    await clickButton('Edit Data pipeline')
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Something went wrong',
+    )
+    expect(screen.queryByLabelText('Slug')).not.toBeInTheDocument()
   })
 
   it('shows and saves the second project after switching edit target', async () => {
@@ -92,9 +108,12 @@ describe('AdminProjects', () => {
     await renderPage()
 
     await clickButton('Edit Data pipeline')
+    await screen.findByLabelText('Slug')
     await clickButton('Edit Portfolio site')
 
-    expect(screen.getByLabelText('Slug')).toHaveValue('portfolio-site')
+    await waitFor(() =>
+      expect(screen.getByLabelText('Slug')).toHaveValue('portfolio-site'),
+    )
     expect(screen.getByLabelText('Title (EN)')).toHaveValue('Portfolio site')
     expect(screen.getByRole('button', { name: 'React' })).toHaveAttribute(
       'aria-pressed',
@@ -121,6 +140,7 @@ describe('AdminProjects', () => {
     await renderPage()
 
     await clickButton('Edit Data pipeline')
+    await screen.findByLabelText('Slug')
     await clickButton('Save')
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
@@ -139,9 +159,10 @@ describe('AdminProjects', () => {
     await userEvent.type(screen.getByLabelText('Title (IT)'), 'Nuovo')
     await userEvent.type(screen.getByLabelText('Title (EN)'), 'New')
     await userEvent.type(
-      screen.getByLabelText('GitHub URL'),
+      screen.getByLabelText('Source code — URL'),
       'https://github.com/x/y',
     )
+    await userEvent.type(screen.getByLabelText('Licence'), 'MIT')
     await clickButton('Save')
 
     expect(await screen.findByRole('alert')).toHaveTextContent(

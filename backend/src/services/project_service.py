@@ -1,14 +1,29 @@
 """Business logic for portfolio projects."""
 
+import logging
 from functools import lru_cache
 from typing import Any
 
+from pydantic import ValidationError
+
 from src.models.projects_table import ProjectsTable
 from src.schemas.common import PublicationStatus
-from src.schemas.project import ProjectCreate, ProjectUpdate
+from src.schemas.project import (
+    ProjectCard,
+    ProjectCreate,
+    ProjectResponse,
+    ProjectUpdate,
+)
+from src.schemas.project_taxonomy import (
+    LinkKind,
+    ProjectArea,
+    ProjectContext,
+)
 from src.services.errors import ConflictError, InvalidInputError, NotFoundError
 from src.services.timestamps import utc_now_iso
 from src.utils.slugify import slugify
+
+logger = logging.getLogger(__name__)
 
 _EMPTY_SLUG_MESSAGE = "Title must contain at least one alphanumeric character."
 
@@ -28,22 +43,25 @@ class ProjectService:
     def list_projects(
         self,
         *,
-        category: str | None = None,
+        area: ProjectArea | None = None,
+        context: ProjectContext | None = None,
         technology: str | None = None,
         search: str | None = None,
         include_unpublished: bool = False,
     ) -> list[dict[str, Any]]:
-        """Return projects matching the given filters.
+        """Return the cards of the projects matching the given filters.
 
         Parameters
         ----------
-        category : str, optional
-            Exact category filter.
+        area : ProjectArea, optional
+            Area the project must be listed under.
+        context : ProjectContext, optional
+            Exact context filter.
         technology : str, optional
             Technology id that must appear in ``technologies``.
         search : str, optional
-            Case-insensitive substring matched against title and
-            description in both languages.
+            Case-insensitive substring matched against title, description
+            and topics in both languages.
         include_unpublished : bool
             When ``False`` (public callers), only published projects
             are returned.
@@ -51,24 +69,33 @@ class ProjectService:
         Returns
         -------
         list[dict[str, Any]]
-            Matching projects, newest first.
+            Matching project cards, newest first.
         """
-        items = self._table.scan_all()
+        projects = [
+            project
+            for project in map(_parse, self._table.scan_all())
+            if project is not None
+        ]
         if not include_unpublished:
-            items = [
-                item
-                for item in items
-                if item.get("status") == PublicationStatus.PUBLISHED.value
+            projects = [
+                project
+                for project in projects
+                if project.status is PublicationStatus.PUBLISHED
             ]
-        if category:
-            items = [item for item in items if item.get("category") == category]
+        if area:
+            projects = [project for project in projects if area in project.areas]
+        if context:
+            projects = [project for project in projects if project.context is context]
         if technology:
-            items = [
-                item for item in items if technology in item.get("technologies", [])
+            projects = [
+                project for project in projects if technology in project.technologies
             ]
         if search:
-            items = [item for item in items if _matches_search(item, search)]
-        return sorted(items, key=lambda item: item.get("created_at", ""), reverse=True)
+            projects = [
+                project for project in projects if _matches_search(project, search)
+            ]
+        projects.sort(key=lambda project: project.created_at, reverse=True)
+        return [_to_card(project) for project in projects]
 
     def get_project(
         self, slug: str, *, include_unpublished: bool = False
@@ -85,20 +112,22 @@ class ProjectService:
         Returns
         -------
         dict[str, Any]
-            The project item.
+            The full project.
 
         Raises
         ------
         NotFoundError
-            When the project is missing or not visible to the caller.
+            When the project is missing, not visible to the caller, or
+            stored in a shape the current schema cannot read.
         """
         item = self._table.get(slug)
-        if item is None:
+        project = _parse(item) if item is not None else None
+        if project is None:
             raise NotFoundError(f"Project '{slug}' not found.")
-        is_published = item.get("status") == PublicationStatus.PUBLISHED.value
+        is_published = project.status is PublicationStatus.PUBLISHED
         if not include_unpublished and not is_published:
             raise NotFoundError(f"Project '{slug}' not found.")
-        return item
+        return project.model_dump(mode="json")
 
     def create_project(self, payload: ProjectCreate) -> dict[str, Any]:
         """Create a project; the slug derives from the English title.
@@ -182,14 +211,33 @@ class ProjectService:
             raise NotFoundError(f"Project '{slug}' not found.")
 
 
-def _matches_search(item: dict[str, Any], search: str) -> bool:
-    """Check a case-insensitive match on title/description (it/en)."""
+def _parse(item: dict[str, Any]) -> ProjectResponse | None:
+    """Read a stored item, or ``None`` when it predates the current schema.
+
+    An item in an older shape is left out (and logged by slug) rather than
+    failing the whole list; ``python -m seed.seed --replace`` rewrites it.
+    """
+    try:
+        return ProjectResponse.model_validate(item)
+    except ValidationError:
+        logger.warning("project_invalid_shape", extra={"slug": item.get("slug")})
+        return None
+
+
+def _to_card(project: ProjectResponse) -> dict[str, Any]:
+    """Project the fields a card shows, plus its first repository link."""
+    repo_url = next(
+        (link.url for link in project.links if link.kind is LinkKind.REPO), None
+    )
+    card = ProjectCard.model_validate(project.model_dump() | {"repo_url": repo_url})
+    return card.model_dump(mode="json")
+
+
+def _matches_search(project: ProjectResponse, search: str) -> bool:
+    """Check a case-insensitive match on title, description and topics."""
     needle = search.lower()
-    haystacks = [
-        *item.get("title", {}).values(),
-        *item.get("description", {}).values(),
-    ]
-    return any(needle in str(text).lower() for text in haystacks)
+    texts = [project.title, project.description, *project.topics]
+    return any(needle in text.it.lower() or needle in text.en.lower() for text in texts)
 
 
 @lru_cache

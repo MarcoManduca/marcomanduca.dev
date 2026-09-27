@@ -25,7 +25,7 @@ export const AdminErrorAlert = ({
     <p
       role="alert"
       className={cn(
-        'rounded-lg bg-red-500/15 p-4 text-sm text-red-400',
+        'rounded-lg bg-danger/15 p-4 text-sm text-danger',
         className,
       )}
     >

@@ -42,6 +42,8 @@ _TEST_ENV = {
     "AWS_SESSION_TOKEN": "testing",
     "AWS_DEFAULT_REGION": "eu-west-1",
     "AWS_REGION": "eu-west-1",
+    # Empty beats a DynamoDB Local endpoint in backend/.env: tests stay on moto.
+    "DYNAMODB_ENDPOINT_URL": "",
     "PROJECTS_TABLE_NAME": "test-projects",
     "LEARNING_TABLE_NAME": "test-learning",
     "TECHNOLOGIES_TABLE_NAME": "test-technologies",
@@ -137,12 +139,18 @@ def project_payload_factory() -> Callable[..., dict[str, Any]]:
         payload: dict[str, Any] = {
             "title": {"it": "Progetto Demo", "en": "Demo Project"},
             "description": {"it": "Descrizione", "en": "Description"},
-            "content_markdown": {"it": "# Contenuto", "en": "# Content"},
+            "areas": ["backend"],
+            "context": "personal",
+            "metrics": [{"value": "3", "label": {"it": "servizi", "en": "services"}}],
             "technologies": ["fastapi"],
-            "category": "backend",
-            "images": [],
-            "github_url": "https://github.com/marco/demo",
-            "demo_url": None,
+            "brief": {
+                "objective": {"it": "Obiettivo", "en": "Objective"},
+                "boss": {"it": "Ostacolo", "en": "Obstacle"},
+                "rewards": {"it": "Risultato", "en": "Outcome"},
+            },
+            "content_markdown": {"it": "# Contenuto", "en": "# Content"},
+            "links": [{"kind": "repo", "url": "https://github.com/marco/demo"}],
+            "license": "MIT",
             "status": "published",
         }
         payload.update(overrides)

@@ -12,6 +12,7 @@ import { NotFound } from '@/pages/NotFound'
 import { Projects } from '@/pages/Projects'
 
 import { AuthCallback } from './AuthCallback'
+import { LearningGate } from './LearningGate'
 import { ProtectedRoute } from './ProtectedRoute'
 
 // Public detail pages pull in the markdown renderer and are rarely the entry
@@ -63,8 +64,10 @@ export const AppRoutes = () => (
       <Route path="/about-me" element={<AboutMe />} />
       <Route path="/projects" element={<Projects />} />
       <Route path="/projects/:slug" element={<ProjectDetail />} />
-      <Route path="/learning" element={<Learning />} />
-      <Route path="/learning/:slug" element={<LearningDetail />} />
+      <Route element={<LearningGate />}>
+        <Route path="/learning" element={<Learning />} />
+        <Route path="/learning/:slug" element={<LearningDetail />} />
+      </Route>
       <Route path="/contacts" element={<Contacts />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="*" element={<NotFound />} />

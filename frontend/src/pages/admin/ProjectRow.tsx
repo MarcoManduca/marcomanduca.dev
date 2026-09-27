@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next'
 import { RowActions } from '@/components/admin/RowActions'
 import { StatusBadge } from '@/components/admin/StatusBadge'
 import { useLanguage } from '@/hooks/useLanguage'
-import type { Project } from '@/types'
+import type { ProjectSummary } from '@/types'
 
 interface ProjectRowProps {
-  project: Project
+  project: ProjectSummary
   onEdit: () => void
   onDelete: () => void
 }
@@ -20,7 +20,7 @@ export const ProjectRow = ({ project, onEdit, onDelete }: ProjectRowProps) => {
     <tr className="border-b border-edge/50">
       <td className="py-3 pr-4 font-medium text-heading">{title}</td>
       <td className="py-3 pr-4">
-        {t(`projectCategories.${project.category}`)}
+        {project.areas.map((area) => t(`projectAreas.${area}`)).join(' · ')}
       </td>
       <td className="py-3 pr-4">
         <StatusBadge status={project.status} />

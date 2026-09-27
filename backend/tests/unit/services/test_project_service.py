@@ -8,6 +8,7 @@ import pytest
 
 from src.models.projects_table import ProjectsTable
 from src.schemas.project import ProjectCreate, ProjectUpdate
+from src.schemas.project_taxonomy import ProjectArea, ProjectContext
 from src.services.errors import ConflictError, InvalidInputError, NotFoundError
 from src.services.project_service import ProjectService
 
@@ -59,21 +60,103 @@ def test_create_project_raises_invalid_input_on_empty_slug(
         service.create_project(payload)
 
 
-def test_list_projects_tolerates_items_without_created_at(
+def _store_legacy_item(service: ProjectService) -> None:
+    """Store a project in the first schema (category, github_url, images)."""
+    service._table.put_if_absent(
+        {
+            "slug": "legacy",
+            "status": "published",
+            "title": {"it": "L", "en": "Legacy"},
+            "description": {"it": "D", "en": "D"},
+            "category": "data",
+            "github_url": "https://github.com/marco/legacy",
+            "images": [],
+            "created_at": "2026-01-01T00:00:00Z",
+            "updated_at": "2026-01-01T00:00:00Z",
+        }
+    )
+
+
+def test_list_projects_skips_items_stored_in_an_older_shape(
     service: ProjectService,
     project_payload_factory: Callable[..., dict[str, Any]],
 ) -> None:
-    # Arrange: a legacy item stored without a created_at timestamp.
+    # Arrange
     service.create_project(ProjectCreate(**project_payload_factory()))
-    service._table.put_if_absent(
-        {"slug": "legacy", "status": "published", "title": {"it": "L", "en": "L"}}
-    )
+    _store_legacy_item(service)
 
     # Act
     items = service.list_projects(include_unpublished=True)
 
     # Assert
-    assert {item["slug"] for item in items} == {"demo-project", "legacy"}
+    assert [item["slug"] for item in items] == ["demo-project"]
+
+
+def test_get_project_treats_an_older_shape_as_missing(
+    service: ProjectService,
+) -> None:
+    # Arrange
+    _store_legacy_item(service)
+
+    # Act / Assert
+    with pytest.raises(NotFoundError):
+        service.get_project("legacy", include_unpublished=True)
+
+
+def test_get_project_drops_the_retired_kind_of_a_stored_item(
+    service: ProjectService,
+    project_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange
+    item = {
+        **ProjectCreate(**project_payload_factory()).model_dump(mode="json"),
+        "slug": "demo-project",
+        "kind": "app",
+        "created_at": "2026-01-01T00:00:00Z",
+        "updated_at": "2026-01-01T00:00:00Z",
+    }
+    service._table.put_if_absent(item)
+
+    # Act
+    project = service.get_project("demo-project")
+
+    # Assert
+    assert "kind" not in project
+    assert project["areas"] == ["backend"]
+
+
+def test_list_projects_returns_light_cards(
+    service: ProjectService,
+    project_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange
+    service.create_project(ProjectCreate(**project_payload_factory()))
+
+    # Act
+    [card] = service.list_projects()
+
+    # Assert
+    assert card["repo_url"] == "https://github.com/marco/demo"
+    assert card["areas"] == ["backend"]
+    assert card["metrics"][0]["value"] == "3"
+    assert not {"content_markdown", "brief", "links", "media", "lab"} & set(card)
+
+
+def test_list_projects_leaves_repo_url_empty_without_a_repository(
+    service: ProjectService,
+    project_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange
+    payload = project_payload_factory(
+        links=[{"kind": "paper", "url": "https://example.com/paper.pdf"}]
+    )
+    service.create_project(ProjectCreate(**payload))
+
+    # Act
+    [card] = service.list_projects()
+
+    # Assert
+    assert card["repo_url"] is None
 
 
 def test_get_project_returns_stored_item(
@@ -142,40 +225,32 @@ def test_list_projects_includes_drafts_for_admin_callers(
     assert len(items) == 1
 
 
-def test_list_projects_filters_by_category(
+@pytest.mark.parametrize(
+    ("overrides", "filters"),
+    [
+        ({"areas": ["ml", "data"]}, {"area": ProjectArea.DATA}),
+        ({"context": "work"}, {"context": ProjectContext.WORK}),
+        ({"technologies": ["react"]}, {"technology": "react"}),
+    ],
+)
+def test_list_projects_filters_by_classification(
     service: ProjectService,
     project_payload_factory: Callable[..., dict[str, Any]],
+    overrides: dict[str, Any],
+    filters: dict[str, Any],
 ) -> None:
     # Arrange
     service.create_project(ProjectCreate(**project_payload_factory()))
     other = project_payload_factory(
-        title={"it": "Dati", "en": "Data Project"}, category="data"
+        title={"it": "Altro", "en": "Other Project"}, **overrides
     )
     service.create_project(ProjectCreate(**other))
 
     # Act
-    items = service.list_projects(category="data")
+    items = service.list_projects(**filters)
 
     # Assert
-    assert [item["slug"] for item in items] == ["data-project"]
-
-
-def test_list_projects_filters_by_technology(
-    service: ProjectService,
-    project_payload_factory: Callable[..., dict[str, Any]],
-) -> None:
-    # Arrange
-    service.create_project(ProjectCreate(**project_payload_factory()))
-    other = project_payload_factory(
-        title={"it": "React", "en": "React Project"}, technologies=["react"]
-    )
-    service.create_project(ProjectCreate(**other))
-
-    # Act
-    items = service.list_projects(technology="react")
-
-    # Assert
-    assert [item["slug"] for item in items] == ["react-project"]
+    assert [item["slug"] for item in items] == ["other-project"]
 
 
 def test_list_projects_searches_title_and_description(
@@ -197,19 +272,38 @@ def test_list_projects_searches_title_and_description(
     assert [item["slug"] for item in items] == ["pipeline-tool"]
 
 
+def test_list_projects_searches_topics(
+    service: ProjectService,
+    project_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange
+    service.create_project(ProjectCreate(**project_payload_factory()))
+    other = project_payload_factory(
+        title={"it": "Dipinti", "en": "Paintings"},
+        topics=[{"it": "beni culturali", "en": "cultural heritage"}],
+    )
+    service.create_project(ProjectCreate(**other))
+
+    # Act
+    items = service.list_projects(search="Beni Culturali")
+
+    # Assert
+    assert [item["slug"] for item in items] == ["paintings"]
+
+
 def test_update_project_preserves_created_at(
     service: ProjectService,
     project_payload_factory: Callable[..., dict[str, Any]],
 ) -> None:
     # Arrange
     created = service.create_project(ProjectCreate(**project_payload_factory()))
-    updated_payload = ProjectUpdate(**project_payload_factory(category="data"))
+    updated_payload = ProjectUpdate(**project_payload_factory(context="work"))
 
     # Act
     updated = service.update_project("demo-project", updated_payload)
 
     # Assert
-    assert updated["category"] == "data"
+    assert updated["context"] == "work"
     assert updated["created_at"] == created["created_at"]
 
 

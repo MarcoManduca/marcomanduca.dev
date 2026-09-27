@@ -3,13 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import type { Technology } from '@/types'
-import { PROJECT_CATEGORIES } from '@/types'
-
-export interface ProjectFiltersValue {
-  search: string
-  category: string
-  technology: string
-}
+import { PROJECT_AREAS, PROJECT_CONTEXTS } from '@/types'
+import type { ProjectFiltersValue } from '@/utils/filterProjects'
 
 interface ProjectFiltersProps {
   value: ProjectFiltersValue
@@ -24,39 +19,46 @@ export const ProjectFilters = ({
 }: ProjectFiltersProps) => {
   const { t } = useTranslation()
 
-  const categoryOptions = [
-    { value: '', label: t('projects.allCategories') },
-    ...PROJECT_CATEGORIES.map((category) => ({
-      value: category,
-      label: t(`projectCategories.${category}`),
-    })),
+  /** "All …" first, then one option per value, labelled from `prefix`. */
+  const options = (values: readonly string[], prefix: string, all: string) => [
+    { value: '', label: t(all) },
+    ...values.map((item) => ({ value: item, label: t(`${prefix}.${item}`) })),
   ]
-
-  const technologyOptions = [
-    { value: '', label: t('projects.allTechnologies') },
-    ...technologies.map(({ name }) => ({ value: name, label: name })),
-  ]
+  const select = (field: keyof ProjectFiltersValue) => ({
+    value: value[field],
+    onChange: (e: { target: { value: string } }) =>
+      onChange({ ...value, [field]: e.target.value }),
+  })
 
   return (
-    <div className="grid gap-4 sm:grid-cols-3">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <Input
         label={t('projects.searchLabel')}
         type="search"
         placeholder={t('projects.searchPlaceholder')}
-        value={value.search}
-        onChange={(e) => onChange({ ...value, search: e.target.value })}
+        {...select('search')}
       />
       <Select
-        label={t('projects.categoryLabel')}
-        options={categoryOptions}
-        value={value.category}
-        onChange={(e) => onChange({ ...value, category: e.target.value })}
+        label={t('projects.areaLabel')}
+        options={options(PROJECT_AREAS, 'projectAreas', 'projects.allAreas')}
+        {...select('area')}
+      />
+      <Select
+        label={t('projects.contextLabel')}
+        options={options(
+          PROJECT_CONTEXTS,
+          'projectContexts',
+          'projects.allContexts',
+        )}
+        {...select('context')}
       />
       <Select
         label={t('projects.technologyLabel')}
-        options={technologyOptions}
-        value={value.technology}
-        onChange={(e) => onChange({ ...value, technology: e.target.value })}
+        options={[
+          { value: '', label: t('projects.allTechnologies') },
+          ...technologies.map(({ name }) => ({ value: name, label: name })),
+        ]}
+        {...select('technology')}
       />
     </div>
   )

@@ -47,4 +47,16 @@ describe('Seo', () => {
       document.head.querySelector('meta[property="og:image:width"]'),
     ).toBeNull()
   })
+
+  it('makes an image shipped with the site a full URL', async () => {
+    renderWithProviders(
+      <Seo description="Cover" image="/images/projects/a/cover.webp" />,
+    )
+
+    await waitFor(() =>
+      expect(metaContent('meta[property="og:image"]')).toBe(
+        'https://marcomanduca.dev/images/projects/a/cover.webp',
+      ),
+    )
+  })
 })

@@ -1,40 +1,28 @@
 import { useTranslation } from 'react-i18next'
 
 import { Input } from '@/components/ui/Input'
-import { Textarea } from '@/components/ui/Textarea'
-import type { Project } from '@/types'
+import type { ProjectLink } from '@/types'
+import { LINK_KINDS } from '@/types'
 
 interface ProjectLinksFieldsProps {
-  initial: Project | null
+  links: ProjectLink[]
 }
 
-/** GitHub / demo URLs and the image list of the project form. */
-export const ProjectLinksFields = ({ initial }: ProjectLinksFieldsProps) => {
+/** One URL per link kind (repository, paper, live site...); blank = none. */
+export const ProjectLinksFields = ({ links }: ProjectLinksFieldsProps) => {
   const { t } = useTranslation()
 
   return (
     <>
-      <Input
-        label={t('admin.form.githubUrl')}
-        name="githubUrl"
-        type="url"
-        defaultValue={initial?.github_url ?? ''}
-        required
-      />
-      <Input
-        label={t('admin.form.demoUrl')}
-        name="demoUrl"
-        type="url"
-        defaultValue={initial?.demo_url ?? ''}
-      />
-      <div className="sm:col-span-2">
-        <Textarea
-          label={t('admin.form.images')}
-          name="images"
-          rows={3}
-          defaultValue={initial?.images.join('\n')}
+      {LINK_KINDS.map((kind) => (
+        <Input
+          key={kind}
+          label={t('admin.form.linkUrl', { kind: t(`projectLinks.${kind}`) })}
+          name={`link-${kind}`}
+          type="url"
+          defaultValue={links.find((link) => link.kind === kind)?.url ?? ''}
         />
-      </div>
+      ))}
     </>
   )
 }

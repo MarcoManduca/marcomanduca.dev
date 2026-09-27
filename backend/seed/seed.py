@@ -5,7 +5,15 @@ application service layer, so every item is validated against the same
 Pydantic schemas and shaped exactly as the API expects.
 
 It is safe to re-run: existing projects, articles and technologies are left
-untouched (skipped by primary key).
+untouched (skipped by primary key). ``--replace`` instead rewrites existing
+projects from their files, keeping their creation time: that is how items
+stored in an older project schema are migrated.
+
+``--demo`` is for DynamoDB Local: development shows the same projects as
+production, each copied with a title that starts with ``DEMO ·``, so every
+project page can be tried before it goes live (learning articles still come
+from the ``_`` templates). It refuses to run unless ``DYNAMODB_ENDPOINT_URL``
+is set, so demo content never reaches AWS.
 
 Configuration is read from the environment / ``.env`` exactly like the
 backend (see ``src/config.py``). For DynamoDB Local, set
@@ -13,11 +21,12 @@ backend (see ``src/config.py``). For DynamoDB Local, set
 
 Run from the ``backend`` directory::
 
-    python -m seed.seed           # load real content from data/
-    python -m seed.seed --demo    # load the bundled example templates
+    python -m seed.seed             # load real content from data/
+    python -m seed.seed --demo      # DEMO copies of the real projects
+    python -m seed.seed --replace   # also rewrite projects that exist
 
-Files whose name starts with ``_`` are templates and are ignored unless
-``--demo`` is passed.
+Learning files whose name starts with ``_`` are templates, loaded only with
+``--demo``.
 """
 
 import argparse
@@ -25,17 +34,23 @@ import json
 from pathlib import Path
 from typing import Any
 
+from botocore.exceptions import ClientError
 from pydantic import BaseModel, ValidationError
 
+from src.config import get_settings
 from src.schemas.learning import ArticleCreate
-from src.schemas.project import ProjectCreate
+from src.schemas.project import ProjectCreate, ProjectUpdate
 from src.schemas.technology import TechnologyCreate
 from src.services.errors import ConflictError
 from src.services.learning_service import get_learning_service
 from src.services.project_service import get_project_service
 from src.services.technology_service import get_technology_service
+from src.utils.slugify import slugify
 
 DATA_DIR = Path(__file__).parent / "data"
+
+#: Title prefix of the development copies of the real projects.
+DEMO_PREFIX = "DEMO · "
 
 
 def _load_json(path: Path) -> Any:
@@ -108,33 +123,61 @@ def _collection_files(directory: Path, *, demo: bool) -> list[Path]:
     )
 
 
-def _singleton_file(name: str, *, demo: bool) -> Path:
-    """Return the path of a single-file data source.
+def _as_demo(project: ProjectCreate, source: Path) -> ProjectCreate:
+    """Return the development copy of a real project.
+
+    Its title starts with ``DEMO ·`` in both languages, which also gives it
+    a slug of its own (``demo-<slug>``).
 
     Parameters
     ----------
-    name : str
-        Base file name without extension, for example ``"technologies"``.
-    demo : bool
-        When ``True`` return the ``_``-prefixed example template.
+    project : ProjectCreate
+        A validated real project.
+    source : Path
+        File the project came from, used for error context.
 
     Returns
     -------
-    Path
-        The resolved file path (which may not exist).
+    ProjectCreate
+        The copy, validated again (the prefix counts towards the title length).
     """
-    return DATA_DIR / (f"_{name}.example.json" if demo else f"{name}.json")
+    title = {
+        language: f"{DEMO_PREFIX}{text}"
+        for language, text in project.title.model_dump().items()
+    }
+    data = {**project.model_dump(mode="json"), "title": title}
+    return _validate(ProjectCreate, data, source)
 
 
-def seed_technologies(*, demo: bool) -> None:
-    """Register technologies from the technologies data file.
+def _project_payloads(*, demo: bool) -> list[ProjectCreate]:
+    """Return the projects to load, validated.
 
     Parameters
     ----------
     demo : bool
-        Load the example template instead of the real file.
+        When ``True`` return the DEMO copies of the real projects.
+
+    Returns
+    -------
+    list[ProjectCreate]
+        One payload per project.
     """
-    path = _singleton_file("technologies", demo=demo)
+    projects = [
+        (path, _validate(ProjectCreate, _load_json(path), path))
+        for path in _collection_files(DATA_DIR / "projects", demo=False)
+    ]
+    if demo:
+        return [_as_demo(project, path) for path, project in projects]
+    return [project for _, project in projects]
+
+
+def seed_technologies() -> None:
+    """Register technologies from the technologies data file.
+
+    Development and production share the same registry, which the projects
+    refer to.
+    """
+    path = DATA_DIR / "technologies.json"
     if not path.is_file():
         return
     service = get_technology_service()
@@ -147,22 +190,28 @@ def seed_technologies(*, demo: bool) -> None:
             print(f"  = technology exists, skipped: {payload.name}")
 
 
-def seed_projects(*, demo: bool) -> None:
+def seed_projects(*, demo: bool, replace: bool = False) -> None:
     """Create projects from one JSON file per project.
 
     Parameters
     ----------
     demo : bool
-        Load the example templates instead of the real files.
+        Load the DEMO copies of the real projects instead of the projects.
+    replace : bool
+        Rewrite projects that already exist instead of skipping them.
     """
     service = get_project_service()
-    for path in _collection_files(DATA_DIR / "projects", demo=demo):
-        payload = _validate(ProjectCreate, _load_json(path), path)
+    for payload in _project_payloads(demo=demo):
+        slug = slugify(payload.title.en)
         try:
-            item = service.create_project(payload)
-            print(f"  + project: {item['slug']}")
+            service.create_project(payload)
+            print(f"  + project: {slug}")
         except ConflictError:
-            print(f"  = project exists, skipped: {path.stem}")
+            if not replace:
+                print(f"  = project exists, skipped: {slug}")
+                continue
+            service.update_project(slug, ProjectUpdate(**payload.model_dump()))
+            print(f"  ~ project replaced: {slug}")
 
 
 def seed_learning(*, demo: bool) -> None:
@@ -183,6 +232,24 @@ def seed_learning(*, demo: bool) -> None:
             print(f"  = article exists, skipped: {path.stem}")
 
 
+def _seed_all(*, demo: bool, replace: bool) -> None:
+    """Seed technologies, projects and learning articles in turn.
+
+    Parameters
+    ----------
+    demo : bool
+        Load the demo content instead of the real content.
+    replace : bool
+        Rewrite projects that already exist.
+    """
+    print("Technologies:")
+    seed_technologies()
+    print("Projects:")
+    seed_projects(demo=demo, replace=replace)
+    print("Learning articles:")
+    seed_learning(demo=demo)
+
+
 def main(argv: list[str] | None = None) -> None:
     """Run the full seeding pipeline.
 
@@ -190,22 +257,44 @@ def main(argv: list[str] | None = None) -> None:
     ----------
     argv : list[str] or None
         Command-line arguments (defaults to ``sys.argv``).
+
+    Raises
+    ------
+    SystemExit
+        When ``--demo`` would write to AWS, or when a table is missing.
     """
     parser = argparse.ArgumentParser(description="Seed portfolio content.")
     parser.add_argument(
         "--demo",
         action="store_true",
-        help="Load the bundled example templates instead of real content.",
+        help="Load the DEMO copies of the real projects (DynamoDB Local).",
+    )
+    parser.add_argument(
+        "--replace",
+        action="store_true",
+        help="Rewrite projects that already exist (migrates old items).",
     )
     args = parser.parse_args(argv)
-    print(f"Seeding from {'example templates' if args.demo else 'data/'}...")
+    settings = get_settings()
+    endpoint = settings.dynamodb_endpoint_url
+    if args.demo and not endpoint:
+        raise SystemExit(
+            "--demo only runs against DynamoDB Local: set DYNAMODB_ENDPOINT_URL "
+            "(http://localhost:8001 with the compose stack), e.g. in backend/.env."
+        )
+    target = f"DynamoDB Local {endpoint}" if endpoint else f"AWS {settings.aws_region}"
+    print(f"Seeding {'demo' if args.demo else 'real'} content into {target}...")
 
-    print("Technologies:")
-    seed_technologies(demo=args.demo)
-    print("Projects:")
-    seed_projects(demo=args.demo)
-    print("Learning articles:")
-    seed_learning(demo=args.demo)
+    try:
+        _seed_all(demo=args.demo, replace=args.replace)
+    except ClientError as exc:
+        if exc.response["Error"]["Code"] != "ResourceNotFoundException":
+            raise
+        raise SystemExit(
+            f"A table is missing in {target}. Locally, start the whole stack "
+            "(docker compose up) so dynamodb-init creates the tables; otherwise "
+            "check the *_TABLE_NAME variables."
+        ) from exc
     print("Done.")
 
 

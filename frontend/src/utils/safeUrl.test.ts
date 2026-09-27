@@ -1,4 +1,4 @@
-import { safeExternalUrl } from './safeUrl'
+import { safeExternalUrl, safeMediaUrl } from './safeUrl'
 
 describe('safeExternalUrl', () => {
   it('returns http(s) URLs unchanged', () => {
@@ -17,5 +17,25 @@ describe('safeExternalUrl', () => {
     expect(safeExternalUrl('')).toBeUndefined()
     expect(safeExternalUrl(null)).toBeUndefined()
     expect(safeExternalUrl('not a url')).toBeUndefined()
+  })
+})
+
+describe('safeMediaUrl', () => {
+  it.each(['/images/projects/a/cover.webp', 'https://cdn.example.com/a.png'])(
+    'accepts the image source %s',
+    (src) => {
+      expect(safeMediaUrl(src)).toBe(src)
+    },
+  )
+
+  it.each(['//evil.example.com/a.png', '/\\evil.example.com', 'javascript:x'])(
+    'rejects the image source %s',
+    (src) => {
+      expect(safeMediaUrl(src)).toBeUndefined()
+    },
+  )
+
+  it('returns undefined without a source', () => {
+    expect(safeMediaUrl(null)).toBeUndefined()
   })
 })

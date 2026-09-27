@@ -27,7 +27,7 @@ describe('Contacts', () => {
   })
 
   it('shows a success message after a successful submit', async () => {
-    renderWithProviders(<Contacts />)
+    const { store } = renderWithProviders(<Contacts />)
 
     await fillForm()
     await userEvent.click(screen.getByRole('button', { name: 'Send message' }))
@@ -35,6 +35,7 @@ describe('Contacts', () => {
     expect(await screen.findByRole('status')).toHaveTextContent(
       'Thank you! Your message has been sent.',
     )
+    expect(store.getState().game.unlocked).toContain('contact')
   })
 
   it('shows an error message when the backend fails', async () => {
