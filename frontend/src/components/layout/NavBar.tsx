@@ -1,13 +1,16 @@
 import { useTranslation } from 'react-i18next'
 import { NavLink } from 'react-router-dom'
 
+import { useLearningOpen } from '@/hooks/useLearningOpen'
 import { cn } from '@/utils/cn'
+
+const LEARNING = '/learning'
 
 // Home is reached through the brand link in the header.
 const NAV_ITEMS = [
   { to: '/about-me', key: 'nav.aboutMe' },
   { to: '/projects', key: 'nav.projects' },
-  { to: '/learning', key: 'nav.learning' },
+  { to: LEARNING, key: 'nav.learning' },
   { to: '/contacts', key: 'nav.contacts' },
 ] as const
 
@@ -23,7 +26,10 @@ export const NavBar = ({
   onNavigate,
 }: NavBarProps) => {
   const { t } = useTranslation()
+  const { isOpen: learningOpen } = useLearningOpen()
   const vertical = orientation === 'vertical'
+  // Learning joins the menu once it has a published article.
+  const items = NAV_ITEMS.filter(({ to }) => to !== LEARNING || learningOpen)
 
   return (
     <nav
@@ -33,7 +39,7 @@ export const NavBar = ({
         vertical ? 'w-full flex-col' : 'flex-wrap items-center',
       )}
     >
-      {NAV_ITEMS.map(({ to, key }) => (
+      {items.map(({ to, key }) => (
         <NavLink
           key={to}
           to={to}

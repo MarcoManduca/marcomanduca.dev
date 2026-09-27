@@ -6,6 +6,9 @@
  * which injects the origin-verify header). The API returns only published
  * public content, so drafts and the admin area are never included.
  *
+ * The Learning page is listed only once an article is published, as the
+ * site hides it until then.
+ *
  * The API call degrades gracefully: if the backend is unreachable the build
  * still succeeds with the static routes only.
  *
@@ -26,7 +29,6 @@ const STATIC_ROUTES = [
   { path: '/', priority: '1.0' },
   { path: '/about-me', priority: '0.8' },
   { path: '/projects', priority: '0.9' },
-  { path: '/learning', priority: '0.9' },
   { path: '/contacts', priority: '0.6' },
   // Indexable (the page sets no noindex), but of little search value.
   { path: '/privacy-policy', priority: '0.2' },
@@ -67,7 +69,13 @@ const [projects, articles] = await Promise.all([
   fetchCollection('/learning'),
 ])
 
+// The section opens with its first published article (see useLearningOpen).
+const learningRoutes = articles.length
+  ? [{ path: '/learning', priority: '0.9' }]
+  : []
+
 const dynamicRoutes = [
+  ...learningRoutes,
   ...projects.map((item) => ({
     path: `/projects/${encodeURIComponent(item.slug)}`,
     priority: '0.7',
