@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
-import { Link, NavLink, Outlet } from 'react-router'
+import { Link, NavLink, Outlet, useLocation } from 'react-router'
 
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/utils/cn'
 
@@ -14,6 +15,7 @@ const ADMIN_NAV = [
 export const AdminLayout = () => {
   const { t } = useTranslation()
   const { userName, signOut } = useAuth()
+  const { pathname } = useLocation()
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -57,7 +59,10 @@ export const AdminLayout = () => {
         </div>
       </header>
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
-        <Outlet />
+        {/* Reset per page; a failing page keeps the admin nav usable. */}
+        <ErrorBoundary key={pathname}>
+          <Outlet />
+        </ErrorBoundary>
       </main>
     </div>
   )

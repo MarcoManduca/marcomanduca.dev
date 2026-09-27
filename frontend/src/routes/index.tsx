@@ -3,6 +3,7 @@ import { lazy, Suspense } from 'react'
 import { Route, Routes } from 'react-router'
 
 import { PublicLayout } from '@/components/layout/PublicLayout'
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 import { Spinner } from '@/components/ui/Spinner'
 import { AboutMe } from '@/pages/AboutMe'
 import { Contacts } from '@/pages/Contacts'
@@ -56,35 +57,39 @@ const AdminMedia = lazy(() =>
   import('@/pages/admin/AdminMedia').then((m) => ({ default: m.AdminMedia })),
 )
 
+// Pages sit behind their layout's error boundary; this outer one is the last
+// resort for the layouts themselves (e.g. the admin chunk failing to load).
 export const AppRoutes = () => (
-  <Routes>
-    <Route path="/admin/callback" element={<AuthCallback />} />
-    <Route element={<PublicLayout />}>
-      <Route path="/" element={<Home />} />
-      <Route path="/about-me" element={<AboutMe />} />
-      <Route path="/projects" element={<Projects />} />
-      <Route path="/projects/:slug" element={<ProjectDetail />} />
-      <Route element={<LearningGate />}>
-        <Route path="/learning" element={<Learning />} />
-        <Route path="/learning/:slug" element={<LearningDetail />} />
+  <ErrorBoundary>
+    <Routes>
+      <Route path="/admin/callback" element={<AuthCallback />} />
+      <Route element={<PublicLayout />}>
+        <Route path="/" element={<Home />} />
+        <Route path="/about-me" element={<AboutMe />} />
+        <Route path="/projects" element={<Projects />} />
+        <Route path="/projects/:slug" element={<ProjectDetail />} />
+        <Route element={<LearningGate />}>
+          <Route path="/learning" element={<Learning />} />
+          <Route path="/learning/:slug" element={<LearningDetail />} />
+        </Route>
+        <Route path="/contacts" element={<Contacts />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="*" element={<NotFound />} />
       </Route>
-      <Route path="/contacts" element={<Contacts />} />
-      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-      <Route path="*" element={<NotFound />} />
-    </Route>
-    <Route element={<ProtectedRoute />}>
-      <Route
-        element={
-          <Suspense fallback={<Spinner className="min-h-screen" />}>
-            <AdminLayout />
-          </Suspense>
-        }
-      >
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/admin/projects" element={<AdminProjects />} />
-        <Route path="/admin/learning" element={<AdminLearning />} />
-        <Route path="/admin/media" element={<AdminMedia />} />
+      <Route element={<ProtectedRoute />}>
+        <Route
+          element={
+            <Suspense fallback={<Spinner className="min-h-screen" />}>
+              <AdminLayout />
+            </Suspense>
+          }
+        >
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/projects" element={<AdminProjects />} />
+          <Route path="/admin/learning" element={<AdminLearning />} />
+          <Route path="/admin/media" element={<AdminMedia />} />
+        </Route>
       </Route>
-    </Route>
-  </Routes>
+    </Routes>
+  </ErrorBoundary>
 )
