@@ -39,12 +39,3 @@ export const getAccessToken = (): string | null => {
     return null
   }
 }
-
-/** Drop the persisted OIDC user, e.g. after the API rejected its token. */
-export const clearStoredUser = (): void => {
-  try {
-    sessionStorage.removeItem(storageKey())
-  } catch {
-    // Storage unavailable (private mode, blocked site data): nothing to clear.
-  }
-}

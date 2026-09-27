@@ -82,6 +82,8 @@ describe('AuthCallback', () => {
     '/administrator',
     '/projects',
     '/admin/callback',
+    '/admin/..//evil.example.com',
+    '/admin/../projects',
   ])('falls back to /admin for the unsafe return path %s', (returnTo) => {
     mockUseAuth.mockReturnValue(authState({ returnTo }))
 
