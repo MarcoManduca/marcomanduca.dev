@@ -1,6 +1,10 @@
 import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { HttpResponse, http } from 'msw'
 
+import { projectSummariesFixture } from '@/test/mocks/fixtures'
+import { API_URL } from '@/test/mocks/handlers'
+import { server } from '@/test/mocks/server'
 import { renderWithProviders } from '@/test/utils'
 
 import { Projects } from './Projects'
@@ -15,6 +19,20 @@ describe('Projects', () => {
     expect(
       screen.getByRole('link', { name: 'Portfolio site' }),
     ).toBeInTheDocument()
+  })
+
+  it('flags the drafts an admin is served, and only those', async () => {
+    const [draft, published] = projectSummariesFixture
+    server.use(
+      http.get(`${API_URL}/projects`, () =>
+        HttpResponse.json([{ ...draft, status: 'draft' }, published]),
+      ),
+    )
+    renderWithProviders(<Projects />)
+    await screen.findByRole('link', { name: 'Data pipeline' })
+
+    expect(screen.getAllByText('Draft')).toHaveLength(1)
+    expect(screen.queryByText('Published')).not.toBeInTheDocument()
   })
 
   it('shows every area of a project on its card', async () => {
