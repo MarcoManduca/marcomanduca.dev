@@ -1,6 +1,6 @@
-import { builtinEnvironments } from 'vitest/environments'
+import { builtinEnvironments } from 'vitest/runtime'
 
-import type { Environment } from 'vitest/environments'
+import type { Environment } from 'vitest/runtime'
 
 /**
  * jsdom replaces the global `AbortController` / `AbortSignal` with its own
@@ -21,7 +21,7 @@ const NativeAbortSignal = globalThis.AbortSignal
 
 const environment: Environment = {
   name: 'jsdom-undici',
-  transformMode: 'web',
+  viteEnvironment: 'client',
   async setup(global, options) {
     delete global.localStorage
     delete global.sessionStorage
