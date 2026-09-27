@@ -18,8 +18,8 @@ export const Home = () => {
         <CharacterCard />
         <QuestLog />
       </div>
-      {/* Side by side from lg, stacked on smaller screens. */}
-      <div className="grid items-start gap-12 lg:grid-cols-2">
+      {/* Side by side from lg, as tall as each other; stacked below. */}
+      <div className="grid gap-12 lg:grid-cols-2">
         <StatsSection />
         <SideQuestsSection />
       </div>

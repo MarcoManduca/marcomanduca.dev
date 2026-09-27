@@ -14,16 +14,8 @@ import { Card } from '@/components/ui/Card'
 import { Prose } from '@/components/ui/Prose'
 import { Tag } from '@/components/ui/Tag'
 import { useScrollSpy } from '@/hooks/useScrollSpy'
+import { SKILL_GROUPS } from '@/types'
 import { timelineAnchor } from '@/utils/timelineAnchor'
-
-const SKILL_GROUPS = [
-  'programming',
-  'dataEngineering',
-  'dataViz',
-  'versioning',
-  'storage',
-  'crm',
-] as const
 
 export const AboutMe = () => {
   const { t } = useTranslation()

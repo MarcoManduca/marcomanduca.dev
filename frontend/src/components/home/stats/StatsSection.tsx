@@ -28,7 +28,8 @@ export const StatsSection = () => {
       >
         {t('home.stats.title')}
       </h2>
-      <div className="flex flex-col gap-4 rounded-[20px] bg-surface p-4 sm:p-6 lg:gap-5">
+      {/* From lg it fills the row, down to the deck's hint beside it. */}
+      <div className="flex flex-col gap-4 rounded-[20px] bg-surface p-4 sm:p-6 lg:flex-1 lg:justify-between lg:gap-5">
         <StatsRadar
           stats={stats}
           active={active}

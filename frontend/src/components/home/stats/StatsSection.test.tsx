@@ -19,6 +19,11 @@ describe('StatsSection', () => {
     expect(
       screen.getByRole('button', { name: 'Programming: level 9 of 10' }),
     ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', {
+        name: 'Data Visualization: level 10 of 10',
+      }),
+    ).toBeInTheDocument()
   })
 
   it('lists the level of each group beside the chart, leaving tools to the tooltip', () => {
@@ -27,6 +32,8 @@ describe('StatsSection', () => {
     const rows = screen.getAllByRole('listitem')
     expect(rows).toHaveLength(6)
     expect(rows[0]).toHaveTextContent(/^Programming9\/10$/)
+    expect(rows[4]).toHaveTextContent(/^CRM & Storage8\/10$/)
+    expect(rows[5]).toHaveTextContent(/^AI & Agents9\/10$/)
   })
 
   it('shows every tool of a group on hover, and hides them on leave', async () => {
@@ -36,7 +43,7 @@ describe('StatsSection', () => {
     expect(screen.getByRole('tooltip')).toHaveTextContent(
       'AWS Athena · AWS Glue · AWS Lambda · SAS Data Integration · SAS Data Management',
     )
-    expect(point('Data Engineering')).toHaveAccessibleDescription(/Level 8\/10/)
+    expect(point('Data Engineering')).toHaveAccessibleDescription(/Level 9\/10/)
 
     await userEvent.unhover(point('Data Engineering'))
     expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
@@ -55,7 +62,7 @@ describe('StatsSection', () => {
   it('toggles the tooltip with a tap, as touch has no hover', async () => {
     renderWithProviders(<StatsSection />)
     const tap = () =>
-      userEvent.pointer({ keys: '[TouchA]', target: point('Storage') })
+      userEvent.pointer({ keys: '[TouchA]', target: point('CRM & Storage') })
 
     await tap()
     expect(screen.getByRole('tooltip')).toHaveTextContent('PostgreSQL')
@@ -68,9 +75,19 @@ describe('StatsSection', () => {
     renderWithProviders(<StatsSection />)
 
     await userEvent.hover(
-      within(screen.getAllByRole('listitem')[5]).getByText('CRM'),
+      within(screen.getAllByRole('listitem')[4]).getByText('CRM & Storage'),
     )
 
     expect(screen.getByRole('tooltip')).toHaveTextContent('Salesforce')
+  })
+
+  it('shows the AI tools on the AI & Agents point', async () => {
+    renderWithProviders(<StatsSection />)
+
+    await userEvent.hover(point('AI & Agents'))
+
+    expect(screen.getByRole('tooltip')).toHaveTextContent(
+      'Claude Code · Claude · ChatGPT · Gemini',
+    )
   })
 })

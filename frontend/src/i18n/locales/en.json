@@ -52,8 +52,8 @@
         "dataEngineering": "Data Eng.",
         "dataViz": "Data Viz",
         "versioning": "Version control",
-        "storage": "Storage",
-        "crm": "CRM"
+        "crmStorage": "CRM & Storage",
+        "ai": "AI & Agents"
       },
       "level": "Level {{level}}/{{max}}",
       "point": "{{name}}: level {{level}} of {{max}}",
@@ -152,8 +152,8 @@
       "dataEngineering": "Data Engineering",
       "dataViz": "Data Visualization",
       "versioning": "Version Control",
-      "storage": "Storage",
-      "crm": "CRM"
+      "crmStorage": "CRM & Storage",
+      "ai": "AI & Agents"
     },
     "experience": [
       {
@@ -239,7 +239,8 @@
       ],
       "dataViz": ["Power BI", "Tableau", "SAS Viya", "Looker Studio"],
       "versioning": ["GitHub", "Bitbucket"],
-      "storage": [
+      "crmStorage": [
+        "Salesforce",
         "AWS S3",
         "MongoDB",
         "Neo4j",
@@ -248,7 +249,7 @@
         "Oracle",
         "PostgreSQL"
       ],
-      "crm": ["Salesforce"]
+      "ai": ["Claude Code", "Claude", "ChatGPT", "Gemini"]
     }
   },
   "projects": {

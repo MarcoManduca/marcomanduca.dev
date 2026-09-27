@@ -1,4 +1,4 @@
-import { fireEvent, screen } from '@testing-library/react'
+import { fireEvent, screen, within } from '@testing-library/react'
 
 import { renderWithProviders } from '@/test/utils'
 
@@ -52,6 +52,25 @@ describe('AboutMe', () => {
     expect(screen.getByText('MSc in Data Science')).toBeInTheDocument()
     expect(screen.getAllByText('Python').length).toBeGreaterThan(0)
     expect(screen.getByText('Power BI')).toBeInTheDocument()
+  })
+
+  it('groups the skills like the Home stats, CRM and storage together', () => {
+    renderWithProviders(<AboutMe />)
+
+    const skills = screen.getByRole('heading', { level: 2, name: 'Skills' })
+      .nextElementSibling as HTMLElement
+    const groups = within(skills)
+      .getAllByRole('heading', { level: 3 })
+      .map((heading) => heading.textContent)
+    expect(groups).toEqual([
+      'Programming',
+      'Data Engineering',
+      'Data Visualization',
+      'Version Control',
+      'CRM & Storage',
+      'AI & Agents',
+    ])
+    expect(screen.getByText('Claude Code')).toBeInTheDocument()
   })
 
   it('gives every timeline entry an anchor for the home quests', () => {
