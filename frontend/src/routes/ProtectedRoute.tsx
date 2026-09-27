@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 
 import { useTranslation } from 'react-i18next'
-import { Outlet, useLocation } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router'
 
 import { AuthError } from '@/components/admin/AuthError'
 import { Spinner } from '@/components/ui/Spinner'

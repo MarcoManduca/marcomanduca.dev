@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http, type JsonBodyType } from 'msw'
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes } from 'react-router'
 
 import { NavBar } from '@/components/layout/NavBar'
 import { articlesFixture } from '@/test/mocks/fixtures'

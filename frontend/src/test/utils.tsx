@@ -4,9 +4,8 @@ import { render } from '@testing-library/react'
 import { HelmetProvider } from 'react-helmet-async'
 import { I18nextProvider } from 'react-i18next'
 import { Provider } from 'react-redux'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter } from 'react-router'
 
-import { ROUTER_FUTURE_FLAGS } from '@/routes/routerFutureFlags'
 import { makeStore } from '@/store'
 import { initialGameState } from '@/store/gameSlice'
 import type { GameState } from '@/types'
@@ -31,9 +30,7 @@ export const renderWithProviders = (
     <HelmetProvider>
       <Provider store={store}>
         <I18nextProvider i18n={i18n}>
-          <MemoryRouter initialEntries={[route]} future={ROUTER_FUTURE_FLAGS}>
-            {children}
-          </MemoryRouter>
+          <MemoryRouter initialEntries={[route]}>{children}</MemoryRouter>
         </I18nextProvider>
       </Provider>
     </HelmetProvider>

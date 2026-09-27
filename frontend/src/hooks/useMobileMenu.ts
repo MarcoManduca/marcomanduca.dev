@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-import { useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router'
 
 /**
  * Open/close state and accessibility behaviour of a disclosure menu.

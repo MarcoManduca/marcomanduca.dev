@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Link, NavLink, Outlet } from 'react-router-dom'
+import { Link, NavLink, Outlet } from 'react-router'
 
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/utils/cn'

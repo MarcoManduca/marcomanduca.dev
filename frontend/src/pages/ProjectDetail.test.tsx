@@ -1,7 +1,7 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes } from 'react-router'
 
 import { labFixture, projectsFixture } from '@/test/mocks/fixtures'
 import { API_URL } from '@/test/mocks/handlers'

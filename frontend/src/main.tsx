@@ -4,10 +4,9 @@ import { createRoot } from 'react-dom/client'
 import { HelmetProvider } from 'react-helmet-async'
 import { AuthProvider } from 'react-oidc-context'
 import { Provider } from 'react-redux'
-import { BrowserRouter } from 'react-router-dom'
+import { BrowserRouter } from 'react-router'
 
 import App from '@/App'
-import { ROUTER_FUTURE_FLAGS } from '@/routes/routerFutureFlags'
 import { store } from '@/store'
 import {
   COGNITO_AUTHORITY,
@@ -35,7 +34,7 @@ createRoot(document.getElementById('root')!).render(
     <HelmetProvider>
       <AuthProvider {...oidcConfig}>
         <Provider store={store}>
-          <BrowserRouter future={ROUTER_FUTURE_FLAGS}>
+          <BrowserRouter>
             <App />
           </BrowserRouter>
         </Provider>

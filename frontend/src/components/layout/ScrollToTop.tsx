@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 
-import { useLocation } from 'react-router-dom'
+import { useLocation } from 'react-router'
 
 /**
  * Reset the scroll position on route changes, like a full page load would.
