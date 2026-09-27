@@ -8,13 +8,16 @@ const ADMIN_HOME = '/admin'
 const ADMIN_PATH = /^\/admin(?:[/?#]|$)/
 
 /**
- * Accept only a same-origin, relative path inside the admin area (never the
- * callback itself) to avoid open redirects and loops; fall back to /admin.
+ * Accept only a same-origin path inside the admin area (never the callback
+ * itself) to avoid open redirects and loops; fall back to /admin. The checks
+ * run on the parsed URL, after `..` segments are resolved, so a path such as
+ * `/admin/..//evil.com` cannot turn into `//evil.com`.
  */
 const toSafeAdminPath = (path: string | null | undefined): string => {
-  if (!path || !ADMIN_PATH.test(path) || path.includes('\\')) return ADMIN_HOME
+  if (!path || path.includes('\\')) return ADMIN_HOME
   const url = new URL(path, window.location.origin)
   if (url.origin !== window.location.origin) return ADMIN_HOME
+  if (!ADMIN_PATH.test(url.pathname)) return ADMIN_HOME
   if (url.pathname.startsWith('/admin/callback')) return ADMIN_HOME
   return `${url.pathname}${url.search}${url.hash}`
 }
