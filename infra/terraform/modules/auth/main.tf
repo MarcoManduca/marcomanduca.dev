@@ -57,6 +57,15 @@ resource "aws_cognito_user_pool" "this" {
   }
 }
 
+# Direct (API/SDK) sign-in flows for the app clients. Admins sign in only
+# through the hosted UI (OAuth authorization code), so only token refresh is
+# allowed here. Leaving the list unset enables AWS's defaults (USER_SRP_AUTH
+# and CUSTOM_AUTH too), which let anyone holding the public client id try
+# passwords against InitiateAuth directly, outside the hosted UI.
+locals {
+  client_auth_flows = ["ALLOW_REFRESH_TOKEN_AUTH"]
+}
+
 resource "aws_cognito_user_pool_client" "spa" {
   name         = "${var.project_name}-spa"
   user_pool_id = aws_cognito_user_pool.this.id
@@ -68,6 +77,7 @@ resource "aws_cognito_user_pool_client" "spa" {
   allowed_oauth_flows_user_pool_client = true
   allowed_oauth_scopes                 = ["openid", "email", "profile"]
   supported_identity_providers         = ["COGNITO"]
+  explicit_auth_flows                  = local.client_auth_flows
 
   callback_urls = ["https://${var.domain_name}/admin/callback"]
   logout_urls   = ["https://${var.domain_name}/"]
@@ -100,6 +110,7 @@ resource "aws_cognito_user_pool_client" "dev" {
   allowed_oauth_flows_user_pool_client = true
   allowed_oauth_scopes                 = ["openid", "email", "profile"]
   supported_identity_providers         = ["COGNITO"]
+  explicit_auth_flows                  = local.client_auth_flows
 
   callback_urls = ["http://localhost:5173/admin/callback"]
   logout_urls   = ["http://localhost:5173/"]
