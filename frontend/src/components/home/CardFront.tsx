@@ -4,8 +4,10 @@ import portrait420 from '@/assets/portrait-card-420.webp'
 import portrait680 from '@/assets/portrait-card-680.webp'
 import portrait1020 from '@/assets/portrait-card-1020.webp'
 
-// Card width: full column on phones (minus page gutter and foil), 404px on lg.
-const PORTRAIT_SIZES = '(min-width: 1024px) 404px, calc(100vw - 48px)'
+// Rendered width: the card column minus the foil (340px on lg, 420px from xl),
+// else the page width minus gutter and foil, up to the 420px card.
+const PORTRAIT_SIZES =
+  '(min-width: 1280px) 404px, (min-width: 1024px) 324px, min(404px, calc(100vw - 48px))'
 
 /** Full-art front: portrait, role, name and level. */
 export const CardFront = () => {
@@ -27,21 +29,21 @@ export const CardFront = () => {
       <div aria-hidden="true" className="absolute inset-0 bg-holo" />
       <div aria-hidden="true" className="absolute inset-0 bg-card-fade" />
 
-      <div className="relative mt-auto flex items-end justify-between gap-4">
-        <div className="flex flex-col gap-1.5">
-          <p className="font-display text-sm font-extrabold uppercase tracking-[0.12em] text-brand-yellow">
-            {t('home.heroRole')}
-          </p>
-          <h1 className="text-5xl font-extrabold uppercase leading-[0.92] text-brand-cream">
-            Marco
-            <br />
-            Manduca
-          </h1>
-        </div>
-        <span className="shrink-0 font-display text-2xl font-extrabold text-brand-yellow">
-          <span aria-hidden="true">{t('home.card.level')}</span>
-          <span className="sr-only">{t('home.card.levelLabel')}</span>
-        </span>
+      {/* Top right, over the dark backdrop of the photo. */}
+      <span className="absolute right-5 top-4 font-display text-2xl font-extrabold text-brand-yellow sm:right-6 sm:top-5">
+        <span aria-hidden="true">{t('home.card.level')}</span>
+        <span className="sr-only">{t('home.card.levelLabel')}</span>
+      </span>
+
+      <div className="relative mt-auto flex flex-col gap-1.5">
+        <p className="font-display text-sm font-extrabold uppercase tracking-[0.12em] text-brand-yellow">
+          {t('home.heroRole')}
+        </p>
+        <h1 className="text-5xl font-extrabold uppercase leading-[0.92] text-brand-cream">
+          Marco
+          <br />
+          Manduca
+        </h1>
       </div>
     </>
   )
