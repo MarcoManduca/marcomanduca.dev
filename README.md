@@ -47,8 +47,8 @@ docker compose up --build
 
 # Backend only
 cd backend
-python -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
+python3.12 -m venv .venv && source .venv/bin/activate
+pip install --require-hashes -r requirements-dev.lock && pip install --no-deps -e .
 uvicorn src.main:app --reload
 
 # Frontend only
