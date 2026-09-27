@@ -46,9 +46,11 @@ them at runtime).
   show every detail; the rest are _Completed Quests_ (guild and dates, newest
   first). Each row carries the domain symbol (work, study) and links to its
   entry on the About page timeline (`/about-me#work-2020-11`); the "next
-  quest" slot links to the contacts page. Cards have fixed heights from a line
-  budget (`components/quests/questCardLayout.ts`) with clamped text, so every
-  card of a tab matches and nothing moves when the language changes.
+  quest" slot links to the contacts page. The cards of a tab share one height
+  (a grid of equal rows) that stays put when the language changes: minimum
+  heights in `components/quests/questCardLayout.ts` come from a line budget
+  with clamped text from `sm`, and from the tallest card of either language on
+  phones (re-measure them when the quest copy changes).
 - **About timeline.** A scroll-spy (`useScrollSpy`) lights up the entry
   crossing a reading line at 35% of the viewport; an entry reached from a
   quest lands just above that line and stays lit until the reader scrolls.

@@ -9,6 +9,7 @@ export interface QuestFact {
 interface QuestFactsProps {
   facts: QuestFact[]
   compact?: boolean
+  className?: string
 }
 
 const Label = ({
@@ -31,9 +32,15 @@ const Label = ({
  * Compact (completed quests): first fact on its own line, the others
  * flowing below it.
  */
-export const QuestFacts = ({ facts, compact = false }: QuestFactsProps) =>
+export const QuestFacts = ({
+  facts,
+  compact = false,
+  className,
+}: QuestFactsProps) =>
   compact ? (
-    <dl className="text-sm leading-5 text-muted sm:text-[15px]">
+    <dl
+      className={cn('text-sm leading-5 text-muted sm:text-[15px]', className)}
+    >
       {facts.map(({ label, value, highlight }, index) => (
         <div
           key={label}
@@ -49,7 +56,12 @@ export const QuestFacts = ({ facts, compact = false }: QuestFactsProps) =>
       ))}
     </dl>
   ) : (
-    <dl className="flex flex-col gap-1 text-sm leading-5 text-body sm:grid sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-x-1.5 sm:text-[15px]">
+    <dl
+      className={cn(
+        'flex flex-col gap-1 text-sm leading-5 text-body sm:grid sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-x-1.5 sm:text-[15px]',
+        className,
+      )}
+    >
       {facts.map(({ label, value, highlight }) => (
         // Phones: label and value flow together and clamp as one block.
         <div key={label} className="line-clamp-2 sm:contents">

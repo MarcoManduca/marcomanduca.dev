@@ -12,10 +12,11 @@ const KIND_CLASSES: Record<QuestKind, string> = {
 
 interface QuestMedalProps {
   kind: QuestKind
+  className?: string
 }
 
 /** Round badge with the symbol of the quest's domain. */
-export const QuestMedal = ({ kind }: QuestMedalProps) => {
+export const QuestMedal = ({ kind, className }: QuestMedalProps) => {
   const { t } = useTranslation()
 
   return (
@@ -24,6 +25,7 @@ export const QuestMedal = ({ kind }: QuestMedalProps) => {
       className={cn(
         'relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 sm:h-14 sm:w-14',
         KIND_CLASSES[kind],
+        className,
       )}
     >
       <QuestIcon kind={kind} className="h-5 w-5 sm:h-7 sm:w-7" />

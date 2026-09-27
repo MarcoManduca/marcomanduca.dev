@@ -29,17 +29,20 @@ export const QuestLog = () => {
         onSelect={setTab}
       />
 
-      <ul
+      <div
         id={questPanelId(tab)}
         role="tabpanel"
         aria-labelledby={questTabId(tab)}
         className="flex flex-col gap-3 sm:gap-4"
       >
-        {quests.map((quest) => (
-          <QuestCard key={quest.key} quest={quest} />
-        ))}
+        {/* Equal rows: every card takes the height of the tallest. */}
+        <ul className="grid auto-rows-fr gap-3 sm:gap-4">
+          {quests.map((quest) => (
+            <QuestCard key={quest.key} quest={quest} />
+          ))}
+        </ul>
         {tab === 'active' && <NextQuestSlot />}
-      </ul>
+      </div>
 
       <div className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-center sm:justify-between">
         <Link
