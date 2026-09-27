@@ -49,7 +49,7 @@ describe('QuestLog', () => {
 
     await userEvent.click(screen.getByRole('tab', { name: /Completed Quests/ }))
 
-    const name = '1st-Level Master in AI and Data Analytics'
+    const name = 'Master in AI & Data Analytics for Business'
     expect(within(panel()).getByTitle(name)).toHaveTextContent(name)
   })
 

@@ -146,6 +146,14 @@
     "bio": "Data professional with over five years of experience across the full data lifecycle — from data collection and validation to operational dashboards and strategic insights for commercial and C-level teams. I pair a strong statistical foundation (BSc in Statistics, MSc in Data Science in progress) with a practical, result-driven mindset. I work mainly with Python, SQL and cloud tooling on AWS, with experience in process automation and Machine/Deep Learning. Passionate about AI and emerging technologies, I enjoy turning complex data into clear, actionable strategies for both technical and non-technical stakeholders.",
     "experienceTitle": "Experience",
     "educationTitle": "Education",
+    "courseFacts": "Course facts",
+    "courseAreas": "Areas of study",
+    "coursePage": "Official course page",
+    "coursePlan_one": "Study plan · {{count}} course",
+    "coursePlan_other": "Study plan · {{count}} courses",
+    "certificate": "Certification",
+    "certificateSince": "Active since {{date}}",
+    "certificateVerify": "Verify credential",
     "skillsTitle": "Skills",
     "skillGroups": {
       "programming": "Programming",
@@ -200,6 +208,50 @@
         "period": "September 2025 — Present",
         "degree": "MSc in Data Science",
         "school": "Università degli Studi di Milano-Bicocca",
+        "department": "Department of Informatics, Systems and Communication (DISCo)",
+        "summary": "An English-taught master's degree on the value-driven analysis of big data with cutting-edge statistical techniques and computational models: a solid basis in statistics and computer science, with a multidisciplinary eye on legal, social and economic issues.",
+        "facts": [
+          {
+            "label": "Class",
+            "value": "LM-Data"
+          },
+          {
+            "label": "Duration",
+            "value": "2 years"
+          },
+          {
+            "label": "Credits",
+            "value": "120 ECTS"
+          },
+          {
+            "label": "Language",
+            "value": "English"
+          }
+        ],
+        "areas": [
+          "Machine Learning",
+          "Deep Learning",
+          "Big Data & Business Intelligence",
+          "Data Management & Visualization",
+          "Statistical Modelling",
+          "Text & Social Media Analytics"
+        ],
+        "plan": [
+          "Business Intelligence and Big Data Analytics",
+          "Data Management and Data Visualization",
+          "Data Science Lab",
+          "Foundations of Computer Science",
+          "Foundations of Deep Learning",
+          "Juridical and Social Issues in Information Society",
+          "Machine Learning and Decision Models",
+          "Marketing Analytics",
+          "Reinforcement Learning",
+          "Social Media Analytics",
+          "Statistical Modelling",
+          "Streaming Data Management and Time Series Analysis",
+          "Text Mining & Search"
+        ],
+        "url": "https://www.unimib.it/graduate/data-science",
         "quest": {
           "guild": "University of Milano-Bicocca",
           "objective": "Earn the MSc in Data Science",
@@ -211,8 +263,35 @@
         "start": "2024-04",
         "end": "2025-04",
         "period": "April 2024 — April 2025",
-        "degree": "1st-Level Master in AI and Data Analytics",
+        "degree": "Master in AI & Data Analytics for Business",
         "school": "Università degli Studi di Milano-Bicocca",
+        "department": "Department of Statistics and Quantitative Methods",
+        "summary": "Trains professionals to collect, manage, process and analyse big data with AI, statistics and analytics techniques in support of data-driven decisions. Hands-on with Python, SQL and NoSQL databases and AWS, it ends with a 300-hour project work.",
+        "facts": [
+          {
+            "label": "Level",
+            "value": "1st level"
+          },
+          {
+            "label": "Duration",
+            "value": "12 months"
+          },
+          {
+            "label": "Credits",
+            "value": "60 ECTS"
+          },
+          {
+            "label": "Language",
+            "value": "Italian"
+          }
+        ],
+        "areas": [
+          "Big Data Processing and Data Engineering",
+          "Statistical Modelling and Machine Learning",
+          "AI & Computer Vision",
+          "Data Analytics and Management for Business"
+        ],
+        "url": "https://academy.unimib.it/ai-data-analytics-business",
         "quest": {
           "guild": "University of Milano-Bicocca"
         }
@@ -223,6 +302,61 @@
         "period": "September 2015 — September 2019",
         "degree": "BSc in Statistics",
         "school": "Università degli Studi di Milano-Bicocca",
+        "department": "Department of Statistics and Quantitative Methods",
+        "summary": "The Statistics and Information Management programme pairs statistical methods with computing skills to collect, manage and process qualitative and quantitative data in business, socio-demographic and biomedical settings.",
+        "facts": [
+          {
+            "label": "Class",
+            "value": "L-41"
+          },
+          {
+            "label": "Duration",
+            "value": "3 years"
+          },
+          {
+            "label": "Credits",
+            "value": "180 ECTS"
+          },
+          {
+            "label": "Language",
+            "value": "Italian"
+          }
+        ],
+        "areas": [
+          "Statistics",
+          "Mathematics & Probability",
+          "Computing & Databases",
+          "Data Mining",
+          "Applied Statistics"
+        ],
+        "plan": [
+          "Calculus I",
+          "Calculus II",
+          "Complex Data Analysis",
+          "Computer Lab",
+          "Computer Science",
+          "Data Analysis",
+          "Data Mining and Computational Statistics",
+          "Data Science and Statistical Models for Unstructured Data",
+          "Databases",
+          "Demography",
+          "Design of Experiments",
+          "Information Systems",
+          "Linear Algebra",
+          "Medical Statistics",
+          "Multivariate Statistical Analysis",
+          "Probability",
+          "Social Statistics",
+          "Statistics I",
+          "Statistics I - Further Topics",
+          "Statistics II"
+        ],
+        "certificate": {
+          "name": "SAS Certified Specialist: Base Programming Using SAS 9.4",
+          "since": "November 2019",
+          "url": "https://cp.certmetrics.com/SAS/en/public/verify/credential/QN5RHZB12ERE1L9X"
+        },
+        "url": "https://www.unimib.it/triennale/statistica-gestione-informazioni",
         "quest": {
           "guild": "University of Milano-Bicocca"
         }

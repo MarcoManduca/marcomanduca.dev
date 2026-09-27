@@ -146,6 +146,14 @@
     "bio": "Data professional con oltre cinque anni di esperienza sull'intero ciclo di vita del dato — dalla raccolta e validazione fino alle dashboard operative e agli insight strategici per team commerciali e C-level. Unisco solide basi statistiche (Laurea triennale in Statistica, Laurea magistrale in Data Science in corso) a un approccio pratico e orientato ai risultati. Lavoro principalmente con Python, SQL e strumenti cloud su AWS, con esperienza in automazione dei processi e algoritmi di Machine/Deep Learning. Appassionato di AI e tecnologie emergenti, mi piace tradurre dati complessi in strategie chiare e attuabili per interlocutori tecnici e non.",
     "experienceTitle": "Esperienza",
     "educationTitle": "Formazione",
+    "courseFacts": "Dati del corso",
+    "courseAreas": "Aree di studio",
+    "coursePage": "Pagina ufficiale del corso",
+    "coursePlan_one": "Piano di studi · {{count}} insegnamento",
+    "coursePlan_other": "Piano di studi · {{count}} insegnamenti",
+    "certificate": "Certificazione",
+    "certificateSince": "Attiva da {{date}}",
+    "certificateVerify": "Verifica la credenziale",
     "skillsTitle": "Competenze",
     "skillGroups": {
       "programming": "Programmazione",
@@ -200,6 +208,50 @@
         "period": "Settembre 2025 — Oggi",
         "degree": "Laurea Magistrale in Data Science",
         "school": "Università degli Studi di Milano-Bicocca",
+        "department": "Dipartimento di Informatica, Sistemistica e Comunicazione (DISCo)",
+        "summary": "Laurea magistrale in inglese sull'analisi dei big data con tecniche statistiche e modelli computazionali avanzati: basi solide in statistica e informatica, con uno sguardo multidisciplinare agli aspetti giuridici, sociali ed economici.",
+        "facts": [
+          {
+            "label": "Classe",
+            "value": "LM-Data"
+          },
+          {
+            "label": "Durata",
+            "value": "2 anni"
+          },
+          {
+            "label": "Crediti",
+            "value": "120 CFU"
+          },
+          {
+            "label": "Lingua",
+            "value": "Inglese"
+          }
+        ],
+        "areas": [
+          "Machine Learning",
+          "Deep Learning",
+          "Big Data & Business Intelligence",
+          "Data Management & Visualization",
+          "Modelli statistici",
+          "Text & Social Media Analytics"
+        ],
+        "plan": [
+          "Business Intelligence and Big Data Analytics",
+          "Data Management and Data Visualization",
+          "Data Science Lab",
+          "Foundations of Computer Science",
+          "Foundations of Deep Learning",
+          "Juridical and Social Issues in Information Society",
+          "Machine Learning and Decision Models",
+          "Marketing Analytics",
+          "Reinforcement Learning",
+          "Social Media Analytics",
+          "Statistical Modelling",
+          "Streaming Data Management and Time Series Analysis",
+          "Text Mining & Search"
+        ],
+        "url": "https://www.unimib.it/graduate/data-science",
         "quest": {
           "guild": "Università degli Studi di Milano-Bicocca",
           "objective": "Conseguire la Laurea Magistrale",
@@ -211,8 +263,35 @@
         "start": "2024-04",
         "end": "2025-04",
         "period": "Aprile 2024 — Aprile 2025",
-        "degree": "Master di I livello in AI and Data Analytics",
+        "degree": "Master in AI & Data Analytics for Business",
         "school": "Università degli Studi di Milano-Bicocca",
+        "department": "Dipartimento di Statistica e Metodi Quantitativi",
+        "summary": "Forma professionisti capaci di raccogliere, gestire, elaborare e analizzare big data con tecniche di AI, statistica e analytics a supporto delle decisioni data-driven. Si lavora con Python, database SQL e NoSQL e AWS, e si chiude con un project work di 300 ore.",
+        "facts": [
+          {
+            "label": "Livello",
+            "value": "I livello"
+          },
+          {
+            "label": "Durata",
+            "value": "12 mesi"
+          },
+          {
+            "label": "Crediti",
+            "value": "60 CFU"
+          },
+          {
+            "label": "Lingua",
+            "value": "Italiano"
+          }
+        ],
+        "areas": [
+          "Big Data Processing and Data Engineering",
+          "Statistical Modelling and Machine Learning",
+          "AI & Computer Vision",
+          "Data Analytics and Management for Business"
+        ],
+        "url": "https://academy.unimib.it/ai-data-analytics-business",
         "quest": {
           "guild": "Università degli Studi di Milano-Bicocca"
         }
@@ -223,6 +302,61 @@
         "period": "Settembre 2015 — Settembre 2019",
         "degree": "Laurea Triennale in Statistica",
         "school": "Università degli Studi di Milano-Bicocca",
+        "department": "Dipartimento di Statistica e Metodi Quantitativi",
+        "summary": "Il corso di Statistica e gestione delle informazioni unisce metodi statistici e competenze informatiche per rilevare, gestire e trattare dati qualitativi e quantitativi in ambito aziendale, socio-demografico e biomedico.",
+        "facts": [
+          {
+            "label": "Classe",
+            "value": "L-41"
+          },
+          {
+            "label": "Durata",
+            "value": "3 anni"
+          },
+          {
+            "label": "Crediti",
+            "value": "180 CFU"
+          },
+          {
+            "label": "Lingua",
+            "value": "Italiano"
+          }
+        ],
+        "areas": [
+          "Statistica",
+          "Matematica e probabilità",
+          "Informatica e basi di dati",
+          "Data Mining",
+          "Statistica applicata"
+        ],
+        "plan": [
+          "Algebra Lineare",
+          "Analisi dei dati",
+          "Analisi Matematica I",
+          "Analisi Matematica II",
+          "Analisi Statistica Multivariata",
+          "Basi di Dati",
+          "Calcolo delle Probabilità",
+          "Complex Data Analysis",
+          "Data Mining e Statistica Computazionale",
+          "Data Science e Modelli Statistici per il trattamento dei dati non strutturati",
+          "Demografia",
+          "Informatica",
+          "Laboratorio di Informatica",
+          "Piano degli esperimenti",
+          "Sistemi Informativi",
+          "Statistica I",
+          "Statistica I - Complementi",
+          "Statistica II",
+          "Statistica Medica",
+          "Statistica Sociale"
+        ],
+        "certificate": {
+          "name": "SAS Certified Specialist: Base Programming Using SAS 9.4",
+          "since": "novembre 2019",
+          "url": "https://cp.certmetrics.com/SAS/en/public/verify/credential/QN5RHZB12ERE1L9X"
+        },
+        "url": "https://www.unimib.it/triennale/statistica-gestione-informazioni",
         "quest": {
           "guild": "Università degli Studi di Milano-Bicocca"
         }

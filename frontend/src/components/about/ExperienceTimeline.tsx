@@ -1,7 +1,6 @@
 import type { QuestDetails } from '@/types'
-import { timelineAnchor } from '@/utils/timelineAnchor'
 
-import { TimelineItem } from './TimelineItem'
+import { Timeline } from './Timeline'
 
 export interface ExperienceEntry {
   /** Start month, `YYYY-MM`. */
@@ -23,33 +22,29 @@ interface ExperienceTimelineProps {
   activeAnchor: string | null
 }
 
-/** Vertical timeline of work experience, each entry with bullet highlights. */
+/** Timeline of work experience, each card with bullet highlights. */
 export const ExperienceTimeline = ({
   entries,
   activeAnchor,
 }: ExperienceTimelineProps) => (
-  <ol className="mt-5 border-l border-edge">
-    {entries.map(
-      ({ start, period, role, company, description, highlights }) => (
-        <TimelineItem
-          key={start}
-          anchor={timelineAnchor('work', start)}
-          activeAnchor={activeAnchor}
-        >
+  <Timeline kind="work" entries={entries} activeAnchor={activeAnchor}>
+    {({ period, role, company, description, highlights }) => (
+      <>
+        <div className="text-left">
           <p className="font-mono text-xs text-muted">{period}</p>
           <h3 className="mt-1 font-semibold text-heading">
             {role} · <span className="text-accent">{company}</span>
           </h3>
-          {description && <p className="mt-1 text-sm">{description}</p>}
-          {highlights.length > 0 && (
-            <ul className="mt-2 list-disc space-y-1 pl-4 text-sm text-body marker:text-highlight">
-              {highlights.map((highlight) => (
-                <li key={highlight}>{highlight}</li>
-              ))}
-            </ul>
-          )}
-        </TimelineItem>
-      ),
+        </div>
+        {description && <p className="mt-2 text-sm">{description}</p>}
+        {highlights.length > 0 && (
+          <ul className="mt-2 list-disc space-y-1 pl-4 text-sm text-body marker:text-highlight">
+            {highlights.map((highlight) => (
+              <li key={highlight}>{highlight}</li>
+            ))}
+          </ul>
+        )}
+      </>
     )}
-  </ol>
+  </Timeline>
 )

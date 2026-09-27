@@ -1,4 +1,5 @@
 import { fireEvent, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 
 import { renderWithProviders } from '@/test/utils'
 
@@ -52,6 +53,77 @@ describe('AboutMe', () => {
     expect(screen.getByText('MSc in Data Science')).toBeInTheDocument()
     expect(screen.getAllByText('Python').length).toBeGreaterThan(0)
     expect(screen.getByText('Power BI')).toBeInTheDocument()
+  })
+
+  it('describes each course with its facts, areas of study and official page', () => {
+    renderWithProviders(<AboutMe />)
+
+    const bachelor = document.getElementById('study-2015-09')!
+    expect(
+      within(bachelor).getByText('Class').nextElementSibling,
+    ).toHaveTextContent('L-41')
+    expect(
+      within(bachelor).getByText('Credits').nextElementSibling,
+    ).toHaveTextContent('180 ECTS')
+    expect(
+      within(bachelor).getByText(
+        'Department of Statistics and Quantitative Methods',
+      ),
+    ).toBeInTheDocument()
+    expect(
+      within(bachelor).getByRole('list', { name: 'Areas of study' }),
+    ).toHaveTextContent('Mathematics & Probability')
+    const page = within(bachelor).getByRole('link', {
+      name: 'Official course page ↗',
+    })
+    expect(page).toHaveAttribute(
+      'href',
+      'https://www.unimib.it/triennale/statistica-gestione-informazioni',
+    )
+    expect(page).toHaveAttribute('rel', 'noopener noreferrer')
+  })
+
+  it('folds the study plan of a degree away under its course count', async () => {
+    renderWithProviders(<AboutMe />)
+
+    const bachelor = document.getElementById('study-2015-09')!
+    const course = within(bachelor).getByText('Design of Experiments')
+    expect(course).not.toBeVisible()
+
+    await userEvent.click(within(bachelor).getByText('Study plan · 20 courses'))
+
+    expect(course).toBeVisible()
+    expect(document.getElementById('study-2025-09')).toHaveTextContent(
+      'Study plan · 13 courses',
+    )
+  })
+
+  it('links the certification earned along a degree to its public check', () => {
+    renderWithProviders(<AboutMe />)
+
+    const bachelor = document.getElementById('study-2015-09')!
+    expect(
+      within(bachelor).getByText(
+        'SAS Certified Specialist: Base Programming Using SAS 9.4',
+      ),
+    ).toBeInTheDocument()
+    expect(
+      within(bachelor).getByText(/Active since November 2019/),
+    ).toBeInTheDocument()
+    expect(
+      within(bachelor).getByRole('link', { name: 'Verify credential ↗' }),
+    ).toHaveAttribute(
+      'href',
+      'https://cp.certmetrics.com/SAS/en/public/verify/credential/QN5RHZB12ERE1L9X',
+    )
+  })
+
+  it('leaves out the study plan and certification a course does not list', () => {
+    renderWithProviders(<AboutMe />)
+
+    const master = document.getElementById('study-2024-04')!
+    expect(within(master).queryByText(/Study plan/)).not.toBeInTheDocument()
+    expect(within(master).queryByText('Certification')).not.toBeInTheDocument()
   })
 
   it('groups the skills like the Home stats, CRM and storage together', () => {
