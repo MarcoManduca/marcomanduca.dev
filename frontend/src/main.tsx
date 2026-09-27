@@ -7,32 +7,33 @@ import { Provider } from 'react-redux'
 import { BrowserRouter } from 'react-router'
 
 import App from '@/App'
+import { userManager } from '@/services/userManager'
 import { store } from '@/store'
-import {
-  COGNITO_AUTHORITY,
-  COGNITO_CLIENT_ID,
-  COGNITO_REDIRECT_URI,
-} from '@/utils/env'
+import { COGNITO_REDIRECT_URI } from '@/utils/env'
+import { isSigninCallback } from '@/utils/isSigninCallback'
 
 import '@/i18n'
 import '@/index.css'
 
-const oidcConfig = {
-  authority: COGNITO_AUTHORITY,
-  client_id: COGNITO_CLIENT_ID,
-  redirect_uri: COGNITO_REDIRECT_URI,
-  response_type: 'code',
-  scope: 'openid email profile',
-  onSigninCallback: () => {
-    // Remove OIDC query params from the URL after the redirect.
-    window.history.replaceState({}, document.title, window.location.pathname)
-  },
+const onSigninCallback = () => {
+  // Remove OIDC query params from the URL after the redirect.
+  window.history.replaceState({}, document.title, window.location.pathname)
 }
+
+// Exchange ?code=&state= only on the callback route, never on public pages.
+const skipSigninCallback = !isSigninCallback(
+  new URL(window.location.href),
+  COGNITO_REDIRECT_URI,
+)
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <HelmetProvider>
-      <AuthProvider {...oidcConfig}>
+      <AuthProvider
+        userManager={userManager}
+        onSigninCallback={onSigninCallback}
+        skipSigninCallback={skipSigninCallback}
+      >
         <Provider store={store}>
           <BrowserRouter>
             <App />

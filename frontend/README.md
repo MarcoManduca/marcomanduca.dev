@@ -164,7 +164,7 @@ src/
 │   └── contact/     # ContactForm (with honeypot anti-spam)
 ├── pages/           # Route-level components (+ pages/admin/ for the panel)
 ├── hooks/           # useAuth (admin-group check), useLanguage, useMediaUpload
-├── services/        # RTK Query: base api + injected domain endpoints
+├── services/        # RTK Query base api + domain endpoints, OIDC UserManager/session
 ├── store/           # Redux store factory
 ├── i18n/            # i18next init + locales/{en,it}.json
 ├── types/           # Interfaces mirroring backend schemas + enums
@@ -191,6 +191,14 @@ src/
    (`cognito:groups` claim); otherwise a forbidden message is shown.
 3. The Cognito access token is attached as a `Bearer` header by the RTK
    Query base layer.
+4. When the API rejects a token (401), the base layer renews it with a silent
+   refresh-token grant and retries. Requests rejected at the same time share
+   one refresh. If no new token is available, the session is ended through
+   the shared `UserManager` (`services/userManager.ts`), so the auth context
+   signs out and `ProtectedRoute` asks to sign in again. The request is then
+   retried anonymously, so public pages keep working.
+5. The `?code=&state=` exchange runs only on the redirect URI's path
+   (`/admin/callback`), never on public pages.
 
 ## Testing
 

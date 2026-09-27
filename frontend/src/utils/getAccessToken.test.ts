@@ -1,6 +1,6 @@
 import { COGNITO_AUTHORITY, COGNITO_CLIENT_ID } from '@/utils/env'
 
-import { clearStoredUser, getAccessToken } from './getAccessToken'
+import { getAccessToken } from './getAccessToken'
 
 const STORAGE_KEY = `oidc.user:${COGNITO_AUTHORITY}:${COGNITO_CLIENT_ID}`
 const nowSeconds = () => Math.floor(Date.now() / 1000)
@@ -37,13 +37,5 @@ describe('getAccessToken', () => {
     sessionStorage.setItem(STORAGE_KEY, '{not json')
 
     expect(getAccessToken()).toBeNull()
-  })
-
-  it('clears the stored user', () => {
-    storeUser({ access_token: 'valid', expires_at: nowSeconds() + 3600 })
-
-    clearStoredUser()
-
-    expect(sessionStorage.getItem(STORAGE_KEY)).toBeNull()
   })
 })
