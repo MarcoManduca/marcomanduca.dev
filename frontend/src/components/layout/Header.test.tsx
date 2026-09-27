@@ -1,4 +1,4 @@
-import { act, screen } from '@testing-library/react'
+import { act, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Link } from 'react-router-dom'
 
@@ -33,6 +33,20 @@ describe('Header', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Close menu' }))
     expect(queryMobileNav()).not.toBeInTheDocument()
+  })
+
+  it('offers the language and theme switches inside the mobile menu', async () => {
+    document.documentElement.dataset.theme = 'dark'
+    renderWithProviders(<Header />)
+    await openMenu()
+    const panel = within(document.getElementById('mobile-menu')!)
+
+    await userEvent.click(
+      panel.getByRole('button', { name: 'Switch to light theme' }),
+    )
+
+    expect(panel.getByRole('group', { name: 'Language' })).toBeInTheDocument()
+    expect(document.documentElement.dataset.theme).toBe('light')
   })
 
   it('moves focus to the first menu link when opened', async () => {

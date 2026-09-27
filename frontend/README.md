@@ -61,6 +61,8 @@ them at runtime).
   contact message), shown in the Home _Collection_ with a toast on each
   unlock. Progress lives in the `game` Redux slice, persisted to
   `localStorage` only (never sent to the backend).
+- **Header.** On phones the language and theme switches live in the menu
+  panel, next to the navigation.
 
 ## Scripts
 

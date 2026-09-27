@@ -29,30 +29,27 @@ export const Header = () => {
           <span>Marco Manduca</span>
         </Link>
 
-        {/* Desktop navigation */}
+        {/* Desktop navigation and settings */}
         <div className="hidden lg:block">
           <NavBar />
         </div>
-
-        <div className="flex items-center gap-3">
-          <div className="hidden lg:block">
-            <LanguageSwitcher />
-          </div>
+        <div className="hidden items-center gap-3 lg:flex">
+          <LanguageSwitcher />
           <ThemeToggle />
-
-          {/* Mobile menu toggle: hamburger when closed, X when open */}
-          <button
-            ref={toggleRef}
-            type="button"
-            aria-label={t(open ? 'nav.closeMenu' : 'nav.openMenu')}
-            aria-expanded={open}
-            aria-controls="mobile-menu"
-            onClick={toggle}
-            className="flex h-10 w-10 items-center justify-center text-body transition-colors hover:text-heading lg:hidden"
-          >
-            <MenuToggleIcon open={open} />
-          </button>
         </div>
+
+        {/* Mobile menu toggle: hamburger when closed, X when open */}
+        <button
+          ref={toggleRef}
+          type="button"
+          aria-label={t(open ? 'nav.closeMenu' : 'nav.openMenu')}
+          aria-expanded={open}
+          aria-controls="mobile-menu"
+          onClick={toggle}
+          className="flex h-10 w-10 items-center justify-center text-body transition-colors hover:text-heading lg:hidden"
+        >
+          <MenuToggleIcon open={open} />
+        </button>
       </div>
 
       {/* Mobile menu panel: overlays the page instead of pushing content down */}
@@ -63,7 +60,10 @@ export const Header = () => {
           className="absolute inset-x-0 top-full flex flex-col items-start gap-4 border-b border-edge bg-background px-4 py-4 shadow-lg lg:hidden"
         >
           <NavBar orientation="vertical" label="Mobile" onNavigate={close} />
-          <LanguageSwitcher />
+          <div className="flex items-center gap-3">
+            <LanguageSwitcher />
+            <ThemeToggle />
+          </div>
         </div>
       )}
     </header>
