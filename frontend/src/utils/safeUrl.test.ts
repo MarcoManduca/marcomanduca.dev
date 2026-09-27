@@ -28,12 +28,15 @@ describe('safeMediaUrl', () => {
     },
   )
 
-  it.each(['//evil.example.com/a.png', '/\\evil.example.com', 'javascript:x'])(
-    'rejects the image source %s',
-    (src) => {
-      expect(safeMediaUrl(src)).toBeUndefined()
-    },
-  )
+  it.each([
+    '//evil.example.com/a.png',
+    '/\\evil.example.com',
+    'javascript:x',
+    '/\t/evil.example.com/a.png',
+    '/images/new\nline.png',
+  ])('rejects the image source %j', (src) => {
+    expect(safeMediaUrl(src)).toBeUndefined()
+  })
 
   it('returns undefined without a source', () => {
     expect(safeMediaUrl(null)).toBeUndefined()

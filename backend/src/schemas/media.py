@@ -27,15 +27,16 @@ class PresignUploadRequest(BaseModel):
         Original file name; only a sanitised stem is kept.
     content_type : str
         MIME type the client will send on upload (allowlisted per prefix).
-    content_length : int or None
-        Optional exact size in bytes (at most 10 MB). When provided it is
-        signed into the URL, so S3 rejects a body of any other size.
+    content_length : int
+        Exact size in bytes (at most 10 MB). It is signed into the URL, so
+        S3 rejects a body of any other size: without it the presigned PUT
+        would accept an upload of any size.
     """
 
     prefix: MediaPrefix
     filename: str = Field(min_length=1, max_length=255)
     content_type: str = Field(min_length=1, max_length=128)
-    content_length: int | None = Field(default=None, ge=1, le=MAX_UPLOAD_BYTES)
+    content_length: int = Field(ge=1, le=MAX_UPLOAD_BYTES)
 
 
 class PresignUploadResponse(BaseModel):

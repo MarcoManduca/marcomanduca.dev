@@ -17,6 +17,7 @@ _UPLOAD_PAYLOAD = {
     "prefix": "images/projects/",
     "filename": "shot.png",
     "content_type": "image/png",
+    "content_length": 2048,
 }
 
 

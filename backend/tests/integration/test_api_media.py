@@ -9,6 +9,7 @@ _UPLOAD_PAYLOAD = {
     "prefix": "images/projects/",
     "filename": "screenshot.png",
     "content_type": "image/png",
+    "content_length": 2048,
 }
 _IMAGE_KEY = f"images/learning/{'a' * 32}-diagram.png"
 

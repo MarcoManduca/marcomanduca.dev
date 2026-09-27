@@ -11,6 +11,7 @@ describe('mediaApi', () => {
         prefix: 'images/projects/',
         filename: 'photo.png',
         content_type: 'image/png',
+        content_length: 2048,
       }),
     )
 
