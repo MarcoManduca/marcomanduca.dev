@@ -17,7 +17,7 @@ router = APIRouter(prefix="/technologies", tags=["technologies"])
 @router.get("", response_model=list[TechnologyResponse])
 def list_technologies(
     service: TechnologyService = Depends(get_technology_service),
-) -> list[dict[str, Any]]:
+) -> list[TechnologyResponse]:
     """List all technologies (public).
 
     Parameters
@@ -27,7 +27,7 @@ def list_technologies(
 
     Returns
     -------
-    list[dict[str, Any]]
+    list[TechnologyResponse]
         Technologies sorted by name.
     """
     return service.list_technologies()

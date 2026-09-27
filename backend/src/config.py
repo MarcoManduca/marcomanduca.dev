@@ -10,8 +10,8 @@ class AppEnv(StrEnum):
     """Deployment environment the application runs in.
 
     ``PROD`` is the fail-secure default: API docs are disabled and the
-    CloudFront origin secret is mandatory. ``LOCAL`` relaxes both for
-    development (docker-compose, tests).
+    settings in :data:`REQUIRED_IN_PROD` are mandatory. ``LOCAL`` relaxes
+    both for development (docker-compose, tests).
     """
 
     LOCAL = "local"
@@ -45,7 +45,8 @@ class Settings(BaseSettings):
     cognito_client_id: str = ""
 
     ses_sender_email: str = "noreply@marcomanduca.dev"
-    ses_recipient_email: str = "owner@marcomanduca.dev"
+    # No placeholder default: prod refuses to start without a real inbox.
+    ses_recipient_email: str = ""
 
     cors_origins: str = "http://localhost:5173"
 
@@ -53,11 +54,16 @@ class Settings(BaseSettings):
     # API Gateway HTTP API (publicly reachable) only serves requests that came
     # through the CDN. Mandatory in prod; empty disables the check locally.
     origin_verify_secret: str = ""
+    # Also accepted while a rotation propagates to every CloudFront edge
+    # (infra/README.md, "Rotate origin secret"); empty otherwise.
+    origin_verify_secret_previous: str = ""
 
     contact_rate_limit_max_requests: int = 5
     contact_rate_limit_window_seconds: int = 900
     # Site-wide cap on contact submissions per UTC day, across all IPs.
     contact_rate_limit_daily_max: int = 50
+
+    log_level: str = "INFO"
 
     @property
     def is_prod(self) -> bool:
@@ -80,6 +86,43 @@ class Settings(BaseSettings):
             Individual origins with surrounding whitespace stripped.
         """
         return [origin.strip() for origin in self.cors_origins.split(",")]
+
+
+# Settings without a usable default: an empty value in prod means a missing
+# environment variable, which would otherwise fail later and silently (403s,
+# broken admin auth, contact emails to nowhere).
+REQUIRED_IN_PROD = (
+    "origin_verify_secret",
+    "cognito_user_pool_id",
+    "cognito_client_id",
+    "ses_recipient_email",
+)
+
+
+class MissingSettingError(RuntimeError):
+    """Raised at startup when prod runs without a required setting."""
+
+
+def ensure_prod_settings(settings: Settings) -> None:
+    """Refuse to run in prod with a required setting left empty (fail secure).
+
+    Parameters
+    ----------
+    settings : Settings
+        Application settings.
+
+    Raises
+    ------
+    MissingSettingError
+        When ``app_env`` is prod and any :data:`REQUIRED_IN_PROD` is empty.
+    """
+    if not settings.is_prod:
+        return
+    missing = [name.upper() for name in REQUIRED_IN_PROD if not getattr(settings, name)]
+    if missing:
+        raise MissingSettingError(
+            f"{', '.join(missing)} must be set when APP_ENV=prod."
+        )
 
 
 @lru_cache

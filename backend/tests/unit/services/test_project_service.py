@@ -384,3 +384,22 @@ def test_delete_project_uses_a_single_conditional_delete() -> None:
     # Assert
     table.delete_if_exists.assert_called_once_with("demo-project")
     table.get.assert_not_called()
+
+
+def test_update_project_sets_created_at_when_the_stored_item_has_none(
+    service: ProjectService,
+    project_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange: an item written before created_at was recorded.
+    stored = ProjectCreate(**project_payload_factory()).model_dump(mode="json")
+    service._table.put_if_absent(
+        stored | {"slug": "demo-project", "updated_at": "2026-01-01T00:00:00Z"}
+    )
+
+    # Act
+    updated = service.update_project(
+        "demo-project", ProjectUpdate(**project_payload_factory())
+    )
+
+    # Assert
+    assert updated["created_at"] == updated["updated_at"]

@@ -18,6 +18,9 @@ from src.config import Settings, get_settings
 
 ADMIN_GROUP = "Administrators"
 _REQUIRED_CLAIMS = ["exp", "iat", "iss", "client_id", "token_use"]
+# Well below the 30 s Lambda / API Gateway timeout: a slow JWKS fetch on a
+# cold start then ends as a clean 401 instead of a gateway timeout.
+_JWKS_TIMEOUT_SECONDS = 5
 
 _bearer = HTTPBearer()
 _optional_bearer = HTTPBearer(auto_error=False)
@@ -26,7 +29,7 @@ _optional_bearer = HTTPBearer(auto_error=False)
 @lru_cache
 def _get_jwks_client(jwks_url: str) -> jwt.PyJWKClient:
     """Return a cached JWKS client for the given URL."""
-    return jwt.PyJWKClient(jwks_url, cache_keys=True)
+    return jwt.PyJWKClient(jwks_url, cache_keys=True, timeout=_JWKS_TIMEOUT_SECONDS)
 
 
 def _issuer(settings: Settings) -> str:

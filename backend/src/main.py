@@ -1,9 +1,10 @@
 """FastAPI application factory and wiring.
 
-Registers CORS, the ``/api/v1`` routers and the domain-error handlers.
-Rate limiting is applied as a dependency on the contact endpoint (see
-``src.utils.rate_limit``). In prod the interactive docs and the OpenAPI
-schema are disabled and a CloudFront origin secret is mandatory.
+Registers JSON logging, CORS, the ``/api/v1`` routers and the domain-error
+handlers. Rate limiting is applied as a dependency on the contact endpoint
+(see ``src.utils.rate_limit``). In prod the interactive docs and the OpenAPI
+schema are disabled and the settings in ``REQUIRED_IN_PROD`` (including the
+CloudFront origin secret) are mandatory.
 """
 
 import logging
@@ -13,7 +14,7 @@ from fastapi import APIRouter, FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from src.config import get_settings
+from src.config import ensure_prod_settings, get_settings
 from src.routers import contact, health, learning, media, projects, technologies
 from src.services.errors import (
     ConflictError,
@@ -21,9 +22,21 @@ from src.services.errors import (
     InvalidInputError,
     NotFoundError,
 )
-from src.utils.origin_verify import OriginVerifyMiddleware, ensure_origin_secret
+from src.utils.origin_verify import OriginVerifyMiddleware
+from src.utils.structured_logging import configure_logging
 
 API_PREFIX = "/api/v1"
+# AWS error codes meaning "slow down": transient, so 503 + Retry-After.
+_THROTTLING_CODES = frozenset(
+    {
+        "ThrottlingException",
+        "ProvisionedThroughputExceededException",
+        "RequestLimitExceeded",
+        "Throttling",
+        "SlowDown",
+    }
+)
+_RETRY_AFTER_SECONDS = "1"
 
 logger = logging.getLogger(__name__)
 
@@ -38,11 +51,12 @@ def create_app() -> FastAPI:
 
     Raises
     ------
-    MissingOriginSecretError
-        When running in prod without ``ORIGIN_VERIFY_SECRET``.
+    MissingSettingError
+        When running in prod with a required setting left empty.
     """
     settings = get_settings()
-    ensure_origin_secret(settings)
+    configure_logging(settings.log_level)
+    ensure_prod_settings(settings)
     docs_enabled = not settings.is_prod
     app = FastAPI(
         title="marcomanduca.dev API",
@@ -60,7 +74,11 @@ def create_app() -> FastAPI:
         allow_headers=["Authorization", "Content-Type"],
     )
     # Added last so it runs first: reject non-CDN traffic before anything else.
-    app.add_middleware(OriginVerifyMiddleware, secret=settings.origin_verify_secret)
+    app.add_middleware(
+        OriginVerifyMiddleware,
+        secret=settings.origin_verify_secret,
+        previous_secret=settings.origin_verify_secret_previous,
+    )
     _register_routers(app)
     _register_error_handlers(app)
     return app
@@ -117,6 +135,12 @@ def _register_error_handlers(app: FastAPI) -> None:
         # Safety net: never echo AWS error messages (they name tables/keys).
         code = exc.response.get("Error", {}).get("Code", "Unknown")
         logger.error("aws_client_error", extra={"error_code": code})
+        if code in _THROTTLING_CODES:
+            return JSONResponse(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                content={"detail": "Service busy. Please try again shortly."},
+                headers={"Retry-After": _RETRY_AFTER_SECONDS},
+            )
         if code == "ValidationException":
             return JSONResponse(
                 status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,

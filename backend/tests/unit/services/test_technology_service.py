@@ -66,7 +66,7 @@ def test_list_technologies_returns_items_sorted_by_name(
     items = service.list_technologies()
 
     # Assert
-    assert [item["name"] for item in items] == ["Boto3", "React"]
+    assert [item.name for item in items] == ["Boto3", "React"]
 
 
 def test_delete_technology_removes_item(service: TechnologyService) -> None:
@@ -88,3 +88,19 @@ def test_delete_technology_raises_not_found_on_missing_id(
     # Act / Assert
     with pytest.raises(NotFoundError):
         service.delete_technology("missing")
+
+
+def test_list_technologies_skips_items_stored_in_an_older_shape(
+    service: TechnologyService,
+) -> None:
+    # Arrange: an item written before "category" existed.
+    service.create_technology(
+        TechnologyCreate(name="FastAPI", icon="fastapi", category="backend")
+    )
+    TechnologiesTable().put_if_absent({"id": "legacy", "name": "Legacy", "icon": "x"})
+
+    # Act
+    items = service.list_technologies()
+
+    # Assert
+    assert [item.id for item in items] == ["fastapi"]

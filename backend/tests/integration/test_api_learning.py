@@ -6,6 +6,8 @@ from typing import Any
 import pytest
 from httpx import AsyncClient
 
+from src.models.learning_table import LearningTable
+
 pytestmark = pytest.mark.integration
 
 
@@ -174,3 +176,31 @@ async def test_delete_article_returns_204(
 
     # Assert
     assert response.status_code == 204
+
+
+async def test_list_articles_still_answers_with_an_article_in_an_older_shape(
+    public_client: AsyncClient,
+    admin_client: AsyncClient,
+    article_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange: one current article and one stored before the tag length cap.
+    await admin_client.post(
+        "/api/v1/learning",
+        json=article_payload_factory(status="published"),
+    )
+    LearningTable().put_version_if_absent(
+        article_payload_factory(status="published", tags=["x" * 41])
+        | {
+            "slug": "legacy-note",
+            "version": 1,
+            "created_at": "2026-01-01T00:00:00Z",
+            "updated_at": "2026-01-01T00:00:00Z",
+        }
+    )
+
+    # Act
+    response = await public_client.get("/api/v1/learning")
+
+    # Assert
+    assert response.status_code == 200
+    assert [article["slug"] for article in response.json()] == ["demo-article"]

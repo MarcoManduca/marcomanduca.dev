@@ -103,8 +103,8 @@ def test_get_article_returns_latest_version(
     item = service.get_article("demo-article")
 
     # Assert
-    assert item["version"] == 2
-    assert item["tags"] == ["updated"]
+    assert item.version == 2
+    assert item.tags == ["updated"]
 
 
 def test_get_article_raises_not_found_on_missing_slug(
@@ -194,7 +194,7 @@ def test_list_articles_returns_only_latest_versions(
 
     # Assert
     assert len(items) == 1
-    assert items[0]["version"] == 2
+    assert items[0].version == 2
 
 
 def test_list_articles_excludes_drafts_for_public_callers(
@@ -212,7 +212,7 @@ def test_list_articles_excludes_drafts_for_public_callers(
     items = service.list_articles(include_unpublished=False)
 
     # Assert
-    assert [item["slug"] for item in items] == ["demo-article"]
+    assert [item.slug for item in items] == ["demo-article"]
 
 
 def test_list_articles_filters_by_category_and_tag(
@@ -234,7 +234,7 @@ def test_list_articles_filters_by_category_and_tag(
     )
 
     # Assert
-    assert [item["slug"] for item in items] == ["cloud-note"]
+    assert [item.slug for item in items] == ["cloud-note"]
 
 
 def test_delete_article_removes_all_versions(
@@ -259,3 +259,81 @@ def test_delete_article_raises_not_found_on_missing_slug(
     # Act / Assert
     with pytest.raises(NotFoundError):
         service.delete_article("missing")
+
+
+def _store_raw_version(
+    article_payload_factory: Callable[..., dict[str, Any]], **overrides: Any
+) -> None:
+    """Store a version as an older release could have, bypassing validation.
+
+    An override set to ``None`` leaves that attribute out entirely.
+    """
+    item = article_payload_factory() | {
+        "slug": "legacy-note",
+        "version": 1,
+        "created_at": "2026-01-01T00:00:00Z",
+        "updated_at": "2026-01-01T00:00:00Z",
+    }
+    stored = {
+        key: value for key, value in (item | overrides).items() if value is not None
+    }
+    LearningTable().put_version_if_absent(stored)
+
+
+# 41 characters: over the current 40-character tag limit.
+_LEGACY_TAGS = ["x" * 41]
+
+
+def test_list_articles_skips_a_latest_version_in_an_older_shape(
+    service: LearningService,
+    article_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange
+    service.create_article(ArticleCreate(**article_payload_factory()))
+    _store_raw_version(article_payload_factory, tags=_LEGACY_TAGS)
+
+    # Act
+    items = service.list_articles(include_unpublished=True)
+
+    # Assert
+    assert [item.slug for item in items] == ["demo-article"]
+
+
+def test_get_article_treats_an_older_shape_as_missing(
+    service: LearningService,
+    article_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange
+    _store_raw_version(article_payload_factory, tags=_LEGACY_TAGS)
+
+    # Act / Assert
+    with pytest.raises(NotFoundError):
+        service.get_article("legacy-note", include_unpublished=True)
+
+
+def test_rollback_article_refuses_a_version_in_an_older_shape(
+    service: LearningService,
+    article_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange: v1 predates the tag limit, v2 is current.
+    _store_raw_version(article_payload_factory, tags=_LEGACY_TAGS)
+    _store_raw_version(article_payload_factory, version=2)
+
+    # Act / Assert
+    with pytest.raises(InvalidInputError):
+        service.rollback_article("legacy-note", 1)
+
+
+def test_update_article_sets_created_at_when_the_stored_item_has_none(
+    service: LearningService,
+    article_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange
+    _store_raw_version(article_payload_factory, created_at=None)
+    payload = ArticleUpdate(**article_payload_factory())
+
+    # Act
+    item = service.update_article("legacy-note", payload)
+
+    # Assert
+    assert item["created_at"] == item["updated_at"]

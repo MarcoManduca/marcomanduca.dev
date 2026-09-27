@@ -71,7 +71,7 @@ def test_project_create_accepts_fields_at_their_maximum_length(
         title={"it": "x" * TITLE_MAX_LENGTH, "en": "x" * TITLE_MAX_LENGTH},
         content_markdown={"it": "x" * MARKDOWN_MAX_LENGTH, "en": "#"},
         technologies=["t"] * 30,
-        media=[{"src": "i", "alt": _ALT}] * 20,
+        media=[{"src": "/i", "alt": _ALT}] * 20,
         metrics=[_METRIC] * 4,
         topics=[_TOPIC] * 5,
         links=[_LINK] * 10,

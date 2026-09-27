@@ -5,14 +5,21 @@ from typing import Any
 
 from src.models.learning_table import LearningTable
 from src.schemas.common import PublicationStatus
-from src.schemas.learning import ArticleCreate, ArticleUpdate, LearningCategory
+from src.schemas.learning import (
+    ArticleCreate,
+    ArticleResponse,
+    ArticleUpdate,
+    LearningCategory,
+)
 from src.services.errors import ConflictError, InvalidInputError, NotFoundError
+from src.services.parsing import parse_item, parse_items
 from src.services.timestamps import utc_now_iso
 from src.utils.slugify import slugify
 
 _FIRST_VERSION = 1
 _MAX_WRITE_RETRIES = 5
 _EMPTY_SLUG_MESSAGE = "Title must contain at least one alphanumeric character."
+_INVALID_SHAPE_EVENT = "article_invalid_shape"
 
 
 class LearningService:
@@ -37,7 +44,7 @@ class LearningService:
         category: LearningCategory | None = None,
         tag: str | None = None,
         include_unpublished: bool = False,
-    ) -> list[dict[str, Any]]:
+    ) -> list[ArticleResponse]:
         """Return the latest version of each article, filtered.
 
         Parameters
@@ -52,30 +59,33 @@ class LearningService:
 
         Returns
         -------
-        list[dict[str, Any]]
-            Latest article versions, newest first.
+        list[ArticleResponse]
+            Latest article versions, newest first. A latest version stored
+            in an outdated shape is left out (and logged) rather than
+            failing the whole list.
         """
         latest_by_slug: dict[str, dict[str, Any]] = {}
         for item in self._table.scan_all():
             current = latest_by_slug.get(item["slug"])
             if current is None or item["version"] > current["version"]:
                 latest_by_slug[item["slug"]] = item
-        items = list(latest_by_slug.values())
+        articles = parse_items(
+            ArticleResponse,
+            latest_by_slug.values(),
+            key="slug",
+            event=_INVALID_SHAPE_EVENT,
+        )
         if not include_unpublished:
-            items = [
-                item
-                for item in items
-                if item.get("status") == PublicationStatus.PUBLISHED.value
-            ]
+            articles = [a for a in articles if a.status is PublicationStatus.PUBLISHED]
         if category:
-            items = [item for item in items if item.get("category") == category.value]
+            articles = [a for a in articles if a.category is category]
         if tag:
-            items = [item for item in items if tag in item.get("tags", [])]
-        return sorted(items, key=lambda item: item.get("updated_at", ""), reverse=True)
+            articles = [a for a in articles if tag in a.tags]
+        return sorted(articles, key=lambda article: article.updated_at, reverse=True)
 
     def get_article(
         self, slug: str, *, include_unpublished: bool = False
-    ) -> dict[str, Any]:
+    ) -> ArticleResponse:
         """Fetch the latest version of an article.
 
         Parameters
@@ -87,21 +97,27 @@ class LearningService:
 
         Returns
         -------
-        dict[str, Any]
-            The latest version item.
+        ArticleResponse
+            The latest version.
 
         Raises
         ------
         NotFoundError
-            When the article is missing or not visible to the caller.
+            When the article is missing, not visible to the caller, or its
+            latest version is stored in a shape the schema cannot read.
         """
         item = self._table.get_latest(slug)
-        if item is None:
+        article = (
+            parse_item(ArticleResponse, item, key="slug", event=_INVALID_SHAPE_EVENT)
+            if item is not None
+            else None
+        )
+        if article is None:
             raise NotFoundError(f"Article '{slug}' not found.")
-        is_published = item.get("status") == PublicationStatus.PUBLISHED.value
+        is_published = article.status is PublicationStatus.PUBLISHED
         if not include_unpublished and not is_published:
             raise NotFoundError(f"Article '{slug}' not found.")
-        return item
+        return article
 
     def list_versions(self, slug: str) -> list[dict[str, Any]]:
         """Return all stored versions of an article, newest first.
@@ -186,11 +202,12 @@ class LearningService:
             latest = self._table.get_latest(slug)
             if latest is None:
                 raise NotFoundError(f"Article '{slug}' not found.")
+            now = utc_now_iso()
             item = payload.model_dump(mode="json") | {
                 "slug": slug,
                 "version": latest["version"] + 1,
-                "created_at": latest["created_at"],
-                "updated_at": utc_now_iso(),
+                "created_at": latest.get("created_at") or now,
+                "updated_at": now,
             }
             if self._table.put_version_if_absent(item):
                 return item
@@ -215,12 +232,23 @@ class LearningService:
         ------
         NotFoundError
             When the article or the requested version does not exist.
+        InvalidInputError
+            When the version is stored in a shape the current schema cannot
+            read, so restoring it would break the article.
         ConflictError
             When concurrent writers keep claiming the next version.
         """
         target = self._table.get_version(slug, version)
         if target is None:
             raise NotFoundError(f"Version {version} of article '{slug}' not found.")
+        if (
+            parse_item(ArticleResponse, target, key="slug", event=_INVALID_SHAPE_EVENT)
+            is None
+        ):
+            raise InvalidInputError(
+                f"Version {version} of article '{slug}' no longer matches the "
+                "article schema and cannot be restored."
+            )
         for _ in range(_MAX_WRITE_RETRIES):
             latest = self._table.get_latest(slug)
             if latest is None:

@@ -67,8 +67,7 @@ class MediaService:
         Parameters
         ----------
         payload : PresignUploadRequest
-            Destination prefix, original filename, MIME type and optional
-            exact size.
+            Destination prefix, original filename, MIME type and exact size.
 
         Returns
         -------
@@ -86,9 +85,8 @@ class MediaService:
             "Bucket": self._bucket,
             "Key": key,
             "ContentType": payload.content_type,
+            "ContentLength": payload.content_length,
         }
-        if payload.content_length is not None:
-            params["ContentLength"] = payload.content_length
         url = self._client.generate_presigned_url(
             "put_object", Params=params, ExpiresIn=self._expiration
         )

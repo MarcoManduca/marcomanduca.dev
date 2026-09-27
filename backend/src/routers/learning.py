@@ -24,7 +24,7 @@ def list_articles(
     tag: str | None = None,
     admin: dict[str, Any] | None = Depends(optional_admin),
     service: LearningService = Depends(get_learning_service),
-) -> list[dict[str, Any]]:
+) -> list[ArticleResponse]:
     """List the latest version of each article.
 
     Parameters
@@ -40,7 +40,7 @@ def list_articles(
 
     Returns
     -------
-    list[dict[str, Any]]
+    list[ArticleResponse]
         Matching latest article versions.
     """
     return service.list_articles(
@@ -55,7 +55,7 @@ def get_article(
     slug: str,
     admin: dict[str, Any] | None = Depends(optional_admin),
     service: LearningService = Depends(get_learning_service),
-) -> dict[str, Any]:
+) -> ArticleResponse:
     """Fetch the latest version of an article.
 
     Parameters
@@ -69,7 +69,7 @@ def get_article(
 
     Returns
     -------
-    dict[str, Any]
+    ArticleResponse
         Latest article version.
     """
     return service.get_article(slug, include_unpublished=admin is not None)

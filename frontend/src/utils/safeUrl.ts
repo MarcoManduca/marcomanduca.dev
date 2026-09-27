@@ -16,8 +16,12 @@ export const safeExternalUrl = (url?: string | null): string | undefined => {
   }
 }
 
-/** A path on this site, like `/images/…`; not `//host` nor `/\host`. */
-const SITE_PATH = /^\/(?![/\\])/
+/**
+ * A path on this site, like `/images/…`; not `//host` nor `/\host`. No
+ * whitespace or control characters either: browsers strip tabs and newlines
+ * from URLs, so `/<tab>/host` would load `//host`.
+ */
+const SITE_PATH = /^\/(?![/\\])[^\s\p{Cc}]*$/u
 
 /**
  * Return an image source the page may load, else `undefined`: an http(s)
