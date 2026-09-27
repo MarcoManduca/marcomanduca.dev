@@ -100,7 +100,9 @@ See `.env.example` for the full annotated list.
 ```bash
 python3.12 -m venv .venv
 source .venv/bin/activate
-pip install -e ".[dev]"
+# Same pins as CI and the Lambda image (see "Dependency lockfile" below).
+pip install --require-hashes -r requirements-dev.lock
+pip install --no-deps -e .
 
 cp .env.example .env  # adjust values
 
@@ -147,17 +149,31 @@ from `requirements.lock` with `--require-hashes`.
 
 ## Dependency lockfile
 
-`pyproject.toml` declares compatible ranges; `requirements.lock` pins the
-exact runtime set (transitive dependencies included) with hashes, resolved
-for the Lambda target (Python 3.12, Linux arm64). Regenerate it after
-changing runtime dependencies, then sync your venv to it:
+`pyproject.toml` declares compatible ranges; two hashed lockfiles pin the
+exact sets actually installed:
+
+| File | Contents | Used by |
+|------|----------|---------|
+| `requirements.lock` | runtime set (transitive included), resolved for the Lambda target (Python 3.12, Linux arm64) | Docker image, `pip-audit` |
+| `requirements-dev.lock` | the same runtime pins (`-c requirements.lock`) + dev tools, universal resolution | CI, local venv, `pip-audit` |
+
+CI installs `requirements-dev.lock`, so tests and the dependency audit run
+against the versions the image ships. Regenerate both after changing
+dependencies (runtime lock first, since the dev lock is constrained by it),
+then sync your venv:
 
 ```bash
 pip install uv  # once, inside the venv
 uv pip compile pyproject.toml --generate-hashes --python-version 3.12 \
   --python-platform aarch64-manylinux_2_28 -o requirements.lock
-uv pip install --require-hashes -r requirements.lock
+uv pip compile pyproject.toml --extra dev -c requirements.lock --universal \
+  --python-version 3.12 --generate-hashes -o requirements-dev.lock
+uv pip install --require-hashes -r requirements-dev.lock && uv pip install --no-deps -e .
 ```
+
+Dependabot does not regenerate these files; the weekly CI run audits them
+(`pip-audit -r requirements.lock -r requirements-dev.lock --disable-pip`),
+so a new advisory on a pinned version fails CI even without a push.
 
 ## Dependency justification
 
@@ -177,4 +193,5 @@ a contact form; SES is the real gatekeeper) and any rate-limit library
 across Lambda invocations).
 
 Dev only: **pytest**, **pytest-cov**, **pytest-asyncio**, **httpx**
-(ASGI test client), **moto** (AWS mocks), **ruff** (format + lint).
+(ASGI test client), **moto** (AWS mocks), **ruff** (format + lint),
+**pip-audit** (vulnerability audit of the lockfiles).

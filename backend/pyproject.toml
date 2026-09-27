@@ -25,6 +25,7 @@ dev = [
     "httpx>=0.28",
     "moto[dynamodb,s3,ses]>=5.2",
     "ruff>=0.16",
+    "pip-audit>=2.10",
 ]
 
 [tool.setuptools.packages.find]
