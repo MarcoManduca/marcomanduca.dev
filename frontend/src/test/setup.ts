@@ -9,6 +9,17 @@ Element.prototype.scrollIntoView = vi.fn()
 // Nor hit-testing: nothing is drawn at any point unless a test says so.
 document.elementFromPoint = vi.fn(() => null)
 
+// Nor modal dialogs: showModal/close only toggle `open` (no top layer, focus
+// trap or Escape handling, which the browser provides).
+if (typeof HTMLDialogElement.prototype.showModal !== 'function') {
+  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
+    this.open = true
+  }
+  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
+    this.open = false
+  }
+}
+
 // jsdom has no PointerEvent: without it, pointer events carry no coordinates
 // or pointer type. A MouseEvent with the pointer fields stands in for it.
 if (typeof window.PointerEvent === 'undefined') {

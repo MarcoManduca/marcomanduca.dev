@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-type Editing<T> = { mode: 'new' } | { mode: 'edit'; item: T } | null
+export type Editing<T> = { mode: 'new' } | { mode: 'edit'; item: T } | null
 
 interface AdminEditorActions<I> {
   /** Each action must reject on failure (e.g. an RTK `.unwrap()` promise). */

@@ -3,6 +3,7 @@ import { Suspense } from 'react'
 import { Outlet, useLocation } from 'react-router'
 
 import { AchievementToast } from '@/components/game/AchievementToast'
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 import { Spinner } from '@/components/ui/Spinner'
 import { useUnlockOnMount } from '@/hooks/useUnlockOnMount'
 
@@ -24,16 +25,19 @@ export const PublicLayout = () => {
       <ScrollToTop />
       <SkipLink />
       <Header />
-      {/* Keyed by route so the entrance animation replays on navigation. */}
+      {/* Keyed by route so the entrance animation replays on navigation (and
+          the error boundary resets); a failing page keeps the header usable. */}
       <main
         key={pathname}
         id={MAIN_CONTENT_ID}
         tabIndex={-1}
         className="mx-auto w-full max-w-6xl flex-1 px-4 py-10 focus:outline-none motion-safe:animate-fade-in-up"
       >
-        <Suspense fallback={<Spinner />}>
-          <Outlet />
-        </Suspense>
+        <ErrorBoundary>
+          <Suspense fallback={<Spinner />}>
+            <Outlet />
+          </Suspense>
+        </ErrorBoundary>
       </main>
       <Footer />
       <AchievementToast />

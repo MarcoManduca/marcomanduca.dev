@@ -49,10 +49,15 @@ const escapeXml = (value) =>
 /** ISO timestamp -> YYYY-MM-DD, or undefined when missing. */
 const dateOf = (value) => (value ? String(value).split('T')[0] : undefined)
 
+/** A hung API must not stall the build: give up and skip those URLs. */
+const FETCH_TIMEOUT_MS = 10_000
+
 /** Fetch a public collection; return [] on any failure so the build never breaks. */
 async function fetchCollection(path) {
   try {
-    const response = await fetch(`${API_URL}${path}`)
+    const response = await fetch(`${API_URL}${path}`, {
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    })
     if (!response.ok) throw new Error(`HTTP ${response.status}`)
     const items = await response.json()
     return Array.isArray(items) ? items : []

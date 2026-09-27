@@ -88,7 +88,8 @@ them at runtime).
   a hero (classification chips, description, the license every project
   states, the lab and the main links as buttons, the cover in its area's
   foil frame), the quest brief and key numbers, the markdown long read
-  beside a side column (contents built from its `##` headings, the stack
+  beside a side column (contents built from its `##` headings, with the
+  ids the renderer gives them through the shared `remarkHeadingIds`, the stack
   grouped by the technologies' registry category, topics, resources and the
   CV quest the project was born in), the gallery, the optional lab last, and
   the previous and next side quests. The lab (`components/projects/lab/`)
@@ -168,7 +169,7 @@ src/
 ├── store/           # Redux store factory
 ├── i18n/            # i18next init + locales/{en,it}.json
 ├── types/           # Interfaces mirroring backend schemas + enums
-├── utils/           # cn, formatDate, env, parseList, getAccessToken
+├── utils/           # cn, formatDate, env, getAccessToken, markdown helpers
 ├── routes/          # Route table + ProtectedRoute (Cognito admin guard)
 └── test/            # Vitest setup, MSW server/handlers, render helpers
 ```

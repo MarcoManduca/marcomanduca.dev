@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next'
 import { AdminErrorAlert } from '@/components/admin/AdminErrorAlert'
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader'
 import { AdminTable } from '@/components/admin/AdminTable'
-import { EditorPanel } from '@/components/admin/EditorPanel'
 import { Spinner } from '@/components/ui/Spinner'
 import { useLanguage } from '@/hooks/useLanguage'
 import {
@@ -18,7 +17,7 @@ import type { LearningArticle, LearningArticleInput } from '@/types'
 
 import { ArticleRow } from './ArticleRow'
 import { DeleteConfirm } from './DeleteConfirm'
-import { LearningForm } from './LearningForm'
+import { LearningEditor } from './LearningEditor'
 import { VersionsPanel } from './VersionsPanel'
 import { useAdminEditor } from './useAdminEditor'
 
@@ -49,24 +48,14 @@ export const AdminLearning = () => {
         actionLabel={t('admin.learning.newArticle')}
         onAction={editor.startNew}
       />
-      {editing && (
-        <EditorPanel
-          title={t(
-            editing.mode === 'edit'
-              ? 'admin.learning.editArticle'
-              : 'admin.learning.newArticle',
-          )}
-          error={editor.saveError}
-        >
-          <LearningForm
-            key={editor.formKey}
-            initial={editing.mode === 'edit' ? editing.item : null}
-            isSaving={isCreating || isUpdating}
-            onSubmit={editor.save}
-            onCancel={editor.cancel}
-          />
-        </EditorPanel>
-      )}
+      <LearningEditor
+        editing={editing}
+        articles={data}
+        error={editor.saveError}
+        isSaving={isCreating || isUpdating}
+        onSubmit={editor.save}
+        onCancel={editor.cancel}
+      />
       <AdminErrorAlert
         title={t('admin.errors.deleteFailed')}
         error={editor.deleteError}

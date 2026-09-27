@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 
 import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import { useLanguage } from '@/hooks/useLanguage'
 import type { LearningArticle } from '@/types'
 import { excerpt } from '@/utils/excerpt'
@@ -31,6 +32,10 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
           {t(`learningCategories.${article.category}`)}
         </Badge>
       </div>
+      {/* Only a signed-in admin is served unpublished articles: flag them. */}
+      {article.status !== 'published' && (
+        <StatusBadge status={article.status} className="self-start" />
+      )}
       <p className="flex-1 text-sm text-body">
         {excerpt(localize(article.content_markdown))}
       </p>

@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 
 import { RowActions } from '@/components/admin/RowActions'
-import { StatusBadge } from '@/components/admin/StatusBadge'
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Button } from '@/components/ui/Button'
 import { useLanguage } from '@/hooks/useLanguage'
 import type { LearningArticle } from '@/types'

@@ -1,6 +1,7 @@
 import { Link } from 'react-router'
 
 import { Card } from '@/components/ui/Card'
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Tag } from '@/components/ui/Tag'
 import { useLanguage } from '@/hooks/useLanguage'
 import type { ProjectSummary } from '@/types'
@@ -17,6 +18,10 @@ export const ProjectCard = ({ project }: ProjectCardProps) => {
   return (
     <Card className="flex h-full flex-col gap-3">
       <AreaChips areas={project.areas} />
+      {/* Only a signed-in admin is served unpublished projects: flag them. */}
+      {project.status !== 'published' && (
+        <StatusBadge status={project.status} className="self-start" />
+      )}
       <h3 className="text-lg font-semibold text-heading">
         <Link
           to={`/projects/${project.slug}`}

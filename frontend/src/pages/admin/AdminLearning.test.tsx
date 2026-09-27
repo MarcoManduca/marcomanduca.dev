@@ -138,6 +138,36 @@ describe('AdminLearning', () => {
     ).not.toBeInTheDocument()
   })
 
+  it('reloads the open form with the restored content after a rollback', async () => {
+    const restored = {
+      ...articlesFixture[0],
+      title: { it: 'Notazione Big-O (v2)', en: 'Big-O notation (v2)' },
+      version: 4,
+    }
+    server.use(
+      http.post(`${API_URL}/learning/:slug/rollback`, () => {
+        server.use(
+          http.get(`${API_URL}/learning`, () =>
+            HttpResponse.json([restored, articlesFixture[1]]),
+          ),
+        )
+        return HttpResponse.json(restored)
+      }),
+    )
+    await renderPage()
+    await clickButton('Edit Big-O notation')
+    await clickButton('Versions of Big-O notation')
+    await screen.findByText('Version 1')
+
+    await clickButton('Rollback to version 2')
+
+    await waitFor(() =>
+      expect(screen.getByLabelText('Title (EN)')).toHaveValue(
+        'Big-O notation (v2)',
+      ),
+    )
+  })
+
   it('deletes an article after confirmation and closes its history', async () => {
     let deletedSlug: string | undefined
     server.use(

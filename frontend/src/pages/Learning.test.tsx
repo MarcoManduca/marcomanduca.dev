@@ -1,6 +1,10 @@
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { HttpResponse, http } from 'msw'
 
+import { articlesFixture } from '@/test/mocks/fixtures'
+import { API_URL } from '@/test/mocks/handlers'
+import { server } from '@/test/mocks/server'
 import { renderWithProviders } from '@/test/utils'
 
 import { Learning } from './Learning'
@@ -15,6 +19,20 @@ describe('Learning', () => {
     expect(
       screen.getByRole('link', { name: 'DynamoDB modelling' }),
     ).toBeInTheDocument()
+  })
+
+  it('flags the drafts an admin is served, and only those', async () => {
+    const [published, draft] = articlesFixture
+    server.use(
+      http.get(`${API_URL}/learning`, () =>
+        HttpResponse.json([published, { ...draft, status: 'draft' }]),
+      ),
+    )
+    renderWithProviders(<Learning />)
+    await screen.findByRole('link', { name: 'Big-O notation' })
+
+    expect(screen.getAllByText('Draft')).toHaveLength(1)
+    expect(screen.queryByText('Published')).not.toBeInTheDocument()
   })
 
   it('filters articles by category', async () => {

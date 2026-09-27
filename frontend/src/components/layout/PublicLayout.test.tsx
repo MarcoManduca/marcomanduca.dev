@@ -6,13 +6,19 @@ import { renderWithProviders } from '@/test/utils'
 
 import { PublicLayout } from './PublicLayout'
 
-const renderLayout = () =>
+const BrokenPage = () => {
+  throw new Error('chunk failed to load')
+}
+
+const renderLayout = (route = '/') =>
   renderWithProviders(
     <Routes>
       <Route element={<PublicLayout />}>
         <Route path="/" element={<p>Page body</p>} />
+        <Route path="/broken" element={<BrokenPage />} />
       </Route>
     </Routes>,
+    { route },
   )
 
 describe('PublicLayout', () => {
@@ -42,5 +48,15 @@ describe('PublicLayout', () => {
     expect(skipLink).toHaveFocus()
     expect(skipLink).toHaveAttribute('href', '#main-content')
     expect(screen.getByRole('main')).toHaveAttribute('id', 'main-content')
+  })
+
+  it('keeps the header usable when the page fails to render', () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined)
+
+    renderLayout('/broken')
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Something went wrong')
+    expect(screen.getByRole('navigation', { name: 'Main' })).toBeInTheDocument()
+    vi.restoreAllMocks()
   })
 })

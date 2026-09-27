@@ -18,4 +18,35 @@ describe('markdownHeadings', () => {
       { id: 'results', text: 'Results' },
     ])
   })
+
+  it('keeps intraword underscores and inline code text in the id', () => {
+    const markdown = '## The load_data step\n\n## Calling `fit()`'
+
+    expect(markdownHeadings(markdown)).toEqual([
+      { id: 'the-load-data-step', text: 'The load_data step' },
+      { id: 'calling-fit', text: 'Calling fit()' },
+    ])
+  })
+
+  it('uses the link text, not the link syntax, for text and id', () => {
+    const markdown = '## Using [dbt](https://getdbt.com) models'
+
+    expect(markdownHeadings(markdown)).toEqual([
+      { id: 'using-dbt-models', text: 'Using dbt models' },
+    ])
+  })
+
+  it('suffixes repeated headings so every id stays unique', () => {
+    const markdown = '## Results\n\n## Results\n\n## Results 2'
+
+    expect(markdownHeadings(markdown).map(({ id }) => id)).toEqual([
+      'results',
+      'results-2',
+      'results-2-2',
+    ])
+  })
+
+  it('falls back to a generic id when no letter or digit is left', () => {
+    expect(markdownHeadings('## ???')).toEqual([{ id: 'section', text: '???' }])
+  })
 })
