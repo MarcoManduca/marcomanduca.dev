@@ -77,6 +77,11 @@ updates:
       # Node majors move together with the CI node-version: bump by hand.
       - dependency-name: "node"
         update-types: ["version-update:semver-major"]
+      # nginx odd minors (1.31, 1.33, …) are the mainline branch; the image
+      # stays on stable (even minors), so only its patch releases are
+      # proposed. Move to the next stable (1.32, each April) by hand.
+      - dependency-name: "nginxinc/nginx-unprivileged"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
 
   - package-ecosystem: terraform
     directories:

@@ -211,8 +211,10 @@ src/
 
 ## Docker
 
-Multi-stage image: `node:24-slim` build → `nginxinc/nginx-unprivileged:1.27-alpine`
-serve (non-root, listens on **8080**). nginx does the SPA fallback to
+Multi-stage image: `node:24-slim` build → `nginxinc/nginx-unprivileged:1.30-alpine`
+serve (non-root, listens on **8080**), both pinned by digest. nginx stays on the
+stable branch (even minors): Dependabot only proposes its patch releases, and
+the yearly move to the next stable is done by hand. nginx does the SPA fallback to
 `index.html` and proxies `/api/` to the backend; the upstream is templated via
 the `BACKEND_UPSTREAM` env var (default `http://backend:8000`), so it works out
 of the box with compose. Security headers (CSP, Permissions-Policy,
