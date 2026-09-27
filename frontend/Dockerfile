@@ -27,7 +27,7 @@ COPY . .
 RUN npm run build
 
 # --- Serve stage (non-root nginx on the stable branch, listens on 8080) ---
-FROM nginxinc/nginx-unprivileged:1.30.5-alpine@sha256:4714e0b1b2577eaa1a6131d07c958b67f0eb68e6d0521e90c6e5287db8cf0bc5
+FROM nginxinc/nginx-unprivileged:1.31.6-alpine@sha256:6a23acdfca2b9cfbcec61419e3f1426bcbedb91362f2f19306a8567423bb4612
 
 # Backend upstream for the /api proxy, templated at container start
 ENV BACKEND_UPSTREAM=http://backend:8000
