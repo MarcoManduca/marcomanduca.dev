@@ -106,6 +106,7 @@ module "backend" {
 
     CONTACT_RATE_LIMIT_DAILY_MAX = tostring(var.contact_rate_limit_daily_max)
   }
+  origin_verify_secret_previous = var.origin_verify_secret_previous
 }
 
 module "cdn" {

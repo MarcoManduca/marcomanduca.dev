@@ -71,6 +71,13 @@ variable "throttling_burst_limit" {
   default     = 40
 }
 
+variable "origin_verify_secret_previous" {
+  description = "Former origin-verify secret accepted during a rotation (empty otherwise)."
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
 variable "log_retention_days" {
   description = "Retention of the Lambda and API Gateway access log groups."
   type        = number

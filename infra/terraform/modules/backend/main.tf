@@ -22,8 +22,9 @@
 #   - The HTTP API is public, but CloudFront injects a secret X-Origin-Verify
 #     header that the app checks (backend/src/utils/origin_verify.py); direct
 #     hits on the execute-api endpoint without the header get a 403. Rotate the
-#     secret with:
-#     terraform apply -replace=module.backend.random_password.origin_verify
+#     secret in two applies (infra/README.md, "Rotate origin secret"): the
+#     old value stays accepted (ORIGIN_VERIFY_SECRET_PREVIOUS) until every
+#     CloudFront edge sends the new one.
 #
 # Files in this module:
 #   main.tf   — Lambda function, HTTP API, origin-verify secret, log group
@@ -80,7 +81,8 @@ resource "aws_lambda_function" "backend" {
     # ORIGIN_VERIFY_SECRET is always set from random_password: the backend
     # refuses to start with APP_ENV=prod and an empty secret.
     variables = merge(var.container_environment, {
-      ORIGIN_VERIFY_SECRET = random_password.origin_verify.result
+      ORIGIN_VERIFY_SECRET          = random_password.origin_verify.result
+      ORIGIN_VERIFY_SECRET_PREVIOUS = var.origin_verify_secret_previous
     })
   }
 
@@ -133,8 +135,6 @@ resource "aws_apigatewayv2_stage" "backend" {
     throttling_rate_limit  = var.throttling_rate_limit
     throttling_burst_limit = var.throttling_burst_limit
   }
-}
-
 
   access_log_settings {
     destination_arn = aws_cloudwatch_log_group.api_access.arn
@@ -149,6 +149,8 @@ resource "aws_apigatewayv2_stage" "backend" {
       error             = "$context.error.message"
     })
   }
+}
+
 resource "aws_lambda_permission" "apigw" {
   statement_id  = "AllowApiGatewayInvoke"
   action        = "lambda:InvokeFunction"

@@ -37,8 +37,9 @@ Design decisions:
 - **Origin protection.** The HTTP API is public, but CloudFront injects a
   secret `X-Origin-Verify` header that the app checks
   (`backend/src/utils/origin_verify.py`); direct hits on the execute-api
-  endpoint without it get a 403. Rotate the secret with
-  `terraform apply -replace=module.backend.random_password.origin_verify`.
+  endpoint without it get a 403. Rotation is two applies with no downtime
+  (the old value stays accepted meanwhile): see "Rotate origin secret" in
+  Day-2 operations.
 - **No VPC.** The function talks only to public AWS APIs (DynamoDB, S3, SES,
   Cognito JWKS), so it runs outside a VPC: no subnets, no NAT gateway, no
   public IP to pay for.
@@ -397,7 +398,7 @@ Notes:
 | Tail backend logs          | `aws logs tail /aws/lambda/marcomanduca-dev-backend --follow`      |
 | Infrastructure change      | edit Terraform → `terraform plan` → `terraform apply`              |
 | Roll back backend          | `IMAGE_TAG=<older-sha> ./infra/scripts/deploy-backend.sh` (no rebuild; the image must still be in ECR, which keeps the last 10) |
-| Rotate origin secret       | `terraform apply -replace=module.backend.random_password.origin_verify` |
+| Rotate origin secret       | two applies, see below                                             |
 
 Backend deploys only ever build the committed checkout, because an image
 pushed under the wrong immutable SHA tag cannot be fixed. The script refuses
@@ -414,6 +415,27 @@ Frontend deploys upload hashed `assets/` first with
 other root files with `no-cache`. Old hashed assets are kept for
 `ASSET_RETENTION_DAYS` (default 7) so visitors still on the previous
 `index.html` keep working, then pruned.
+
+### Rotate origin secret
+
+CloudFront takes minutes to push a new `X-Origin-Verify` value to every edge,
+while the Lambda switches in seconds. So the old value stays accepted
+(`ORIGIN_VERIFY_SECRET_PREVIOUS`) until the distribution is deployed:
+
+```bash
+cd infra/terraform
+# 1. New secret; the current one keeps working. The value only lives in
+#    this shell (never in a tfvars file).
+export TF_VAR_origin_verify_secret_previous="$(aws lambda get-function-configuration \
+  --function-name marcomanduca-dev-backend \
+  --query 'Environment.Variables.ORIGIN_VERIFY_SECRET' --output text)"
+terraform apply -replace=module.backend.random_password.origin_verify
+
+# 2. Once every edge sends the new value, stop accepting the old one.
+aws cloudfront wait distribution-deployed --id "$(terraform output -raw cloudfront_distribution_id)"
+unset TF_VAR_origin_verify_secret_previous
+terraform apply
+```
 
 Follow-up (not implemented): deploy automation (GitHub Actions with OIDC
 role assumption) — deploys are manual via the scripts today.

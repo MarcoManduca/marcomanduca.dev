@@ -133,3 +133,15 @@ variable "dmarc_report_email" {
   type        = string
   default     = null
 }
+
+variable "origin_verify_secret_previous" {
+  description = <<-EOT
+    Former X-Origin-Verify secret, still accepted by the backend while a
+    rotation propagates to every CloudFront edge. Pass it only for the
+    rotation apply, via TF_VAR_origin_verify_secret_previous (never in a
+    tfvars file); see infra/README.md, "Rotate origin secret".
+  EOT
+  type        = string
+  default     = ""
+  sensitive   = true
+}
