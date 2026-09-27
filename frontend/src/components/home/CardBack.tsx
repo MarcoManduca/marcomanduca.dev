@@ -58,10 +58,6 @@ export const CardBack = () => {
           {t('home.card.description')}
         </p>
       </section>
-
-      <p className="mt-auto text-right font-display text-sm font-bold italic text-muted">
-        {t('home.card.serial')}
-      </p>
     </>
   )
 }
