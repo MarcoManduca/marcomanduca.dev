@@ -1,0 +1,231 @@
+{
+  "title": {
+    "it": "Deep Layers",
+    "en": "Deep Layers"
+  },
+  "description": {
+    "it": "Una rete impara a prevedere l'infrarosso di un dipinto partendo dalla sua foto a colori: dove l'IR reale si discosta dalla previsione, affiora ciò che la superficie non mostra.",
+    "en": "A network learns to predict a painting's infrared from its colour photo: wherever the real IR departs from the prediction, what the surface hides comes to light."
+  },
+  "areas": [
+    "ml",
+    "dl"
+  ],
+  "context": "academic",
+  "cover": {
+    "src": "/images/projects/deep-layers/cover.webp",
+    "alt": {
+      "it": "Un dipinto con sfere e triangoli: a sinistra la foto a colori, a destra il residuo che fa emergere il disegno preparatorio",
+      "en": "A painting of spheres and triangles: the colour photo on the left, on the right the residual that reveals the underdrawing"
+    }
+  },
+  "metrics": [
+    {
+      "value": "15",
+      "label": {
+        "it": "modelli confrontati",
+        "en": "models compared"
+      }
+    },
+    {
+      "value": "0.72 ±0.01",
+      "label": {
+        "it": "AUC nel rilevamento",
+        "en": "detection AUC"
+      }
+    },
+    {
+      "value": "4",
+      "label": {
+        "it": "segnali di anomalia",
+        "en": "anomaly signals"
+      }
+    }
+  ],
+  "technologies": [
+    "TensorFlow",
+    "Keras",
+    "Python",
+    "NumPy",
+    "scikit-image",
+    "SciPy",
+    "scikit-learn",
+    "Pillow",
+    "Jupyter",
+    "pytest",
+    "Ruff"
+  ],
+  "brief": {
+    "objective": {
+      "it": "Prevedere l'aspetto infrarosso di un dipinto dalla sola foto RGB, per far emergere ciò che la superficie nasconde.",
+      "en": "Predict a painting's infrared appearance from its RGB photo alone, to bring out what the surface hides."
+    },
+    "boss": {
+      "it": "Uno stesso colore visibile può avere più riflettanze IR: una stima puntuale non basta, e le maschere di verifica sono solo tre.",
+      "en": "One visible colour can match more than one IR reflectance: a point estimate falls short, and there are only three ground-truth masks."
+    },
+    "rewards": {
+      "it": "Mappe di anomalia che segnalano disegni preparatori e pentimenti, con AUC ≈ 0,72 ± 0,01 e un'incertezza per pixel.",
+      "en": "Anomaly maps that flag underdrawings and pentimenti, at AUC ≈ 0.72 ± 0.01, with a per-pixel uncertainty."
+    }
+  },
+  "content_markdown": {
+    "it": "## Il problema\n\nLa riflettografia infrarossa è uno strumento standard e non invasivo del restauro: rivela disegni preparatori, pentimenti e altre anomalie sotto lo strato visibile. Leggere le differenze tra visibile e infrarosso, però, richiede tempo e occhi esperti.\n\nInvece di analizzare direttamente l'IR, la pipeline impara la corrispondenza RGB → IR da coppie di immagini e studia il **residuo** tra l'IR osservato e quello previsto.\n\n## Approccio\n\nOgni architettura è un encoder–decoder completamente convoluzionale che accetta immagini di qualsiasi dimensione. Due famiglie a confronto:\n\n- **Deterministica** — `(H, W, 3) → (H, W, 1)`: un valore IR per pixel. U-Net, ResUNet, Attention U-Net, U-Net residua, U-Net v2, Restormer, varianti dilatate, EfficientNet-UNet.\n- **Eteroschedastica** — `(H, W, 3) → (H, W, 2)`: un valore IR e un'incertezza per pixel. Le stesse reti con una seconda uscita, addestrate con una NLL di Laplace.\n\n![Albero dei 15 modelli: un'unica U-Net, una componente variata alla volta, con uscita deterministica ed eteroschedastica](/images/projects/deep-layers/model-tree.svg)\n\nLa ricetta di addestramento è la stessa per tutti: GroupNorm, inizializzazione He, perdita Charbonnier + MS-SSIM, Adam con early stopping, e una suddivisione per opera che impedisce a uno stesso dipinto di finire sia nel training sia nella validazione.\n\n## Segnali e valutazione\n\nTutti i segnali partono dal residuo tra IR reale e IR previsto:\n\n- `raw_delta` — la differenza tra IR reale e previsto;\n- `structural_delta` — solo la parte strutturale della SSIM locale;\n- `|z|` — il residuo diviso per l'incertezza prevista dal modello;\n- `structural_z` — il segnale strutturale normalizzato per l'incertezza.\n\nLe mappe sono confrontate con tre maschere disegnate a mano: l'AUC fa da classifica principale, affiancata da average precision e lift; per i modelli con incertezza si misura anche la calibrazione.\n\n![AUC delle architetture deterministiche, raw delta contro structural delta](/images/projects/deep-layers/auc-deterministic.svg)\n\n![AUC delle architetture eteroschedastiche, |z| contro structural z](/images/projects/deep-layers/auc-nll.svg)\n\n## Risultati\n\n- I segnali **strutturali** superano nettamente quelli di **ampiezza** (AUC 0,62–0,72 contro 0,37–0,60): illuminazione ed esposizione spostano il livello medio dell'IR, non la sua struttura.\n- Il migliore è `resunet_nll` con `structural_z`: **AUC ≈ 0,72 ± 0,01**, con un ensemble a 3 fold.\n- La testa eteroschedastica aggiunge poco (+0,02 di AUC) e la sua incertezza è ottimista: un risultato negativo, riportato così com'è.\n- Il limite non è il modello: un semplice fit lineare per immagine arriva a 0,82 sul dipinto più facile. Servono più maschere annotate e un'acquisizione multispettrale.\n",
+    "en": "## The problem\n\nInfrared reflectography is a standard, non-invasive conservation tool: it reveals underdrawings, pentimenti and other anomalies beneath the visible layer. Reading the differences between the visible and the infrared image, though, takes time and expert eyes.\n\nRather than analysing the IR directly, the pipeline learns the RGB → IR mapping from paired images and studies the **residual** between the observed and the predicted IR.\n\n## Approach\n\nEvery architecture is a fully convolutional encoder–decoder that accepts images of any size. Two families are compared:\n\n- **Deterministic** — `(H, W, 3) → (H, W, 1)`: one IR value per pixel. U-Net, ResUNet, Attention U-Net, residual U-Net, U-Net v2, Restormer, dilated variants, EfficientNet-UNet.\n- **Heteroscedastic** — `(H, W, 3) → (H, W, 2)`: an IR value and an uncertainty per pixel. The same networks with a second output, trained with a Laplace NLL.\n\n![Tree of the 15 models: one U-Net, one component varied at a time, with a deterministic and a heteroscedastic output](/images/projects/deep-layers/model-tree.svg)\n\nThe training recipe is the same for all: GroupNorm, He initialisation, a Charbonnier + MS-SSIM loss, Adam with early stopping, and a split by artwork that keeps any painting from landing in both training and validation.\n\n## Signals and evaluation\n\nEvery signal starts from the residual between the real and the predicted IR:\n\n- `raw_delta` — the difference between real and predicted IR;\n- `structural_delta` — only the structural term of the local SSIM;\n- `|z|` — the residual divided by the uncertainty the model predicts;\n- `structural_z` — the structural signal normalised by that uncertainty.\n\nThe maps are scored against three hand-drawn masks: AUC is the main ranking, alongside average precision and lift; the models with uncertainty are also checked for calibration.\n\n![AUC of the deterministic architectures, raw delta against structural delta](/images/projects/deep-layers/auc-deterministic.svg)\n\n![AUC of the heteroscedastic architectures, |z| against structural z](/images/projects/deep-layers/auc-nll.svg)\n\n## Results\n\n- **Structural** signals clearly beat **magnitude** ones (AUC 0.62–0.72 against 0.37–0.60): lighting and exposure shift the mean IR level, not its structure.\n- The best is `resunet_nll` with `structural_z`: **AUC ≈ 0.72 ± 0.01**, as a 3-fold ensemble.\n- The heteroscedastic head adds little (+0.02 AUC) and its uncertainty is optimistic: a negative result, reported as it is.\n- The model is not the limit: a plain per-image linear fit reaches 0.82 on the easiest painting. More annotated masks and multispectral acquisition are what would help.\n"
+  },
+  "topics": [
+    {
+      "it": "computer vision",
+      "en": "computer vision"
+    },
+    {
+      "it": "image-to-image",
+      "en": "image-to-image"
+    },
+    {
+      "it": "riflettografia IR",
+      "en": "IR reflectography"
+    },
+    {
+      "it": "beni culturali",
+      "en": "cultural heritage"
+    },
+    {
+      "it": "incertezza",
+      "en": "uncertainty"
+    }
+  ],
+  "media": [
+    {
+      "src": "/images/projects/deep-layers/gt01-rgb.webp",
+      "alt": {
+        "it": "Foto RGB del dipinto GT01",
+        "en": "RGB photo of the GT01 painting"
+      },
+      "caption": {
+        "it": "Foto RGB",
+        "en": "RGB photo"
+      }
+    },
+    {
+      "src": "/images/projects/deep-layers/gt01-ir.webp",
+      "alt": {
+        "it": "Riflettografia infrarossa reale del dipinto GT01",
+        "en": "Real infrared reflectogram of the GT01 painting"
+      },
+      "caption": {
+        "it": "IR reale",
+        "en": "Real IR"
+      }
+    },
+    {
+      "src": "/images/projects/deep-layers/gt01-predicted.webp",
+      "alt": {
+        "it": "Infrarosso previsto dal modello per il dipinto GT01",
+        "en": "Infrared predicted by the model for the GT01 painting"
+      },
+      "caption": {
+        "it": "IR previsto · resunet_nll",
+        "en": "Predicted IR · resunet_nll"
+      }
+    },
+    {
+      "src": "/images/projects/deep-layers/gt01-structural-z.webp",
+      "alt": {
+        "it": "Mappa del residuo strutturale: affiorano i cerchi del disegno preparatorio",
+        "en": "Structural residual map: the circles of the underdrawing come through"
+      },
+      "caption": {
+        "it": "Residuo strutturale · structural_z",
+        "en": "Structural residual · structural_z"
+      }
+    }
+  ],
+  "links": [
+    {
+      "kind": "repo",
+      "url": "https://github.com/MarcoManduca/deep_layers"
+    },
+    {
+      "kind": "docs",
+      "url": "https://github.com/MarcoManduca/deep_layers/blob/main/architectures.md"
+    }
+  ],
+  "license": "CC BY-NC-SA 4.0",
+  "quest": "study-2025-09",
+  "lab": {
+    "kind": "image-compare",
+    "model": "resunet_nll",
+    "samples": [
+      {
+        "id": "gt01",
+        "label": {
+          "it": "GT01",
+          "en": "GT01"
+        },
+        "base": {
+          "src": "/images/projects/deep-layers/gt01-rgb.webp",
+          "alt": {
+            "it": "Foto RGB del dipinto GT01",
+            "en": "RGB photo of the GT01 painting"
+          },
+          "caption": {
+            "it": "RGB",
+            "en": "RGB"
+          }
+        },
+        "layers": [
+          {
+            "id": "predicted",
+            "label": {
+              "it": "IR previsto",
+              "en": "Predicted IR"
+            },
+            "src": "/images/projects/deep-layers/gt01-predicted.webp",
+            "alt": {
+              "it": "Infrarosso previsto dal modello per il dipinto GT01",
+              "en": "Infrared predicted by the model for the GT01 painting"
+            },
+            "description": {
+              "it": "Cosa si aspetta il modello nell'infrarosso, guardando solo i colori della foto.",
+              "en": "What the model expects to see in the infrared, looking only at the colours of the photo."
+            }
+          },
+          {
+            "id": "real",
+            "label": {
+              "it": "IR reale",
+              "en": "Real IR"
+            },
+            "src": "/images/projects/deep-layers/gt01-ir.webp",
+            "alt": {
+              "it": "Riflettografia infrarossa reale del dipinto GT01",
+              "en": "Real infrared reflectogram of the GT01 painting"
+            },
+            "description": {
+              "it": "La riflettografia vera, ripresa con una camera infrarossa: il termine di paragone.",
+              "en": "The real reflectogram, shot with an infrared camera: the benchmark."
+            }
+          },
+          {
+            "id": "residual",
+            "label": {
+              "it": "Residuo",
+              "en": "Residual"
+            },
+            "src": "/images/projects/deep-layers/gt01-structural-z.webp",
+            "alt": {
+              "it": "Mappa del residuo strutturale del dipinto GT01",
+              "en": "Structural residual map of the GT01 painting"
+            },
+            "description": {
+              "it": "Dove l'IR reale non torna con la previsione: affiorano i cerchi del disegno preparatorio, invisibili nella foto.",
+              "en": "Where the real IR does not match the prediction: the circles of the underdrawing, invisible in the photo, come through."
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "status": "published"
+}

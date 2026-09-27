@@ -1,8 +1,0 @@
-[
-  { "name": "Python", "icon": "python", "category": "language" },
-  { "name": "FastAPI", "icon": "fastapi", "category": "backend" },
-  { "name": "React", "icon": "react", "category": "frontend" },
-  { "name": "TypeScript", "icon": "typescript", "category": "language" },
-  { "name": "AWS", "icon": "aws", "category": "cloud" },
-  { "name": "DynamoDB", "icon": "dynamodb", "category": "database" }
-]

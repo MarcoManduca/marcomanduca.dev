@@ -7,14 +7,80 @@
     "it": "Analisi strutturale del benessere dei minori e della spesa pubblica in 16 paesi OCSE europei: preserva la natura ordinale degli indicatori con i Partially Ordered Sets (POSet) invece di ridurli a un indice composito.",
     "en": "Structural analysis of child well-being and public spending across 16 European OECD countries, preserving the ordinal nature of the indicators with Partially Ordered Sets (POSets) instead of collapsing them into a single composite score."
   },
-  "content_markdown": {
-    "it": "# Child Well-being — un'analisi basata sui POSet\n\nAnalisi strutturale del **benessere dei minori e della spesa pubblica** in **16 paesi OCSE europei** (2015 e 2018). Invece di comprimere decine di indicatori in un unico indice composito — che nasconde i trade-off e impone classifiche artificiali — lo studio preserva la **natura ordinale e multidimensionale** dei dati tramite i **Partially Ordered Sets (POSet)**.\n\n## L'idea\nUn paese *domina* un altro solo se ottiene risultati almeno pari su **ogni** indicatore. Quando nessuno dei due domina, restano **incomparabili** — e questa incomparabilità è trattata come informazione, non come rumore. I valori mancanti sono modellati come **incertezza strutturale** tramite intervalli negli iperreticoli.\n\n## Metodologia\n- **Aggregazione a cascata MRP** — una cascata a due livelli di Mutual Ranking Probability che aggrega 27 indicatori in macro-dimensioni.\n- **Minimum dominating set** — individua i paesi che nessun altro supera.\n- **Separazione posetica** — distanza di rango tra le estensioni lineari, stimata con campionamento MCMC di Bubley–Dyer (50.000 campioni per poset).\n- **Embedding cMDS** (Classical Multi-Dimensional Scaling) con allineamento di Procuste per confrontare le traiettorie 2015 → 2018 nello spazio di dominanza.\n\n## Dati\nOECD Child Well-being Explorer (27 indicatori: 20 di outcome sui minori + 7 di spesa pubblica), estratti via API SDMX/CSV.\n\n## Stack\nPython 3.11+, Jupyter, Polars, NumPy/SciPy, una libreria `poset` custom (port in Python del toolkit posetico in R), con un'implementazione R di riferimento per la validazione.\n\n> Progetto collaborativo. Codice e notebook su [GitHub](https://github.com/MarcoManduca/child_well-being).",
-    "en": "# Child Well-being — a POSet-based analysis\n\nA structural analysis of **child well-being and public expenditure** across **16 European OECD countries** (2015 and 2018). Instead of collapsing dozens of indicators into a single composite score — which hides trade-offs and forces artificial rankings — the study preserves the **ordinal, multi-dimensional nature** of the data using **Partially Ordered Sets (POSets)**.\n\n## The idea\nA country *dominates* another only when it performs at least as well on **every** indicator. When neither dominates, the two remain **incomparable** — and that incomparability is treated as information, not noise. Missing values are modelled as **structural uncertainty** through intervals in hyperlattices.\n\n## Methodology\n- **MRP cascade aggregation** — a two-level Mutual Ranking Probability cascade that aggregates 27 indicators into macro-dimensions.\n- **Minimum dominating set** — identifies the countries that no other outperforms.\n- **Posetic separation** — rank distance across linear extensions, estimated with Bubley–Dyer MCMC sampling (50,000 samples per poset).\n- **Classical MDS embedding** with Procrustes alignment to compare 2015 → 2018 trajectories in dominance space.\n\n## Data\nOECD Child Well-being Explorer (27 indicators: 20 child-outcome + 7 public-expenditure), extracted via the SDMX/CSV API.\n\n## Stack\nPython 3.11+, Jupyter, Polars, NumPy/SciPy, a custom `poset` library (a Python port of the R posetic toolkit), with an R reference implementation for validation.\n\n> Collaborative project. Code and notebooks on [GitHub](https://github.com/MarcoManduca/child_well-being)."
+  "areas": [
+    "data"
+  ],
+  "context": "academic",
+  "metrics": [
+    {
+      "value": "16",
+      "label": {
+        "it": "paesi OCSE",
+        "en": "OECD countries"
+      }
+    },
+    {
+      "value": "27",
+      "label": {
+        "it": "indicatori",
+        "en": "indicators"
+      }
+    },
+    {
+      "value": "2015–18",
+      "label": {
+        "it": "confronto",
+        "en": "comparison"
+      }
+    }
+  ],
+  "technologies": [
+    "Python",
+    "Jupyter",
+    "Polars",
+    "NumPy",
+    "SciPy",
+    "R"
+  ],
+  "brief": {
+    "objective": {
+      "it": "Confrontare benessere dei minori e spesa pubblica in 16 paesi OCSE senza ridurre gli indicatori a un unico punteggio.",
+      "en": "Compare child well-being and public spending across 16 OECD countries without collapsing the indicators into a single score."
+    },
+    "boss": {
+      "it": "Indicatori ordinali e con valori mancanti: ogni indice composito impone classifiche artificiali.",
+      "en": "Ordinal indicators with missing values: any composite index forces artificial rankings."
+    },
+    "rewards": {
+      "it": "Una mappa di dominanze e incomparabilità tra i paesi, con le loro traiettorie dal 2015 al 2018.",
+      "en": "A map of dominance and incomparability between countries, with their paths from 2015 to 2018."
+    }
   },
-  "technologies": ["Python", "Jupyter", "Polars", "NumPy", "SciPy", "R"],
-  "category": "data",
-  "images": [],
-  "github_url": "https://github.com/MarcoManduca/child_well-being",
-  "demo_url": null,
-  "status": "published"
+  "content_markdown": {
+    "it": "## L'idea\n\nInvece di comprimere decine di indicatori in un unico indice composito, che nasconde i trade-off e impone classifiche artificiali, lo studio preserva la **natura ordinale e multidimensionale** dei dati con i **Partially Ordered Sets (POSet)**.\n\nUn paese *domina* un altro solo se ottiene risultati almeno pari su **ogni** indicatore. Quando nessuno dei due domina, restano **incomparabili**: un'informazione, non rumore. I valori mancanti sono modellati come **incertezza strutturale** tramite intervalli negli iperreticoli.\n\n## Metodologia\n\n- **Aggregazione a cascata MRP** — una cascata a due livelli di Mutual Ranking Probability che aggrega 27 indicatori in macro-dimensioni.\n- **Minimum dominating set** — individua i paesi che nessun altro supera.\n- **Separazione posetica** — distanza di rango tra le estensioni lineari, stimata con campionamento MCMC di Bubley–Dyer (50.000 campioni per poset).\n- **Embedding cMDS** (Classical Multi-Dimensional Scaling) con allineamento di Procuste, per confrontare le traiettorie 2015 → 2018 nello spazio di dominanza.\n\n## Dati\n\nOECD Child Well-being Explorer: 27 indicatori, 20 di outcome sui minori e 7 di spesa pubblica, estratti via API SDMX/CSV. Il calcolo usa una libreria `poset` scritta per il progetto, port in Python del toolkit posetico in R, con un'implementazione R di riferimento per la validazione.\n",
+    "en": "## The idea\n\nInstead of collapsing dozens of indicators into a single composite score, which hides trade-offs and forces artificial rankings, the study preserves the **ordinal, multi-dimensional nature** of the data with **Partially Ordered Sets (POSets)**.\n\nA country *dominates* another only when it performs at least as well on **every** indicator. When neither dominates, the two remain **incomparable**: information, not noise. Missing values are modelled as **structural uncertainty** through intervals in hyperlattices.\n\n## Methodology\n\n- **MRP cascade aggregation** — a two-level Mutual Ranking Probability cascade that aggregates 27 indicators into macro-dimensions.\n- **Minimum dominating set** — identifies the countries that no other outperforms.\n- **Posetic separation** — rank distance across linear extensions, estimated with Bubley–Dyer MCMC sampling (50,000 samples per poset).\n- **Classical MDS embedding** with Procrustes alignment, to compare the 2015 → 2018 trajectories in dominance space.\n\n## Data\n\nOECD Child Well-being Explorer: 27 indicators, 20 child outcomes and 7 public-expenditure measures, extracted via the SDMX/CSV API. The computation relies on a `poset` library written for the project, a Python port of the R posetic toolkit, with an R reference implementation for validation.\n"
+  },
+  "topics": [
+    {
+      "it": "politiche pubbliche",
+      "en": "public policy"
+    },
+    {
+      "it": "statistica ordinale",
+      "en": "ordinal statistics"
+    },
+    {
+      "it": "insiemi parzialmente ordinati",
+      "en": "partially ordered sets"
+    }
+  ],
+  "links": [
+    {
+      "kind": "repo",
+      "url": "https://github.com/MarcoManduca/child_well-being"
+    }
+  ],
+  "quest": "study-2025-09",
+  "status": "published",
+  "license": "GPL-3.0 · CC BY-SA 4.0"
 }

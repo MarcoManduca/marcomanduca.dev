@@ -1,0 +1,123 @@
+{
+  "title": {
+    "it": "marcomanduca.dev",
+    "en": "marcomanduca.dev"
+  },
+  "description": {
+    "it": "Il mio portfolio raccontato come un gioco di carte collezionabili: CV e progetti in un sito bilingue, serverless su AWS.",
+    "en": "My portfolio told as a trading card game: CV and projects in a bilingual site, serverless on AWS."
+  },
+  "areas": [
+    "frontend",
+    "backend",
+    "cloud"
+  ],
+  "context": "personal",
+  "cover": {
+    "src": "/images/projects/marcomanduca-dev/cover.webp",
+    "alt": {
+      "it": "La Home del sito: la carta personaggio accanto al quest log",
+      "en": "The site's Home: the character card next to the quest log"
+    }
+  },
+  "metrics": [
+    {
+      "value": "600+",
+      "label": {
+        "it": "test automatici",
+        "en": "automated tests"
+      }
+    },
+    {
+      "value": "2",
+      "label": {
+        "it": "lingue, italiano e inglese",
+        "en": "languages, Italian and English"
+      }
+    },
+    {
+      "value": "7",
+      "label": {
+        "it": "figurine da collezionare",
+        "en": "figurines to collect"
+      }
+    },
+    {
+      "value": "97%+",
+      "label": {
+        "it": "copertura dei test",
+        "en": "test coverage"
+      }
+    }
+  ],
+  "technologies": [
+    "React",
+    "TypeScript",
+    "Tailwind CSS",
+    "FastAPI",
+    "AWS",
+    "Terraform",
+    "Vite",
+    "Redux Toolkit",
+    "Pydantic",
+    "DynamoDB",
+    "Docker",
+    "Vitest",
+    "pytest"
+  ],
+  "brief": {
+    "objective": {
+      "it": "Raccontare CV e progetti come una partita: carta personaggio, quest log, side quest e figurine da sbloccare.",
+      "en": "Tell my CV and projects as a game: a character card, a quest log, side quests and figurines to unlock."
+    },
+    "boss": {
+      "it": "Un'infrastruttura serverless su AWS descritta tutta in Terraform, sicura per impostazione e gestibile da una sola persona.",
+      "en": "A serverless AWS stack written entirely in Terraform, secure by default and run by one person."
+    },
+    "rewards": {
+      "it": "Un sito bilingue e accessibile, con pannello admin protetto da Cognito, contenuti versionati e oltre 600 test automatici.",
+      "en": "A bilingual, accessible site with a Cognito-protected admin panel, versioned content and more than 600 automated tests."
+    }
+  },
+  "content_markdown": {
+    "it": "## Il gioco\n\nIl CV diventa un gioco di carte. La carta personaggio si gira e segue il mouse, e il suo livello conta gli anni dal primo lavoro. Esperienze e studi sono quest attive o completate, le competenze un radar di statistiche e i progetti un mazzo di side quest da sfogliare. Esplorando il sito si sbloccano sette figurine, e lo sfondo lascia orme dove passa il mouse: mille orme valgono la figurina Level Up.\n\n## Le pagine\n\n- **Progetti** — ogni progetto è raccontato come una quest, con obiettivo, boss finale e ricompense, i numeri chiave e, quando c'è, un laboratorio per provare il modello, come il confronto tra foto e infrarosso di Deep Layers.\n- **Chi sono** — esperienze e formazione sono card su una linea del tempo che si illumina con lo scroll; ogni corso ha i suoi dati, il piano di studi e il link alla pagina ufficiale.\n- **Learning** — una sezione di appunti che compare nel menu solo quando c'è il primo articolo pubblicato.\n\n## Architettura\n\n- **Frontend** — React 18, Vite e TypeScript, stile con Tailwind e due temi, chiaro e scuro; dati con RTK Query, testi in italiano e inglese con i18next.\n- **Backend** — FastAPI e Pydantic in un container su AWS Lambda, tramite Lambda Web Adapter, dietro API Gateway; contenuti su DynamoDB, media e CV su S3, modulo contatti con SES e rate limit.\n- **Admin** — un pannello protetto da Cognito, con MFA obbligatoria, per progetti, articoli con versioni e ripristino, e media.\n- **Infrastruttura** — tutto in Terraform: CloudFront davanti al sito e all'API, header di sicurezza e un segreto condiviso che lascia passare solo le richieste arrivate da CloudFront; allarmi CloudWatch e un budget mensile avvisano via email.\n\n## Qualità\n\nOgni funzionalità arriva con i suoi test: pytest e moto per il backend, Vitest, Testing Library e MSW per il frontend, con una copertura sopra il 97%. Nessun segreto nel codice, una Content Security Policy restrittiva e animazioni che si fermano per chi preferisce il movimento ridotto.\n",
+    "en": "## The game\n\nThe CV becomes a card game. The character card flips and follows the mouse, and its level counts the years since the first job. Experiences and studies are active or completed quests, skills a stats radar and projects a deck of side quests to flip through. Exploring the site unlocks seven figurines, and the background leaves footprints wherever the mouse goes: a thousand of them earn the Level Up figurine.\n\n## The pages\n\n- **Projects** — each project is told as a quest, with its objective, final boss and rewards, its key numbers and, when there is one, a lab to try the model, like the photo-to-infrared comparison of Deep Layers.\n- **About me** — experience and education are cards on a timeline that lights up as you scroll; each course has its facts, its study plan and a link to the official page.\n- **Learning** — a section of notes that joins the menu only once the first article is published.\n\n## Architecture\n\n- **Frontend** — React 18, Vite and TypeScript, styled with Tailwind in a light and a dark theme; data through RTK Query, copy in Italian and English with i18next.\n- **Backend** — FastAPI and Pydantic in a container on AWS Lambda, through the Lambda Web Adapter, behind API Gateway; content on DynamoDB, media and CV on S3, a contact form with SES and rate limiting.\n- **Admin** — a Cognito-protected panel, with mandatory MFA, for projects, versioned articles with rollback, and media.\n- **Infrastructure** — all in Terraform: CloudFront in front of the site and the API, security headers and a shared secret that only lets through requests coming from CloudFront; CloudWatch alarms and a monthly budget send email alerts.\n\n## Quality\n\nEvery feature ships with its tests: pytest and moto on the backend, Vitest, Testing Library and MSW on the frontend, with coverage above 97%. No secrets in the code, a strict Content Security Policy, and animations that stop for anyone who prefers reduced motion.\n"
+  },
+  "topics": [
+    {
+      "it": "portfolio",
+      "en": "portfolio"
+    },
+    {
+      "it": "gamification",
+      "en": "gamification"
+    },
+    {
+      "it": "serverless",
+      "en": "serverless"
+    },
+    {
+      "it": "infrastructure as code",
+      "en": "infrastructure as code"
+    },
+    {
+      "it": "accessibilità",
+      "en": "accessibility"
+    }
+  ],
+  "media": [],
+  "links": [
+    {
+      "kind": "repo",
+      "url": "https://github.com/MarcoManduca/marcomanduca.dev"
+    },
+    {
+      "kind": "live",
+      "url": "https://marcomanduca.dev"
+    }
+  ],
+  "license": "MIT",
+  "quest": null,
+  "lab": null,
+  "status": "published"
+}
