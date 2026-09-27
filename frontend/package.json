@@ -32,7 +32,7 @@
     "react-markdown": "^9.0.3",
     "react-oidc-context": "^3.2.0",
     "react-redux": "^9.2.0",
-    "react-router-dom": "^6.30.6",
+    "react-router": "^7.18.4",
     "rehype-highlight": "^7.0.1",
     "rehype-katex": "^7.0.1",
     "remark-math": "^6.0.0",

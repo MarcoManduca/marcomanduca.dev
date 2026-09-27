@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router'
 
 import { AreaArt } from '@/components/projects/AreaArt'
 import { AreaChips } from '@/components/projects/AreaChips'

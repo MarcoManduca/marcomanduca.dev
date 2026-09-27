@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom'
+import { useParams } from 'react-router'
 
 import { ProjectAside } from '@/components/projects/detail/ProjectAside'
 import { ProjectBody } from '@/components/projects/detail/ProjectBody'

@@ -1,4 +1,4 @@
-import { Navigate } from 'react-router-dom'
+import { Navigate } from 'react-router'
 
 import { AuthError } from '@/components/admin/AuthError'
 import { Spinner } from '@/components/ui/Spinner'

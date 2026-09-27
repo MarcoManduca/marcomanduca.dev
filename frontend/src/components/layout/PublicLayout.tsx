@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 
-import { Outlet, useLocation } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router'
 
 import { AchievementToast } from '@/components/game/AchievementToast'
 import { Spinner } from '@/components/ui/Spinner'
