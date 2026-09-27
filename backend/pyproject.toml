@@ -54,6 +54,9 @@ known-first-party = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# The seeder (`seed/`) is not part of the installed package: put the backend
+# root on the path so its tests import it however pytest is launched.
+pythonpath = ["."]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 markers = [
