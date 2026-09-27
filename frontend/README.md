@@ -43,8 +43,9 @@ them at runtime).
   the content, above the contour lines). A print lands only where the pointer
   and the whole print, toe to heel, rest on the empty background
   (`utils/isFloor.ts`: no text, control or media, and no surface with a
-  background or border around it), so none slips under a card. Mouse only;
-  off under reduced motion.
+  background or border around it), so none slips under a card. Every print
+  shown counts towards the _Level Up_ figurine. Mouse only; off under reduced
+  motion.
 - **Home.** Flippable character card (full-art portrait on the front, with
   the level = calendar years since the first job's `start`; skills and
   description on the back; 3D turn, instant under reduced motion; leans
@@ -62,25 +63,65 @@ them at runtime).
   with clamped text from `sm`, and from the tallest card of either language on
   phones (re-measure them when the quest copy changes).
 - **Stats and side quests.** Side by side from `lg`, stacked on phones.
-  _Stats_ plots the CV skill groups on a radar (`utils/radarGeometry.ts`); the
-  levels live in `utils/statLevels.ts` (placeholders until their scoring is
-  settled). Each point shows the group's level and tools on hover, focus or
-  tap; from `lg` a list of the levels alone sits beside the chart. _Side Quests_ deals
+  _Stats_ plots the six CV skill groups on a radar (`utils/radarGeometry.ts`),
+  the same groups and order as the About page skills (`SKILL_GROUPS` in
+  `types/stat.ts`), with their levels in `utils/statLevels.ts`. Each point
+  shows the group's level and tools on hover, focus or tap; from `lg` a list
+  of the levels alone sits beside the chart, and the stats box stretches to
+  the height of the side quests beside it. _Side Quests_ deals
   the published projects as a fanned deck, oldest first and numbered
   `SQ: 01/NN`, closed by a face-down card that links to the contacts page.
   Drag the top card away (or press ←/→ on the deck) to flip through it
-  (`useCardDeck`, poses in `utils/deckPose.ts`); a project without images
-  gets a cover drawn for its category.
-- **About timeline.** A scroll-spy (`useScrollSpy`) lights up the entry
-  crossing a reading line at 35% of the viewport; an entry reached from a
-  quest lands just above that line and stays lit until the reader scrolls.
+  (`useCardDeck`, poses in `utils/deckPose.ts`); a project without a cover
+  gets one drawn for its area.
+- **Projects.** The API returns light cards for lists (`ProjectSummary`) and
+  the full project for its page (`Project`), see `types/project.ts`. A project
+  has one to three areas, all shown as chips on its cards and page, grouped
+  in three colour families; the first sets the card's frame
+  (`components/projects/areaStyles.ts`: build = frontend, backend, cloud;
+  data; intelligence = ML, DL, AI). It also has a context. The Projects page
+  filters by area, context, technology and text (`utils/filterProjects.ts`). The admin form edits the card, the page and
+  the optional lab; lists of objects (metrics, topics, gallery, lab) are
+  edited as JSON and validated by the API, and editing loads the full
+  project first (`ProjectFormLoader`).
+- **Project page.** `components/projects/detail/`: the side quest number,
+  a hero (classification chips, description, the license every project
+  states, the lab and the main links as buttons, the cover in its area's
+  foil frame), the quest brief and key numbers, the markdown long read
+  beside a side column (contents built from its `##` headings, the stack
+  grouped by the technologies' registry category, topics, resources and the
+  CV quest the project was born in), the gallery, the optional lab last, and
+  the previous and next side quests. The lab (`components/projects/lab/`)
+  compares a sample's base image with a layer through a divider dragged
+  across the image; its handle is a slider for the keyboard (arrows, Home,
+  End) and screen readers.
+  Project images ship in `public/images/projects/<slug>/` and are referenced
+  by path (`utils/safeUrl.ts` `safeMediaUrl`).
+- **About timeline.** Every experience and education entry is a card with
+  its dot on a rail (`components/about/Timeline.tsx`). A scroll-spy
+  (`useScrollSpy`) lights up the entry crossing a reading line at 35% of the
+  viewport: its dot glows and its card is outlined. The rail segment from
+  one dot to the next fills as that line travels between the two entries
+  (`useSegmentFill`), so it reaches the next dot just as that entry lights
+  up; an entry reached from a quest lands just above the line and stays lit,
+  with the rail filled up to it, until the reader scrolls. Education cards
+  also describe the course (department, summary, class or level, duration,
+  credits, language, areas of study and a link to the official page), from
+  `about.education` in the locale files; an entry may add its study plan
+  (`plan`, folded under the course count) and a certification earned along
+  the way (`certificate`, linked to the issuer's public verification page).
 - **Game mode.** Always on. Seven figurines unlocked by exploring (first
-  visit, card flip, 3 projects, an article, language switch, theme switch,
-  contact message), shown in the Home _Collection_ with a toast on each
-  unlock. Progress lives in the `game` Redux slice, persisted to
-  `localStorage` only (never sent to the backend).
+  visit, card flip, 3 projects, language switch, theme switch, contact
+  message, 1000 footprints), shown in the Home _Collection_ with
+  their hint from the start, a counter on those earned with a goal
+  (`utils/achievements.ts`) and a toast on each unlock. Progress (figurines,
+  projects opened, footprints shown) lives in the `game` Redux slice,
+  persisted to `localStorage` only (never sent to the backend).
 - **Header.** On phones the language and theme switches live in the menu
   panel, next to the navigation.
+- **Learning.** Hidden until an article is published: the menu leaves it out
+  and `/learning` pages answer with the 404 page (`useLearningOpen`,
+  `routes/LearningGate.tsx`; drafts, which admins also get, do not count).
 
 ## Scripts
 
@@ -118,7 +159,7 @@ src/
 │   ├── markdown/    # MarkdownRenderer (highlight.js + KaTeX)
 │   ├── seo/         # Seo (helmet meta + OpenGraph + canonical)
 │   ├── home/        # Hero, PreviewSection
-│   ├── projects/    # ProjectCard, ProjectFilters
+│   ├── projects/    # ProjectCard, ProjectFilters, AreaChip, AreaArt, detail/, lab/
 │   ├── learning/    # ArticleCard
 │   └── contact/     # ContactForm (with honeypot anti-spam)
 ├── pages/           # Route-level components (+ pages/admin/ for the panel)
@@ -189,5 +230,5 @@ docker run -p 8080:8080 -e BACKEND_UPSTREAM=http://backend:8000 marcomanduca-fro
   `noindex`. Detail pages use slug-based URLs.
 - `public/robots.txt` allows everything except `/admin`.
 - `npm run generate:sitemap` writes `public/sitemap.xml` for the static
-  routes plus published project/learning pages (run automatically by
-  `npm run build`).
+  routes plus published project/learning pages, with `/learning` itself only
+  once an article is published (run automatically by `npm run build`).
