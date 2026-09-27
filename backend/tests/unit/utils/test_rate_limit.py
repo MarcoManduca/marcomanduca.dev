@@ -171,3 +171,59 @@ def test_allow_daily_raises_unavailable_when_dynamodb_errors() -> None:
     # Act / Assert
     with pytest.raises(RateLimiterUnavailableError):
         limiter.allow_daily(now=0.0)
+
+
+@mock_aws
+def test_release_daily_gives_the_unit_back() -> None:
+    # Arrange: the only unit of the day is spent.
+    limiter = DynamoRateLimiter(
+        _make_table(), max_requests=5, window_seconds=60, daily_max=1
+    )
+    limiter.allow_daily(now=0.0)
+
+    # Act
+    limiter.release_daily(now=0.0)
+
+    # Assert
+    assert limiter.allow_daily(now=1.0) is True
+
+
+@mock_aws
+def test_release_daily_never_takes_the_counter_below_zero() -> None:
+    # Arrange
+    table = _make_table()
+    limiter = DynamoRateLimiter(table, max_requests=5, window_seconds=60, daily_max=5)
+    limiter.allow_daily(now=0.0)
+
+    # Act
+    limiter.release_daily(now=0.0)
+    limiter.release_daily(now=0.0)
+
+    # Assert
+    item = table.get_item(Key={"pk": "global#1970-01-01"})["Item"]
+    assert item["hits"] == 0
+
+
+@mock_aws
+def test_release_daily_creates_nothing_for_a_day_without_hits() -> None:
+    # Arrange
+    table = _make_table()
+    limiter = DynamoRateLimiter(table, max_requests=5, window_seconds=60, daily_max=5)
+
+    # Act
+    limiter.release_daily(now=0.0)
+
+    # Assert
+    assert "Item" not in table.get_item(Key={"pk": "global#1970-01-01"})
+
+
+@mock_aws
+def test_release_daily_does_not_raise_when_dynamodb_errors() -> None:
+    # Arrange: a failed refund must never replace the caller's own error.
+    dynamodb = boto3.resource("dynamodb", region_name=_REGION)
+    limiter = DynamoRateLimiter(
+        dynamodb.Table("missing-table"), max_requests=1, window_seconds=60, daily_max=5
+    )
+
+    # Act / Assert
+    limiter.release_daily(now=0.0)

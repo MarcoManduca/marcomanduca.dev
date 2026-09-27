@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, status
 
 from src.schemas.contact import ContactRequest, ContactResponse
 from src.services.contact_service import ContactService, get_contact_service
-from src.utils.rate_limit import enforce_contact_daily_cap, enforce_contact_rate_limit
+from src.utils.rate_limit import contact_daily_slot, enforce_contact_rate_limit
 
 router = APIRouter(prefix="/contact", tags=["contact"])
 
@@ -25,7 +25,8 @@ def submit_contact(
 
     Submissions with a filled honeypot field are acknowledged with the
     same response but silently discarded, so bots learn nothing. Only
-    submissions that are really emailed spend the site-wide daily budget.
+    submissions that are really emailed spend the site-wide daily budget:
+    a failed send gives its unit back.
 
     Parameters
     ----------
@@ -41,6 +42,6 @@ def submit_contact(
     """
     if payload.website:
         return _ACK
-    enforce_contact_daily_cap()
-    service.send_contact_email(payload)
+    with contact_daily_slot():
+        service.send_contact_email(payload)
     return _ACK

@@ -9,7 +9,8 @@ environment and survives cold starts. Two counters are enforced:
 * a site-wide daily cap (``global#<YYYY-MM-DD>``, UTC), which bounds SES
   cost and inbox flooding even when an attacker rotates IPs. It is only
   spent by submissions that will actually send an email, so honeypot hits
-  and invalid payloads cannot exhaust it for everyone else.
+  and invalid payloads cannot exhaust it for everyone else, and the unit is
+  given back when SES then fails to take the email.
 
 Each check atomically increments its counter; DynamoDB drops the items
 automatically once their window has elapsed (TTL).
@@ -28,7 +29,8 @@ IP, never ``X-Forwarded-For``).
 
 import logging
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -37,6 +39,7 @@ from fastapi import HTTPException, Request, status
 
 from src.config import get_settings
 from src.models.base import get_dynamodb_resource
+from src.services.errors import EmailDeliveryError
 from src.utils.client_ip import client_ip, network_key
 
 logger = logging.getLogger(__name__)
@@ -121,11 +124,33 @@ class DynamoRateLimiter:
             When DynamoDB rejects or fails the counter update.
         """
         current = time.time() if now is None else now
-        day = datetime.fromtimestamp(current, UTC).date()
-        day_end = datetime(day.year, day.month, day.day, tzinfo=UTC) + timedelta(days=1)
-        day_ttl = int(day_end.timestamp()) + _TTL_GRACE_SECONDS
-        global_key = f"{_GLOBAL_KEY_PREFIX}#{day.isoformat()}"
-        return self._hit(global_key, day_ttl) <= self._daily_max
+        global_key, day_end = _daily_counter(current)
+        return self._hit(global_key, day_end + _TTL_GRACE_SECONDS) <= self._daily_max
+
+    def release_daily(self, now: float) -> None:
+        """Give back one unit of the daily counter spent at ``now``.
+
+        Best effort and never below zero: the decrement is atomic and
+        conditional, and a failure is logged rather than raised, so it can
+        cost one unit of budget but never the caller's response.
+
+        Parameters
+        ----------
+        now : float
+            Epoch timestamp the unit was spent at (it selects the UTC day).
+        """
+        global_key, _ = _daily_counter(now)
+        try:
+            self._table.update_item(
+                Key={"pk": global_key},
+                UpdateExpression="ADD hits :minus_one",
+                ConditionExpression="hits > :zero",
+                ExpressionAttributeValues={":minus_one": -1, ":zero": 0},
+            )
+        except (ClientError, BotoCoreError) as exc:
+            logger.warning(
+                "rate_limit_release_failed", extra={"error_type": type(exc).__name__}
+            )
 
     def _hit(self, pk: str, expires_at: int) -> int:
         """Atomically increment a counter and return its new value."""
@@ -141,6 +166,13 @@ class DynamoRateLimiter:
         except (ClientError, BotoCoreError) as exc:
             raise RateLimiterUnavailableError(type(exc).__name__) from exc
         return int(response["Attributes"]["hits"])
+
+
+def _daily_counter(now: float) -> tuple[str, int]:
+    """Key and TTL of the site-wide counter for the UTC day of ``now``."""
+    day = datetime.fromtimestamp(now, UTC).date()
+    day_end = datetime(day.year, day.month, day.day, tzinfo=UTC) + timedelta(days=1)
+    return f"{_GLOBAL_KEY_PREFIX}#{day.isoformat()}", int(day_end.timestamp())
 
 
 _contact_limiter: DynamoRateLimiter | None = None
@@ -194,11 +226,18 @@ def enforce_contact_rate_limit(request: Request) -> None:
     _enforce(lambda: get_contact_limiter().allow_key(key))
 
 
-def enforce_contact_daily_cap() -> None:
-    """Spend one unit of the site-wide daily contact budget.
+@contextmanager
+def contact_daily_slot() -> Iterator[None]:
+    """Spend one unit of the site-wide daily budget on sending an email.
 
-    Called only for a valid, non-honeypot submission, right before the
-    email is sent.
+    Wrap the send of a valid, non-honeypot submission. When the send fails
+    with :class:`EmailDeliveryError` no email went out, so the unit is given
+    back before the error propagates (and becomes a 503).
+
+    Yields
+    ------
+    None
+        Control to the email send.
 
     Raises
     ------
@@ -206,7 +245,14 @@ def enforce_contact_daily_cap() -> None:
         With status 429 when the daily cap is reached, and 503 when the
         rate-limit backend is unavailable (fail closed).
     """
-    _enforce(lambda: get_contact_limiter().allow_daily())
+    limiter = get_contact_limiter()
+    spent_at = time.time()
+    _enforce(lambda: limiter.allow_daily(spent_at))
+    try:
+        yield
+    except EmailDeliveryError:
+        limiter.release_daily(spent_at)
+        raise
 
 
 def _enforce(check: Callable[[], bool]) -> None:
