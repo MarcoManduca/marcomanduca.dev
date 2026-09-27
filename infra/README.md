@@ -82,7 +82,7 @@ infra/
         ├── storage/           # S3 frontend + media buckets
         ├── database/          # 4 DynamoDB tables (PAY_PER_REQUEST)
         ├── auth/              # Cognito user pool (TOTP MFA), SPA client, optional dev client, hosted UI, group
-        ├── email/             # SES domain identity + DKIM records
+        ├── email/             # SES domain identity, DKIM, MAIL FROM (SPF) and DMARC records
         ├── backend/           # ECR, Lambda + API Gateway HTTP API (throttled), origin secret, IAM, logs
         ├── cdn/               # CloudFront distribution, edge functions, headers policies, OAC
         └── monitoring/        # monthly budget, SNS alert topic, CloudWatch alarms
@@ -266,8 +266,22 @@ accepts `https://<domain>` redirects; for the Vite dev server set
 
 ### 6. SES sandbox
 
-Terraform verifies the **domain identity** (DKIM + TXT records) automatically,
-but new AWS accounts start in the **SES sandbox**: you can only send **to**
+Terraform verifies the **domain identity** (DKIM + TXT records) automatically
+and sets up sender authentication:
+
+- a custom **MAIL FROM** domain `mail.<domain>` (MX + SPF records), so SPF
+  passes aligned with the From domain, not only DKIM;
+- a **DMARC** record (`_dmarc.<domain>`) with `p=quarantine` by default
+  (`dmarc_policy`): mail claiming to be from the domain that passes neither
+  aligned SPF nor DKIM, i.e. spoofing, goes to spam. SES is the only sender
+  for the domain (Cognito uses its own default sender), so legitimate mail
+  always aligns. Aggregate reports are off unless `dmarc_report_email` is
+  set; receivers only send them to another domain that authorizes it.
+
+Check after the apply: `dig +short TXT _dmarc.<domain>` and, in the SES
+console, the identity's custom MAIL FROM status "Success".
+
+New AWS accounts start in the **SES sandbox**: you can only send **to**
 verified addresses.
 
 Option A — verify the destination address (fine for a personal contact form):

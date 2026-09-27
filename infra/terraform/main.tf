@@ -57,8 +57,10 @@ module "auth" {
 module "email" {
   source = "./modules/email"
 
-  domain_name = var.domain_name
-  zone_id     = module.dns.zone_id
+  domain_name        = var.domain_name
+  zone_id            = module.dns.zone_id
+  dmarc_policy       = var.dmarc_policy
+  dmarc_report_email = var.dmarc_report_email
 }
 
 module "backend" {

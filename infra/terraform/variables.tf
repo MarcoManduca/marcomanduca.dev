@@ -121,3 +121,15 @@ variable "enable_dev_client" {
   type        = bool
   default     = false
 }
+
+variable "dmarc_policy" {
+  description = "DMARC policy for mail claiming to be from the domain that fails SPF and DKIM alignment: none, quarantine or reject."
+  type        = string
+  default     = "quarantine"
+}
+
+variable "dmarc_report_email" {
+  description = "Mailbox for DMARC aggregate reports, or null for none (see modules/email)."
+  type        = string
+  default     = null
+}
