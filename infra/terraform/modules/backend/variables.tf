@@ -70,3 +70,9 @@ variable "throttling_burst_limit" {
   type        = number
   default     = 40
 }
+
+variable "log_retention_days" {
+  description = "Retention of the Lambda and API Gateway access log groups."
+  type        = number
+  default     = 14
+}

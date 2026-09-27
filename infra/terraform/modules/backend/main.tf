@@ -39,7 +39,15 @@
 
 resource "aws_cloudwatch_log_group" "backend" {
   name              = "/aws/lambda/${var.project_name}-backend"
-  retention_in_days = 14
+  retention_in_days = var.log_retention_days
+}
+
+# One line per API Gateway request, including those it answers itself (429
+# from stage throttling never reaches the Lambda log). No client IP: behind
+# CloudFront it is the edge's address anyway, and no other personal data.
+resource "aws_cloudwatch_log_group" "api_access" {
+  name              = "/aws/apigateway/${var.project_name}-backend"
+  retention_in_days = var.log_retention_days
 }
 
 # Shared secret between CloudFront and the app. Only CloudFront knows it and
@@ -127,6 +135,20 @@ resource "aws_apigatewayv2_stage" "backend" {
   }
 }
 
+
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.api_access.arn
+    format = jsonencode({
+      requestId         = "$context.requestId"
+      time              = "$context.requestTime"
+      method            = "$context.httpMethod"
+      path              = "$context.path"
+      status            = "$context.status"
+      latencyMs         = "$context.responseLatency"
+      integrationStatus = "$context.integrationStatus"
+      error             = "$context.error.message"
+    })
+  }
 resource "aws_lambda_permission" "apigw" {
   statement_id  = "AllowApiGatewayInvoke"
   action        = "lambda:InvokeFunction"

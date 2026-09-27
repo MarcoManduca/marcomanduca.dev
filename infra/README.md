@@ -57,7 +57,9 @@ Design decisions:
 - **Cost guardrails.** API Gateway stage throttling (and Lambda reserved
   concurrency, where the account quota allows one) caps the blast radius of a
   traffic flood; a monthly AWS Budget and CloudWatch alarms (Lambda
-  errors/throttles, API 5xx/4xx spike) email the owner.
+  errors/throttles, API 5xx/4xx spike, SES bounce/complaint rate) email the
+  owner. API Gateway access logs (no client IPs) record every request,
+  including the 429s the stage answers itself.
 
 ## Layout
 
@@ -83,7 +85,7 @@ infra/
         ├── database/          # 4 DynamoDB tables (PAY_PER_REQUEST)
         ├── auth/              # Cognito user pool (TOTP MFA), SPA client, optional dev client, hosted UI, group
         ├── email/             # SES domain identity, DKIM, MAIL FROM (SPF) and DMARC records
-        ├── backend/           # ECR, Lambda + API Gateway HTTP API (throttled), origin secret, IAM, logs
+        ├── backend/           # ECR, Lambda + API Gateway HTTP API (throttled, access-logged), origin secret, IAM, logs
         ├── cdn/               # CloudFront distribution, edge functions, headers policies, OAC
         └── monitoring/        # monthly budget, SNS alert topic, CloudWatch alarms
 ```
@@ -338,7 +340,7 @@ Backend variable names must match the `Settings` fields in
 | Cognito                  | 0              | free tier: 10k MAU                      |
 | SES                      | ~0             | 0.10 per 1 000 emails                   |
 | ECR + CloudWatch logs    | < 1            | 10-image cap, 14-day log retention      |
-| CloudWatch alarms + SNS  | ~0–0.40        | 4 alarms (10 free), email delivery free |
+| CloudWatch alarms + SNS  | ~0–0.60        | 6 alarms (10 free), email delivery free |
 | AWS Budgets              | 0              | first 2 budgets are free                |
 | **Total**                | **~1–2**       | dominated by the Route 53 hosted zone   |
 
@@ -355,7 +357,7 @@ cost of the hosted zone. The trade-off is an occasional ~1–2 s cold start.
 | API Gateway stage throttling      | `api_throttling_rate_limit` (20 rps), `api_throttling_burst_limit` (40) | excess requests get 429 before Lambda runs |
 | Contact-form daily cap            | `contact_rate_limit_daily_max` (50)                  | global SES send cap in the backend |
 | Monthly budget                    | `monthly_budget_usd` (10)                            | email at 80% actual and 100% forecasted |
-| CloudWatch alarms → SNS email     | `alert_email` (null → `contact_email`)               | Lambda errors/throttles, API 5xx, API 4xx spike |
+| CloudWatch alarms → SNS email     | `alert_email` (null → `contact_email`)               | Lambda errors/throttles, API 5xx, API 4xx spike, SES bounce/complaint rate |
 
 Budgets and alarms only notify; the first two rows are the actual caps.
 With `backend_reserved_concurrency = -1` (accounts whose concurrency quota is
