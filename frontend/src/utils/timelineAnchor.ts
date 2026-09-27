@@ -1,6 +1,5 @@
-/** Kind of CV entry on the About page timeline. */
-export type TimelineKind = 'work' | 'study'
+import type { QuestKind } from '@/types'
 
 /** Anchor id of a CV entry on the About page, e.g. `work-2020-11`. */
-export const timelineAnchor = (kind: TimelineKind, start: string) =>
+export const timelineAnchor = (kind: QuestKind, start: string) =>
   `${kind}-${start}`

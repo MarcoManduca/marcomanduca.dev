@@ -13,8 +13,6 @@ const PATHS: Record<QuestKind, string[]> = {
     'M6 11.5V16c0 1.4 2.7 3 6 3s6-1.6 6-3v-4.5',
     'M22 9.5V14',
   ],
-  // Code brackets
-  project: ['M8 6 3 12l5 6', 'm16 6 5 6-5 6', 'm13.5 4-3 16'],
 }
 
 interface QuestIconProps {
@@ -22,7 +20,7 @@ interface QuestIconProps {
   className?: string
 }
 
-/** Symbol of a quest's domain (work, study, project). Decorative. */
+/** Symbol of a quest's domain (work, study). Decorative. */
 export const QuestIcon = ({ kind, className }: QuestIconProps) => (
   <svg
     viewBox="0 0 24 24"

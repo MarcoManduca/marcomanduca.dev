@@ -4,8 +4,6 @@ export interface QuestFact {
   label: string
   value: string
   highlight?: boolean
-  /** Free text (objective, boss): gets one extra line before the ellipsis. */
-  long?: boolean
 }
 
 interface QuestFactsProps {
@@ -52,21 +50,11 @@ export const QuestFacts = ({ facts, compact = false }: QuestFactsProps) =>
     </dl>
   ) : (
     <dl className="flex flex-col gap-1 text-sm leading-5 text-body sm:grid sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-x-1.5 sm:text-[15px]">
-      {facts.map(({ label, value, highlight, long }) => (
+      {facts.map(({ label, value, highlight }) => (
         // Phones: label and value flow together and clamp as one block.
-        <div
-          key={label}
-          className={cn(long ? 'line-clamp-3' : 'line-clamp-2', 'sm:contents')}
-        >
+        <div key={label} className="line-clamp-2 sm:contents">
           <Label label={label} highlight={highlight} />
-          <dd
-            className={cn(
-              'inline min-w-0',
-              long ? 'sm:line-clamp-2' : 'sm:line-clamp-1',
-            )}
-          >
-            {value}
-          </dd>
+          <dd className="inline min-w-0 sm:line-clamp-1">{value}</dd>
         </div>
       ))}
     </dl>

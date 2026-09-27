@@ -8,7 +8,6 @@ import { QuestIcon } from './QuestIcon'
 const KIND_CLASSES: Record<QuestKind, string> = {
   work: 'border-warm bg-warm/15 text-warm',
   study: 'border-accent bg-accent/15 text-accent',
-  project: 'border-highlight bg-highlight/15 text-highlight',
 }
 
 interface QuestMedalProps {

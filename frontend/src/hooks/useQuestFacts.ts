@@ -16,26 +16,24 @@ export const useQuestFacts = (quest: Quest): QuestFact[] => {
   const fact = (
     field: string,
     value: string | undefined,
-    style: Pick<QuestFact, 'highlight' | 'long'> = {},
+    highlight = false,
   ): QuestFact | undefined =>
     value
-      ? { label: t(`home.quests.fields.${field}`), value, ...style }
+      ? { label: t(`home.quests.fields.${field}`), value, highlight }
       : undefined
   const month = (value?: string) =>
     value ? formatMonthYear(value, language) : undefined
 
   const facts = [
     fact('guild', quest.guild),
-    // Projects have no guild yet: their technologies stand in as rewards.
-    fact('rewards', quest.tags),
     fact('started', month(quest.start)),
     fact('completed', month(quest.end)),
   ]
   if (!quest.end) {
     facts.push(
-      fact('objective', quest.objective, { long: true }),
-      fact('boss', quest.boss, { long: true }),
-      fact('rewards', quest.rewards, { highlight: true }),
+      fact('objective', quest.objective),
+      fact('boss', quest.boss),
+      fact('rewards', quest.rewards, true),
     )
   }
   return facts.filter((fact): fact is QuestFact => Boolean(fact))

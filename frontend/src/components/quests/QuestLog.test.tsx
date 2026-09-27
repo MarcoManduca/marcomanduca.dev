@@ -49,8 +49,7 @@ describe('QuestLog', () => {
 
     await userEvent.click(screen.getByRole('tab', { name: /Completed Quests/ }))
 
-    const name =
-      '1st-Level Master in Artificial Intelligence and Data Analytics for Business'
+    const name = '1st-Level Master in AI and Data Analytics'
     expect(within(panel()).getByTitle(name)).toHaveTextContent(name)
   })
 
@@ -71,16 +70,11 @@ describe('QuestLog', () => {
 
     await userEvent.click(screen.getByRole('tab', { name: /Completed Quests/ }))
 
-    expect(
-      await within(panel()).findByRole('link', { name: /Data pipeline/ }),
-    ).toHaveAttribute('href', '/projects/data-pipeline')
     const infoEdge = within(panel()).getByRole('link', { name: /InfoEdge/ })
     expect(infoEdge).toHaveTextContent('Started:September 2019')
     expect(infoEdge).toHaveTextContent('Completed:November 2020')
     expect(infoEdge).not.toHaveTextContent('Objective:')
     expect(questLinks().map((link) => link.textContent)).toEqual([
-      expect.stringContaining('Portfolio site'),
-      expect.stringContaining('Data pipeline'),
       expect.stringContaining('Master'),
       expect.stringContaining('InfoEdge'),
       expect.stringContaining('Statistics'),
@@ -88,11 +82,22 @@ describe('QuestLog', () => {
     expect(within(panel()).queryByText('[Next quest]')).not.toBeInTheDocument()
   })
 
-  it('counts the quests in each tab', async () => {
+  it('leaves the published projects out of the quest log', async () => {
+    renderWithProviders(<QuestLog />)
+
+    await userEvent.click(screen.getByRole('tab', { name: /Completed Quests/ }))
+
+    expect(questLinks()).toHaveLength(3)
+    expect(
+      within(panel()).queryByRole('link', { name: /Data pipeline/ }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('counts the quests in each tab', () => {
     renderWithProviders(<QuestLog />)
 
     expect(
-      await screen.findByRole('tab', { name: /Completed Quests\s*5/ }),
+      screen.getByRole('tab', { name: /Completed Quests\s*3/ }),
     ).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: /Active Quests\s*2/ })).toBeVisible()
   })

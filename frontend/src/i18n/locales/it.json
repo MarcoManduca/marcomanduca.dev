@@ -57,8 +57,7 @@
       "fullPath": "Tutto il percorso",
       "types": {
         "work": "Lavoro",
-        "study": "Studio",
-        "project": "Progetto"
+        "study": "Studio"
       },
       "fields": {
         "guild": "Gilda",
@@ -149,9 +148,9 @@
         ],
         "quest": {
           "guild": "AdKaora (Mondadori Digital)",
-          "objective": "Trasformare i dati delle piattaforme digitali in dashboard e insight per team commerciali e C-level",
-          "boss": "Automatizzare le pipeline ETL su AWS per eliminare le attività manuali",
-          "rewards": "Python · SQL · AWS (S3, Athena, Lambda, Glue) · Power BI"
+          "objective": "Trasformare i dati in dashboard e insight",
+          "boss": "Automatizzare le pipeline ETL su AWS",
+          "rewards": "Python · SQL · AWS · Power BI"
         }
       },
       {
@@ -179,7 +178,7 @@
         "school": "Università degli Studi di Milano-Bicocca",
         "quest": {
           "guild": "Università degli Studi di Milano-Bicocca",
-          "objective": "Conseguire la Laurea Magistrale in Data Science",
+          "objective": "Conseguire la Laurea Magistrale",
           "boss": "Tesi di laurea",
           "rewards": "Machine Learning · Deep Learning · Big Data"
         }

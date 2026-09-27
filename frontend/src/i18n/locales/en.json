@@ -57,8 +57,7 @@
       "fullPath": "Full journey",
       "types": {
         "work": "Work",
-        "study": "Study",
-        "project": "Project"
+        "study": "Study"
       },
       "fields": {
         "guild": "Guild",
@@ -149,9 +148,9 @@
         ],
         "quest": {
           "guild": "AdKaora (Mondadori Digital)",
-          "objective": "Turn digital platform data into dashboards and insights for sales teams and C-level",
-          "boss": "Automate the ETL pipelines on AWS to remove manual work",
-          "rewards": "Python · SQL · AWS (S3, Athena, Lambda, Glue) · Power BI"
+          "objective": "Turn data into dashboards and insights",
+          "boss": "Automate the ETL pipelines on AWS",
+          "rewards": "Python · SQL · AWS · Power BI"
         }
       },
       {
@@ -188,7 +187,7 @@
         "start": "2024-04",
         "end": "2025-04",
         "period": "April 2024 — April 2025",
-        "degree": "1st-Level Master in Artificial Intelligence and Data Analytics for Business",
+        "degree": "1st-Level Master in AI and Data Analytics",
         "school": "Università degli Studi di Milano-Bicocca",
         "quest": {
           "guild": "University of Milano-Bicocca"
