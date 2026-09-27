@@ -27,7 +27,9 @@ class _FailingProjectService:
     "code, expected_status",
     [
         ("ValidationException", 422),
-        ("ProvisionedThroughputExceededException", 500),
+        ("ProvisionedThroughputExceededException", 503),
+        ("ThrottlingException", 503),
+        ("InternalServerError", 500),
     ],
 )
 async def test_client_error_is_mapped_without_leaking_details(
@@ -44,3 +46,18 @@ async def test_client_error_is_mapped_without_leaking_details(
     # Assert
     assert response.status_code == expected_status
     assert "exceeded" not in response.text
+
+
+async def test_throttling_error_asks_the_client_to_retry(app: FastAPI) -> None:
+    # Arrange
+    app.dependency_overrides[get_project_service] = lambda: _FailingProjectService(
+        "ThrottlingException"
+    )
+    transport = ASGITransport(app=app)
+
+    # Act
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        response = await client.get("/api/v1/projects")
+
+    # Assert
+    assert response.headers["Retry-After"] == "1"

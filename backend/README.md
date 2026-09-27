@@ -29,9 +29,19 @@ belonging to the `Administrators` group.
 - **Origin lock**: CloudFront adds an `X-Origin-Verify` secret; the API
   Gateway endpoint rejects requests without it (constant-time comparison).
 - **Environments**: `APP_ENV=prod` (default, fail-secure) disables `/docs`,
-  `/redoc` and `/openapi.json` and refuses to start without
-  `ORIGIN_VERIFY_SECRET`. `APP_ENV=local` (docker-compose, tests) keeps the
-  docs and allows an empty secret.
+  `/redoc` and `/openapi.json` and refuses to start while
+  `ORIGIN_VERIFY_SECRET`, `COGNITO_USER_POOL_ID`, `COGNITO_CLIENT_ID` or
+  `SES_RECIPIENT_EMAIL` is empty (`src/config.py`, `REQUIRED_IN_PROD`).
+  `APP_ENV=local` (docker-compose, tests) keeps the docs and allows them
+  empty.
+- **Logging**: application loggers (`src.*`) write one JSON object per line
+  to stdout (`src/utils/structured_logging.py`), including the `extra=`
+  context, so CloudWatch Logs Insights can filter on fields such as
+  `error_code`. Only ids and error classes go in `extra`, never PII.
+- **Resilience**: list endpoints skip (and log) a stored item that no
+  longer matches the current schema instead of failing with 500
+  (`src/services/parsing.py`); AWS throttling becomes 503 with
+  `Retry-After`.
 
 ## Endpoints
 
@@ -84,13 +94,15 @@ See `.env.example` for the full annotated list.
 | `DYNAMODB_ENDPOINT_URL` | Optional DynamoDB Local endpoint | unset |
 | `MEDIA_BUCKET_NAME` | S3 bucket for media | `marcomanduca-dev-media` |
 | `PRESIGN_EXPIRATION_SECONDS` | Presigned URL validity | `900` |
-| `COGNITO_USER_POOL_ID` | Cognito user pool id | empty |
-| `COGNITO_CLIENT_ID` | Cognito app client id | empty |
+| `COGNITO_USER_POOL_ID` | Cognito user pool id (required in prod) | empty |
+| `COGNITO_CLIENT_ID` | Cognito app client id (required in prod) | empty |
 | `SES_SENDER_EMAIL` | Verified SES sender | `noreply@marcomanduca.dev` |
-| `SES_RECIPIENT_EMAIL` | Contact form recipient | `owner@marcomanduca.dev` |
+| `SES_RECIPIENT_EMAIL` | Contact form recipient (required in prod) | empty |
 | `CORS_ORIGINS` | Comma-separated origins | `http://localhost:5173` |
 | `APP_ENV` | `local` or `prod` (see Architecture) | `prod` |
 | `ORIGIN_VERIFY_SECRET` | CloudFront `X-Origin-Verify` secret (required in prod; empty disables the check locally) | empty |
+| `ORIGIN_VERIFY_SECRET_PREVIOUS` | Former secret, still accepted while a rotation propagates (see infra/README.md) | empty |
+| `LOG_LEVEL` | Minimum level of the application loggers | `INFO` |
 | `CONTACT_RATE_LIMIT_MAX_REQUESTS` | Requests per window per IP (IPv6: per `/64`) | `5` |
 | `CONTACT_RATE_LIMIT_WINDOW_SECONDS` | Window length | `900` |
 | `CONTACT_RATE_LIMIT_DAILY_MAX` | Emailed contact submissions per UTC day, all IPs | `50` |

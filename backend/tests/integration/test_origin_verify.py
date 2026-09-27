@@ -79,3 +79,50 @@ async def test_request_rejected_when_header_does_not_match(
 
     # Assert
     assert response.status_code == 403
+
+
+@pytest.mark.parametrize(
+    "header, expected_status",
+    [
+        ("new-secret", 200),
+        ("old-secret", 200),
+        ("other", 403),
+    ],
+)
+async def test_previous_secret_is_accepted_during_a_rotation(
+    aws_backend: None,
+    monkeypatch: pytest.MonkeyPatch,
+    header: str,
+    expected_status: int,
+) -> None:
+    # Arrange
+    monkeypatch.setenv("ORIGIN_VERIFY_SECRET", "new-secret")
+    monkeypatch.setenv("ORIGIN_VERIFY_SECRET_PREVIOUS", "old-secret")
+    get_settings.cache_clear()
+    app = create_app()
+
+    # Act
+    async with await _client(app) as client:
+        response = await client.get(
+            "/api/v1/health", headers={"X-Origin-Verify": header}
+        )
+
+    # Assert
+    assert response.status_code == expected_status
+
+
+async def test_previous_secret_alone_does_not_enable_the_check(
+    aws_backend: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Arrange: a leftover previous value must not lock out local development.
+    monkeypatch.setenv("ORIGIN_VERIFY_SECRET", "")
+    monkeypatch.setenv("ORIGIN_VERIFY_SECRET_PREVIOUS", "old-secret")
+    get_settings.cache_clear()
+    app = create_app()
+
+    # Act
+    async with await _client(app) as client:
+        response = await client.get("/api/v1/health")
+
+    # Assert
+    assert response.status_code == 200
