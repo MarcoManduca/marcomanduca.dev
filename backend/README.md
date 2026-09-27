@@ -19,8 +19,9 @@ belonging to the `Administrators` group.
   (`src/utils/rate_limit.py`), so the limits are shared across Lambda
   invocations and survive cold starts. The per-network limit applies to
   every request; the daily cap is only spent by submissions that are really
-  emailed, so honeypot hits and invalid payloads cannot exhaust it. The
-  limiter fails closed (503) if DynamoDB is unavailable.
+  emailed, so honeypot hits and invalid payloads cannot exhaust it, and a
+  send that SES refuses (503) gets its unit back. The limiter fails closed
+  (503) if DynamoDB is unavailable.
 - **Client IP**: taken from the `x-viewer-ip` header, which a CloudFront
   viewer-request function on `/api/*` overwrites with the real viewer IP
   (`src/utils/client_ip.py`). `X-Forwarded-For` is never trusted. Locally

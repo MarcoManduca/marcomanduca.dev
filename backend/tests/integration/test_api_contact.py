@@ -7,6 +7,7 @@ from httpx import ASGITransport, AsyncClient
 from src.config import get_settings
 from src.schemas.contact import ContactRequest
 from src.services.contact_service import get_contact_service
+from src.services.errors import EmailDeliveryError
 from src.utils.rate_limit import reset_contact_limiter
 
 pytestmark = pytest.mark.integration
@@ -27,6 +28,13 @@ class _StubContactService:
 
     def send_contact_email(self, payload: ContactRequest) -> None:
         self.sent.append(payload)
+
+
+class _RefusingContactService:
+    """Behaves like SES refusing to take the message."""
+
+    def send_contact_email(self, payload: ContactRequest) -> None:
+        raise EmailDeliveryError("Unable to deliver the message right now.")
 
 
 @pytest.fixture
@@ -283,4 +291,28 @@ async def test_submit_contact_invalid_payload_does_not_spend_the_daily_cap(
     # Assert
     assert invalid.status_code == 422
     assert genuine.status_code == 202
+    assert len(contact_stub.sent) == 1
+
+
+async def test_submit_contact_gives_the_daily_slot_back_when_sending_fails(
+    app: FastAPI,
+    daily_capped_client: AsyncClient,
+    contact_stub: _StubContactService,
+) -> None:
+    # Arrange: SES refuses the first email of the day.
+    app.dependency_overrides[get_contact_service] = _RefusingContactService
+
+    # Act
+    async with daily_capped_client as client:
+        refused = await client.post(
+            "/api/v1/contact", json=_VALID_PAYLOAD, headers={"X-Viewer-Ip": "1.1.1.1"}
+        )
+        app.dependency_overrides[get_contact_service] = lambda: contact_stub
+        later = await client.post(
+            "/api/v1/contact", json=_VALID_PAYLOAD, headers={"X-Viewer-Ip": "2.2.2.2"}
+        )
+
+    # Assert: the refused send did not use up the day's only slot.
+    assert refused.status_code == 503
+    assert later.status_code == 202
     assert len(contact_stub.sent) == 1
