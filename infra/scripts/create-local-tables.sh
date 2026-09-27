@@ -29,12 +29,18 @@ export AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY:-local}"
 export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-eu-west-1}"
 
 echo "Waiting for DynamoDB Local at ${ENDPOINT_URL}..."
+ready=0
 for _ in $(seq 1 30); do
   if aws dynamodb list-tables --endpoint-url "${ENDPOINT_URL}" > /dev/null 2>&1; then
+    ready=1
     break
   fi
   sleep 1
 done
+if [[ "${ready}" != "1" ]]; then
+  echo "ERROR: DynamoDB Local did not answer at ${ENDPOINT_URL} within 30s." >&2
+  exit 1
+fi
 
 # create_table <name> <key-schema> <attribute-definitions>
 create_table() {

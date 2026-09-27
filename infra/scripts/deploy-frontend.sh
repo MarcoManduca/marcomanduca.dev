@@ -16,6 +16,11 @@
 #   DISTRIBUTION_ID    terraform output -raw cloudfront_distribution_id
 #   AWS_REGION         deployment region
 #
+# Build-time settings: Vite inlines the VITE_COGNITO_* values from the shell
+# environment or frontend/.env.production (gitignored, template in
+# frontend/.env.example). The script stops if any is missing: the bundle
+# would otherwise ship with admin sign-in silently broken.
+#
 # Usage:
 #   FRONTEND_BUCKET=marcomanduca-dev-frontend DISTRIBUTION_ID=E123... ./deploy-frontend.sh
 
@@ -30,6 +35,32 @@ ASSET_RETENTION_DAYS="${ASSET_RETENTION_DAYS:-7}"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 FRONTEND_DIR="${REPO_ROOT}/frontend"
+ENV_FILE="${FRONTEND_DIR}/.env.production"
+REQUIRED_VITE_VARS=(
+  VITE_COGNITO_AUTHORITY
+  VITE_COGNITO_CLIENT_ID
+  VITE_COGNITO_REDIRECT_URI
+  VITE_COGNITO_DOMAIN
+)
+
+# env_file_value <name>: the value .env.production assigns, unquoted (or "").
+env_file_value() {
+  [[ -f "${ENV_FILE}" ]] || return 0
+  sed -n "s/^$1=//p" "${ENV_FILE}" | tail -n 1 | tr -d "\"' "
+}
+
+missing=()
+for name in "${REQUIRED_VITE_VARS[@]}"; do
+  if [[ -z "${!name:-}" && -z "$(env_file_value "${name}")" ]]; then
+    missing+=("${name}")
+  fi
+done
+if (( ${#missing[@]} > 0 )); then
+  echo "ERROR: not set in the environment nor in frontend/.env.production:" >&2
+  echo "  ${missing[*]}" >&2
+  echo "Copy frontend/.env.example to frontend/.env.production and fill it in." >&2
+  exit 1
+fi
 
 echo "Building the SPA..."
 cd "${FRONTEND_DIR}"
