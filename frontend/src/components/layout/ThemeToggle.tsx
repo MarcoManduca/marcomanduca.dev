@@ -29,7 +29,7 @@ const MoonIcon = () => (
   </svg>
 )
 
-/** Switches between the dark and light theme (and hides a figurine). */
+/** Switches between the dark and light theme (and unlocks Eclipse). */
 export const ThemeToggle = () => {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
@@ -37,7 +37,7 @@ export const ThemeToggle = () => {
 
   const handleClick = () => {
     toggleTheme()
-    dispatch(unlock('secret'))
+    dispatch(unlock('eclipse'))
   }
 
   return (

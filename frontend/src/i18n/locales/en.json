@@ -103,7 +103,6 @@
     "locked": "Locked",
     "toast": "Figurine unlocked: {{name}}",
     "dismiss": "Dismiss notification",
-    "hiddenName": "???",
     "achievements": {
       "firstStep": {
         "name": "First step",
@@ -117,21 +116,21 @@
         "name": "Explorer",
         "hint": "Open {{goal}} different projects"
       },
-      "reader": {
-        "name": "Reader",
-        "hint": "Read a learning article"
-      },
       "polyglot": {
         "name": "Polyglot",
         "hint": "Switch the site language"
       },
-      "secret": {
+      "eclipse": {
         "name": "Eclipse",
-        "hint": "A secret hides in the header"
+        "hint": "Switch the site theme"
       },
       "contact": {
         "name": "Contact",
         "hint": "Send me a message"
+      },
+      "levelUp": {
+        "name": "Level Up",
+        "hint": "Leave {{goal}} footprints with the mouse"
       }
     }
   },

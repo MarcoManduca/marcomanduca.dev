@@ -21,6 +21,6 @@ describe('ThemeToggle', () => {
     expect(
       screen.getByRole('button', { name: 'Switch to dark theme' }),
     ).toBeInTheDocument()
-    expect(store.getState().game.unlocked).toContain('secret')
+    expect(store.getState().game.unlocked).toContain('eclipse')
   })
 })

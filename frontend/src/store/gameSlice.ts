@@ -1,11 +1,12 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 
 import type { AchievementId, GameState } from '@/types'
-import { EXPLORER_GOAL } from '@/utils/achievements'
+import { EXPLORER_GOAL, FOOTPRINT_GOAL } from '@/utils/achievements'
 
 export const initialGameState: GameState = {
   unlocked: [],
   visitedProjects: [],
+  footprints: 0,
   lastUnlocked: null,
 }
 
@@ -30,10 +31,17 @@ export const gameSlice = createSlice({
         unlockIn(state, 'explorer')
       }
     },
+    /** Counts a footprint shown, up to the Level Up goal. */
+    leaveFootprint: (state) => {
+      if (state.footprints >= FOOTPRINT_GOAL) return
+      state.footprints += 1
+      if (state.footprints === FOOTPRINT_GOAL) unlockIn(state, 'levelUp')
+    },
     dismissUnlock: (state) => {
       state.lastUnlocked = null
     },
   },
 })
 
-export const { unlock, visitProject, dismissUnlock } = gameSlice.actions
+export const { unlock, visitProject, leaveFootprint, dismissUnlock } =
+  gameSlice.actions

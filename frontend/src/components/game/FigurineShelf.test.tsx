@@ -12,31 +12,46 @@ const tile = (name: RegExp) =>
 describe('FigurineShelf', () => {
   it('lists every figurine with the collection count', () => {
     renderWithProviders(<FigurineShelf />, {
-      game: { unlocked: ['firstStep', 'reader'] },
+      game: { unlocked: ['firstStep', 'contact'] },
     })
 
     expect(screen.getByRole('heading', { name: 'Collection' })).toBeVisible()
     expect(screen.getAllByRole('listitem')).toHaveLength(7)
     expect(screen.getByText('2/7')).toBeInTheDocument()
+    expect(screen.queryByText('Reader')).not.toBeInTheDocument()
     expect(
       within(tile(/First step/)!).getByText('Unlocked'),
     ).toBeInTheDocument()
     expect(within(tile(/Polyglot/)!).getByText('Locked')).toBeInTheDocument()
   })
 
-  it('shows explorer progress and hides the secret until unlocked', () => {
+  it('shows the progress of the figurines earned with a goal', () => {
     renderWithProviders(<FigurineShelf />, {
-      game: { visitedProjects: ['a'] },
+      game: { visitedProjects: ['a'], footprints: 420 },
     })
 
     expect(screen.getByText('Explorer 1/3')).toBeInTheDocument()
-    expect(screen.getByText('???')).toBeInTheDocument()
-    expect(screen.queryByText('Eclipse')).not.toBeInTheDocument()
+    expect(screen.getByText('Level Up 420/1000')).toBeInTheDocument()
+    expect(
+      screen.getByText('Leave 1000 footprints with the mouse'),
+    ).toBeInTheDocument()
   })
 
-  it('reveals the secret once unlocked', () => {
-    renderWithProviders(<FigurineShelf />, { game: { unlocked: ['secret'] } })
+  it('names every figurine and its hint before it is unlocked', () => {
+    renderWithProviders(<FigurineShelf />)
 
-    expect(screen.getByText('Eclipse')).toBeInTheDocument()
+    expect(
+      within(tile(/Eclipse/)!).getByText('Switch the site theme'),
+    ).toBeInTheDocument()
+    expect(within(tile(/Eclipse/)!).getByText('Locked')).toBeInTheDocument()
+  })
+
+  it('drops the progress once a goal figurine is unlocked', () => {
+    renderWithProviders(<FigurineShelf />, {
+      game: { unlocked: ['levelUp'], footprints: 1000 },
+    })
+
+    expect(within(tile(/Level Up/)!).getByText('Unlocked')).toBeInTheDocument()
+    expect(screen.queryByText(/1000\/1000/)).not.toBeInTheDocument()
   })
 })

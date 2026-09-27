@@ -1,21 +1,20 @@
 import { useTranslation } from 'react-i18next'
 
 import type { AchievementId } from '@/types'
-import { EXPLORER_GOAL, HIDDEN_ACHIEVEMENTS } from '@/utils/achievements'
+import { ACHIEVEMENT_GOALS } from '@/utils/achievements'
 import { cn } from '@/utils/cn'
 
 interface FigurineTileProps {
   id: AchievementId
   unlocked: boolean
-  /** Distinct projects opened so far, shown on the explorer tile. */
-  progress: number
+  /** Count reached so far, for a figurine earned with a goal. */
+  progress?: number
 }
 
 export const FigurineTile = ({ id, unlocked, progress }: FigurineTileProps) => {
   const { t } = useTranslation()
-  const hidden = !unlocked && HIDDEN_ACHIEVEMENTS.includes(id)
-  const name = hidden ? t('game.hiddenName') : t(`game.achievements.${id}.name`)
-  const showProgress = id === 'explorer' && !unlocked
+  const goal = ACHIEVEMENT_GOALS[id]
+  const showProgress = goal !== undefined && progress !== undefined && !unlocked
 
   return (
     <li
@@ -27,12 +26,11 @@ export const FigurineTile = ({ id, unlocked, progress }: FigurineTileProps) => {
       )}
     >
       <span className="font-display text-base font-bold uppercase leading-tight tracking-wide">
-        {name}
-        {showProgress &&
-          ` ${Math.min(progress, EXPLORER_GOAL)}/${EXPLORER_GOAL}`}
+        {t(`game.achievements.${id}.name`)}
+        {showProgress && ` ${Math.min(progress, goal)}/${goal}`}
       </span>
       <span className={cn('text-xs', unlocked ? 'opacity-80' : 'text-muted')}>
-        {t(`game.achievements.${id}.hint`, { goal: EXPLORER_GOAL })}
+        {t(`game.achievements.${id}.hint`, { goal })}
       </span>
       <span className="sr-only">
         {t(unlocked ? 'game.unlocked' : 'game.locked')}

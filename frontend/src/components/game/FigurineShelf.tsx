@@ -8,7 +8,7 @@ import { FigurineTile } from './FigurineTile'
 /** The collection: figurines unlocked by exploring the site. */
 export const FigurineShelf = () => {
   const { t } = useTranslation()
-  const { unlocked, visitedProjects, count, total } = useCollection()
+  const { unlocked, progress, count, total } = useCollection()
 
   return (
     <section aria-labelledby="collection-title" className="flex flex-col gap-4">
@@ -29,7 +29,7 @@ export const FigurineShelf = () => {
             key={id}
             id={id}
             unlocked={unlocked.includes(id)}
-            progress={visitedProjects.length}
+            progress={progress[id]}
           />
         ))}
       </ul>

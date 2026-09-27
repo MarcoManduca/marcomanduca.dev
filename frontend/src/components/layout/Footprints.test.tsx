@@ -1,24 +1,29 @@
-import { fireEvent, render } from '@testing-library/react'
+import { fireEvent } from '@testing-library/react'
 
 import { MAX_FOOTPRINTS } from '@/hooks/useFootprints'
+import { renderWithProviders } from '@/test/utils'
+import type { GameState } from '@/types'
+import { FOOTPRINT_GOAL } from '@/utils/achievements'
 import { STRIDE } from '@/utils/footprintGeometry'
 
 import { Footprints } from './Footprints'
 
 /** A page with a patch of empty background and a card on it. */
-const renderPage = () => {
-  const view = render(
+const renderPage = (progress?: Partial<GameState>) => {
+  const view = renderWithProviders(
     <div>
       <Footprints />
       <div data-floor="" />
       <div data-card="" style={{ backgroundColor: 'rgb(20, 40, 50)' }} />
     </div>,
+    { game: progress },
   )
   const floor = view.container.querySelector<HTMLElement>('[data-floor]')!
   const card = view.container.querySelector<HTMLElement>('[data-card]')!
   const prints = () =>
     Array.from(view.container.querySelectorAll<SVGElement>('[data-foot]'))
-  return { floor, card, prints }
+  const game = () => view.store.getState().game
+  return { floor, card, prints, game }
 }
 
 /** Moves the mouse over `target` through `steps` strides, left to right. */
@@ -131,6 +136,25 @@ describe('Footprints', () => {
     walk(floor, MAX_FOOTPRINTS + 5)
 
     expect(prints()).toHaveLength(MAX_FOOTPRINTS)
+  })
+
+  it('counts every print shown towards Level Up', () => {
+    const { floor, card, game } = renderPage()
+    vi.mocked(document.elementFromPoint).mockReturnValue(floor)
+
+    walk(floor, MAX_FOOTPRINTS + 5)
+    walk(card, 3)
+
+    expect(game().footprints).toBe(MAX_FOOTPRINTS + 5)
+  })
+
+  it('unlocks Level Up with the last print of the goal', () => {
+    const { floor, game } = renderPage({ footprints: FOOTPRINT_GOAL - 1 })
+    vi.mocked(document.elementFromPoint).mockReturnValue(floor)
+
+    walk(floor, 1)
+
+    expect(game().unlocked).toEqual(['levelUp'])
   })
 
   it('clears a print once it has faded', () => {

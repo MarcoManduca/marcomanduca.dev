@@ -8,12 +8,14 @@ describe('gameStorage', () => {
     saveGameState({
       unlocked: ['firstStep'],
       visitedProjects: ['a'],
+      footprints: 42,
       lastUnlocked: 'firstStep',
     })
 
     expect(loadGameState()).toEqual({
       unlocked: ['firstStep'],
       visitedProjects: ['a'],
+      footprints: 42,
       lastUnlocked: null,
     })
   })
@@ -31,12 +33,12 @@ describe('gameStorage', () => {
   it('keeps the progress of an older save with game mode off', () => {
     localStorage.setItem(
       'game',
-      JSON.stringify({ gameMode: false, unlocked: ['reader'] }),
+      JSON.stringify({ gameMode: false, unlocked: ['contact'] }),
     )
 
     expect(loadGameState()).toEqual({
       ...initialGameState,
-      unlocked: ['reader'],
+      unlocked: ['contact'],
     })
   })
 
@@ -44,15 +46,32 @@ describe('gameStorage', () => {
     localStorage.setItem(
       'game',
       JSON.stringify({
-        unlocked: ['reader', 'hacker'],
+        unlocked: ['contact', 'hacker'],
         visitedProjects: [42, 'b'],
+        footprints: -3,
       }),
     )
 
     expect(loadGameState()).toEqual({
       ...initialGameState,
-      unlocked: ['reader'],
+      unlocked: ['contact'],
       visitedProjects: ['b'],
+      footprints: 0,
     })
+  })
+
+  it('drops the retired Reader figurine from an older save', () => {
+    localStorage.setItem(
+      'game',
+      JSON.stringify({ unlocked: ['reader', 'polyglot'] }),
+    )
+
+    expect(loadGameState().unlocked).toEqual(['polyglot'])
+  })
+
+  it('keeps Eclipse from a save of when it was a secret', () => {
+    localStorage.setItem('game', JSON.stringify({ unlocked: ['secret'] }))
+
+    expect(loadGameState().unlocked).toEqual(['eclipse'])
   })
 })

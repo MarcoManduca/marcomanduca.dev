@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { leaveFootprint } from '@/store/gameSlice'
+import { useAppDispatch } from '@/store/hooks'
 import type { FootSide, Footprint, Point } from '@/types'
 import {
   STRIDE,
@@ -18,10 +20,11 @@ export const MAX_FOOTPRINTS = 14
  * foot lands, if the pointer and the whole print, toe to heel, are on the
  * empty background (`isFloor`), so no print ever slips under a card. Prints
  * are placed in the pixels of the layer behind `layerRef`, so they stay put
- * on the page when it scrolls. Touch and pen never walk, and nothing walks
- * under reduced motion.
+ * on the page when it scrolls. Every print shown counts towards the Level Up
+ * figurine. Touch and pen never walk, and nothing walks under reduced motion.
  */
 export const useFootprints = () => {
+  const dispatch = useAppDispatch()
   const layerRef = useRef<HTMLDivElement>(null)
   const [prints, setPrints] = useState<Footprint[]>([])
 
@@ -55,11 +58,12 @@ export const useFootprints = () => {
         y: at.y - box.top,
       }
       setPrints((current) => [...current.slice(1 - MAX_FOOTPRINTS), print])
+      dispatch(leaveFootprint())
     }
 
     window.addEventListener('pointermove', onMove, { passive: true })
     return () => window.removeEventListener('pointermove', onMove)
-  }, [])
+  }, [dispatch])
 
   const remove = useCallback(
     (id: number) =>

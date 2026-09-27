@@ -103,7 +103,6 @@
     "locked": "Da sbloccare",
     "toast": "Figurina sbloccata: {{name}}",
     "dismiss": "Chiudi notifica",
-    "hiddenName": "???",
     "achievements": {
       "firstStep": {
         "name": "Primo passo",
@@ -117,21 +116,21 @@
         "name": "Esploratore",
         "hint": "Apri {{goal}} progetti diversi"
       },
-      "reader": {
-        "name": "Lettore",
-        "hint": "Leggi un articolo del learning"
-      },
       "polyglot": {
         "name": "Poliglotta",
         "hint": "Cambia la lingua del sito"
       },
-      "secret": {
+      "eclipse": {
         "name": "Eclissi",
-        "hint": "Un segreto si nasconde nell'intestazione"
+        "hint": "Cambia il tema del sito"
       },
       "contact": {
         "name": "Contatto",
         "hint": "Inviami un messaggio"
+      },
+      "levelUp": {
+        "name": "Level Up",
+        "hint": "Lascia {{goal}} orme con il mouse"
       }
     }
   },

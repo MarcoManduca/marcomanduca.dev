@@ -8,11 +8,11 @@ import { AchievementToast } from './AchievementToast'
 describe('AchievementToast', () => {
   it('announces the latest unlock and can be dismissed', async () => {
     const { store } = renderWithProviders(<AchievementToast />, {
-      game: { unlocked: ['reader'], lastUnlocked: 'reader' },
+      game: { unlocked: ['polyglot'], lastUnlocked: 'polyglot' },
     })
 
     expect(screen.getByRole('status')).toHaveTextContent(
-      'Figurine unlocked: Reader',
+      'Figurine unlocked: Polyglot',
     )
 
     await userEvent.click(
