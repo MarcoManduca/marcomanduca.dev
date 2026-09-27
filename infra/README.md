@@ -378,6 +378,10 @@ docker compose up --build
 | Frontend (nginx) | http://localhost:5173        |
 | DynamoDB Local   | http://localhost:8001        |
 
+All three ports are bound to `127.0.0.1` only: locally the API runs with
+its docs on and the origin check off, so it must not be reachable from the
+LAN.
+
 Notes:
 
 - `dynamodb-init` runs once, creates the 4 tables (in-memory, recreated on
