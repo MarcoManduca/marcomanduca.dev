@@ -5,6 +5,9 @@ server {
 
     root /usr/share/nginx/html;
     index index.html;
+    # Relative Location headers: the container port (8080) is not the one the
+    # browser uses (5173 via compose).
+    absolute_redirect off;
 
     # Security headers (production parity; in the deployed stack the SPA is
     # served by CloudFront, which applies the canonical policy).
@@ -18,7 +21,8 @@ server {
     # (127.0.0.11) using a variable in proxy_pass, so nginx does not fail to
     # start if the backend is not yet resolvable. BACKEND_UPSTREAM must be a
     # bare scheme://host:port with no trailing path.
-    location /api/ {
+    # ^~: prefix match that wins over the regex location below.
+    location ^~ /api/ {
         resolver 127.0.0.11 valid=10s ipv6=off;
         set $backend_upstream ${BACKEND_UPSTREAM};
         proxy_pass $backend_upstream$request_uri;
@@ -28,15 +32,30 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    # Immutable hashed assets
-    location /assets/ {
+    # Immutable hashed assets; a missing one is a real 404, as on CloudFront.
+    location ^~ /assets/ {
         # add_header here would otherwise drop the server-level headers.
         include /etc/nginx/snippets/security-headers.conf;
         add_header Cache-Control "public, max-age=31536000, immutable";
+        try_files $uri =404;
     }
 
-    # SPA fallback
+    # Any other path with a file extension (robots.txt, images, ...) is a
+    # file, never a client-side route (same rule as the CloudFront function).
+    location ~ \.[^/]+$ {
+        try_files $uri =404;
+    }
+
+    # Client-side routes: the pre-rendered page when the build has one
+    # (dist/_routes, see scripts/prerender), otherwise the SPA shell. On AWS
+    # the CloudFront function makes the same choice via its key value store.
+    location = / {
+        try_files /_routes/index.html /index.html;
+    }
+
     location / {
-        try_files $uri $uri/ /index.html;
+        # One canonical form per page: drop trailing slashes (301).
+        rewrite ^(.+?)/+$ $1 permanent;
+        try_files /_routes$uri.html /index.html;
     }
 }
