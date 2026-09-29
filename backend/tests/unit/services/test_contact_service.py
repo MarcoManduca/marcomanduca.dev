@@ -125,3 +125,26 @@ def test_send_contact_email_truncates_long_subject(
     subject = recording_client.call_args.kwargs["Message"]["Subject"]["Data"]
     assert len(subject) == 150
     assert subject.endswith("…")
+
+
+def test_send_contact_email_declares_utf8_for_accented_text(
+    service: ContactService, recording_client: MagicMock
+) -> None:
+    # Arrange
+    payload = ContactRequest(
+        name="Niccolò",
+        email="niccolo@example.com",
+        message="Perché no? Città, caffè e più.",
+    )
+
+    # Act
+    service.send_contact_email(payload)
+
+    # Assert
+    message = recording_client.call_args.kwargs["Message"]
+    assert message["Subject"] == {
+        "Data": "[Portfolio] Message from Niccolò",
+        "Charset": "UTF-8",
+    }
+    assert message["Body"]["Text"]["Charset"] == "UTF-8"
+    assert "Perché no? Città, caffè e più." in message["Body"]["Text"]["Data"]
