@@ -67,6 +67,14 @@ describe('Learning', () => {
       screen.getByText('No articles in this category yet.'),
     ).toBeInTheDocument()
   })
+
+  it('titles each card one level below the page heading', async () => {
+    renderWithProviders(<Learning />)
+
+    expect(
+      await screen.findByRole('heading', { level: 2, name: 'Big-O notation' }),
+    ).toBeInTheDocument()
+  })
 })
 
 describe('Learning title', () => {

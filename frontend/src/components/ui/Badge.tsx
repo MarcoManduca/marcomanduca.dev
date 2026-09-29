@@ -10,11 +10,13 @@ interface BadgeProps {
   children: ReactNode
 }
 
+// Text colours reach at least 4.5:1 on their tint over both the page and the
+// card backgrounds, in both themes (the badge text is 12px).
 const TONE_CLASSES: Record<BadgeTone, string> = {
-  blue: 'bg-accent/15 text-accent',
+  blue: 'bg-accent/15 text-accent-deep dark:text-accent-hover',
   green: 'bg-success/15 text-success',
-  gray: 'bg-muted/15 text-muted',
-  amber: 'bg-highlight/15 text-highlight',
+  gray: 'bg-muted/15 text-body',
+  amber: 'bg-highlight/15 text-warm-hover dark:text-highlight',
 }
 
 export const Badge = ({ tone = 'blue', className, children }: BadgeProps) => (

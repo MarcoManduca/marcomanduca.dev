@@ -19,14 +19,14 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
   return (
     <Card className="flex h-full flex-col gap-3">
       <div className="flex items-start justify-between gap-2">
-        <h3 className="text-lg font-semibold text-heading">
+        <h2 className="text-lg font-semibold text-heading">
           <Link
             to={`/learning/${article.slug}`}
             className="hover:text-accent-hover"
           >
             {localize(article.title)}
           </Link>
-        </h3>
+        </h2>
         <Badge tone="green">
           {t(`learningCategories.${article.category}`)}
         </Badge>
