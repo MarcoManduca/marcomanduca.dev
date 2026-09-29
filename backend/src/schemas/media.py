@@ -50,11 +50,16 @@ class PresignUploadResponse(BaseModel):
         Final S3 object key.
     expires_in : int
         URL validity in seconds.
+    public_path : str or None
+        Site path the uploaded image is served at through the CDN
+        (``/media/images/...``), ready to use as an image source in
+        content; ``None`` for the CV, which stays private.
     """
 
     url: str
     key: str
     expires_in: int
+    public_path: str | None = None
 
 
 class PresignDownloadResponse(BaseModel):

@@ -3,7 +3,8 @@
 import re
 
 _ALLOWED_URL_SCHEMES = ("http://", "https://")
-# A path on the site itself (``/images/…``), never ``//host`` or ``/\host``.
+# A path on the site itself (``/images/…`` from the frontend build, or
+# ``/media/images/…`` for uploads), never ``//host`` or ``/\host``.
 _SITE_PATH = re.compile(r"^/(?![/\\])")
 # Browsers strip tabs and newlines from URLs, so ``/\t/host`` would load
 # ``//host``; no whitespace or control character is ever legitimate here.

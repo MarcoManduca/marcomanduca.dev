@@ -67,7 +67,7 @@ belonging to the `Administrators` group.
 | POST | `/api/v1/technologies` | admin | Register technology |
 | DELETE | `/api/v1/technologies/{id}` | admin | Delete technology |
 | POST | `/api/v1/contact` | public | Contact form (honeypot + rate limit) |
-| POST | `/api/v1/media/presign` | admin | Presigned S3 PUT URL |
+| POST | `/api/v1/media/presign` | admin | Presigned S3 PUT URL (+ public `/media/…` path for images) |
 | GET | `/api/v1/media/url?key=...` | public | Presigned S3 GET URL (CV and generated image keys only) |
 
 \* Authenticated administrators also see `draft`/`archived` content.
@@ -78,10 +78,24 @@ belonging to the `Administrators` group.
 `image/png`, `image/jpeg`, `image/webp`, `image/gif` under the image prefixes,
 and `application/pdf` under `cv/` (SVG is rejected). The object key is
 generated server side (`<prefix><uuid>-<slug>.<ext>`, extension derived from
-the content type; the CV is always `cv/cv.pdf`). The optional
-`content_length` field (bytes, max 10 MB) is signed into the URL so S3
-rejects any other body size; clients that omit it get no size enforcement,
-so the admin UI should send `file.size`.
+the content type; the CV is always `cv/cv.pdf`). The required
+`content_length` field (bytes, max 10 MB) is signed into the URL, so S3
+rejects any other body size; the admin UI sends `file.size`.
+
+For images the response also carries `public_path`
+(`/media/images/<projects|learning>/<uuid>-<slug>.<ext>`): CloudFront serves
+the media bucket's `images/` prefix under `/media/`, so that path is what
+project covers, galleries and markdown should reference. It is `null` for the
+CV, which stays private (download it through `GET /media/url`).
+
+```json
+{
+  "url": "https://<bucket>.s3.eu-west-1.amazonaws.com/images/projects/…?X-Amz-…",
+  "key": "images/projects/0f4c…e1-cover.png",
+  "expires_in": 900,
+  "public_path": "/media/images/projects/0f4c…e1-cover.png"
+}
+```
 
 ## Environment variables
 
