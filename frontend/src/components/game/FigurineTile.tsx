@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 
+import { useFigurineProgress } from '@/hooks/useFigurineProgress'
 import type { AchievementId } from '@/types'
 import { ACHIEVEMENT_GOALS } from '@/utils/achievements'
 import { cn } from '@/utils/cn'
@@ -7,12 +8,11 @@ import { cn } from '@/utils/cn'
 interface FigurineTileProps {
   id: AchievementId
   unlocked: boolean
-  /** Count reached so far, for a figurine earned with a goal. */
-  progress?: number
 }
 
-export const FigurineTile = ({ id, unlocked, progress }: FigurineTileProps) => {
+export const FigurineTile = ({ id, unlocked }: FigurineTileProps) => {
   const { t } = useTranslation()
+  const progress = useFigurineProgress(id)
   const goal = ACHIEVEMENT_GOALS[id]
   const showProgress = goal !== undefined && progress !== undefined && !unlocked
 
