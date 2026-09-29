@@ -1,5 +1,7 @@
 """Business logic for learning articles, including versioning."""
 
+import time
+from collections.abc import Callable
 from functools import lru_cache
 from typing import Any
 
@@ -11,6 +13,7 @@ from src.schemas.learning import (
     ArticleUpdate,
     LearningCategory,
 )
+from src.services.backoff import backoff_delay
 from src.services.errors import ConflictError, InvalidInputError, NotFoundError
 from src.services.parsing import parse_item, parse_items
 from src.services.timestamps import utc_now_iso
@@ -33,10 +36,16 @@ class LearningService:
     ----------
     table : LearningTable
         DynamoDB access layer for learning articles.
+    sleep : Callable[[float], None], optional
+        Waits between retries of a contended write (``time.sleep``);
+        tests pass a no-op.
     """
 
-    def __init__(self, table: LearningTable) -> None:
+    def __init__(
+        self, table: LearningTable, sleep: Callable[[float], None] = time.sleep
+    ) -> None:
         self._table = table
+        self._sleep = sleep
 
     def list_articles(
         self,
@@ -198,8 +207,9 @@ class LearningService:
         ConflictError
             When concurrent writers keep claiming the next version.
         """
-        for _ in range(_MAX_WRITE_RETRIES):
-            latest = self._table.get_latest(slug)
+        for attempt in range(_MAX_WRITE_RETRIES):
+            self._pause_before(attempt)
+            latest = self._table.get_latest(slug, consistent=True)
             if latest is None:
                 raise NotFoundError(f"Article '{slug}' not found.")
             now = utc_now_iso()
@@ -238,7 +248,7 @@ class LearningService:
         ConflictError
             When concurrent writers keep claiming the next version.
         """
-        target = self._table.get_version(slug, version)
+        target = self._table.get_version(slug, version, consistent=True)
         if target is None:
             raise NotFoundError(f"Version {version} of article '{slug}' not found.")
         if (
@@ -249,8 +259,9 @@ class LearningService:
                 f"Version {version} of article '{slug}' no longer matches the "
                 "article schema and cannot be restored."
             )
-        for _ in range(_MAX_WRITE_RETRIES):
-            latest = self._table.get_latest(slug)
+        for attempt in range(_MAX_WRITE_RETRIES):
+            self._pause_before(attempt)
+            latest = self._table.get_latest(slug, consistent=True)
             if latest is None:
                 raise NotFoundError(f"Article '{slug}' not found.")
             item = dict(target) | {
@@ -277,6 +288,11 @@ class LearningService:
         deleted = self._table.delete_all_versions(slug)
         if deleted == 0:
             raise NotFoundError(f"Article '{slug}' not found.")
+
+    def _pause_before(self, attempt: int) -> None:
+        """Back off before every retry (not before the first attempt)."""
+        if attempt:
+            self._sleep(backoff_delay(attempt))
 
 
 @lru_cache

@@ -53,20 +53,23 @@ class ProjectsTable:
         """
         return put_if_absent(self._table, item, "slug")
 
-    def get(self, slug: str) -> dict[str, Any] | None:
+    def get(self, slug: str, *, consistent: bool = False) -> dict[str, Any] | None:
         """Fetch a project by slug.
 
         Parameters
         ----------
         slug : str
             Project primary key.
+        consistent : bool
+            Strongly consistent read, for read-modify-write paths: an
+            update right after a create must not see "not found".
 
         Returns
         -------
         dict[str, Any] or None
             The item, or ``None`` when it does not exist.
         """
-        response = self._table.get_item(Key={"slug": slug})
+        response = self._table.get_item(Key={"slug": slug}, ConsistentRead=consistent)
         item = response.get("Item")
         return to_native(item) if item else None
 

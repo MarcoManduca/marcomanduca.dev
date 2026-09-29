@@ -1,4 +1,4 @@
-"""Unit tests for LearningTable pagination (the boto3 table is mocked)."""
+"""Unit tests for LearningTable queries (the boto3 table is mocked)."""
 
 from decimal import Decimal
 from unittest.mock import MagicMock
@@ -71,3 +71,36 @@ def test_delete_all_versions_projects_only_the_version_key(
     first_call = paged_table._table.query.call_args_list[0]
     assert first_call.kwargs["ProjectionExpression"] == "#version"
     assert first_call.kwargs["ExpressionAttributeNames"] == {"#version": "version"}
+
+
+@pytest.fixture
+def mocked_table() -> LearningTable:
+    """LearningTable over a mocked boto3 table with no stored items."""
+    table = LearningTable()
+    table._table = MagicMock()
+    table._table.query.return_value = {"Items": []}
+    table._table.get_item.return_value = {}
+    return table
+
+
+@pytest.mark.parametrize("consistent", [True, False])
+def test_get_latest_forwards_the_read_consistency(
+    mocked_table: LearningTable, consistent: bool
+) -> None:
+    # Act
+    mocked_table.get_latest("a", consistent=consistent)
+
+    # Assert
+    assert mocked_table._table.query.call_args.kwargs["ConsistentRead"] is consistent
+
+
+@pytest.mark.parametrize("consistent", [True, False])
+def test_get_version_forwards_the_read_consistency(
+    mocked_table: LearningTable, consistent: bool
+) -> None:
+    # Act
+    mocked_table.get_version("a", 1, consistent=consistent)
+
+    # Assert
+    call = mocked_table._table.get_item.call_args
+    assert call.kwargs["ConsistentRead"] is consistent

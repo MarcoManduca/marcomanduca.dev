@@ -356,6 +356,22 @@ def test_update_project_raises_not_found_when_deleted_concurrently(
         ProjectService(table).update_project("demo-project", payload)
 
 
+def test_update_project_reads_the_stored_project_consistently(
+    project_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange
+    table = MagicMock(spec=ProjectsTable)
+    table.get.return_value = {"slug": "demo-project", "created_at": "2026-01-01"}
+    table.replace_if_exists.return_value = True
+    payload = ProjectUpdate(**project_payload_factory())
+
+    # Act
+    ProjectService(table).update_project("demo-project", payload)
+
+    # Assert
+    table.get.assert_called_once_with("demo-project", consistent=True)
+
+
 def test_update_project_does_not_recreate_a_deleted_project(
     service: ProjectService,
     project_payload_factory: Callable[..., dict[str, Any]],

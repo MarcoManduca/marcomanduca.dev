@@ -59,19 +59,60 @@ def test_create_article_raises_invalid_input_on_empty_slug(
         service.create_article(payload)
 
 
-def test_update_article_raises_conflict_when_version_is_contended(
-    article_payload_factory: Callable[..., dict[str, Any]],
-) -> None:
-    # Arrange: a table whose conditional write always loses the race.
+@pytest.fixture
+def contended_table() -> MagicMock:
+    """A table whose conditional write always loses the race."""
     table = MagicMock()
     table.get_latest.return_value = {"version": 1, "created_at": "t"}
     table.put_version_if_absent.return_value = False
-    service = LearningService(table)
+    return table
+
+
+def test_update_article_raises_conflict_when_version_is_contended(
+    contended_table: MagicMock,
+    article_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange
+    service = LearningService(contended_table, sleep=MagicMock())
     update = ArticleUpdate(**article_payload_factory())
 
     # Act / Assert
     with pytest.raises(ConflictError):
         service.update_article("demo-article", update)
+
+
+def test_update_article_backs_off_between_retries(
+    contended_table: MagicMock,
+    article_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange
+    sleep = MagicMock()
+    service = LearningService(contended_table, sleep=sleep)
+    update = ArticleUpdate(**article_payload_factory())
+
+    # Act
+    with pytest.raises(ConflictError):
+        service.update_article("demo-article", update)
+
+    # Assert: five attempts, a pause before each of the four retries.
+    assert contended_table.get_latest.call_count == 5
+    assert sleep.call_count == 4
+
+
+def test_update_article_reads_the_latest_version_consistently(
+    contended_table: MagicMock,
+    article_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange
+    service = LearningService(contended_table, sleep=MagicMock())
+    update = ArticleUpdate(**article_payload_factory())
+
+    # Act
+    with pytest.raises(ConflictError):
+        service.update_article("demo-article", update)
+
+    # Assert
+    contended_table.get_latest.assert_called_with("demo-article", consistent=True)
 
 
 def test_update_article_writes_a_new_version(

@@ -46,13 +46,19 @@ class LearningTable:
         """
         return put_if_absent(self._table, item, "slug")
 
-    def get_latest(self, slug: str) -> dict[str, Any] | None:
+    def get_latest(
+        self, slug: str, *, consistent: bool = False
+    ) -> dict[str, Any] | None:
         """Fetch the highest-version item for a slug.
 
         Parameters
         ----------
         slug : str
             Article partition key.
+        consistent : bool
+            Strongly consistent read, for read-modify-write paths: an
+            eventually consistent read can miss a version written a moment
+            ago and make the next write collide with it.
 
         Returns
         -------
@@ -63,11 +69,14 @@ class LearningTable:
             KeyConditionExpression=Key("slug").eq(slug),
             ScanIndexForward=False,
             Limit=1,
+            ConsistentRead=consistent,
         )
         items = response.get("Items", [])
         return to_native(items[0]) if items else None
 
-    def get_version(self, slug: str, version: int) -> dict[str, Any] | None:
+    def get_version(
+        self, slug: str, version: int, *, consistent: bool = False
+    ) -> dict[str, Any] | None:
         """Fetch a specific article version.
 
         Parameters
@@ -76,13 +85,17 @@ class LearningTable:
             Article partition key.
         version : int
             Version sort key.
+        consistent : bool
+            Strongly consistent read (see :meth:`get_latest`).
 
         Returns
         -------
         dict[str, Any] or None
             The version item, or ``None`` when it does not exist.
         """
-        response = self._table.get_item(Key={"slug": slug, "version": version})
+        response = self._table.get_item(
+            Key={"slug": slug, "version": version}, ConsistentRead=consistent
+        )
         item = response.get("Item")
         return to_native(item) if item else None
 
