@@ -550,7 +550,9 @@
     "signOut": "Sign out",
     "errorTitle": "Sign-in failed",
     "errorMessage": "Something went wrong while signing you in. Please try again.",
-    "retry": "Try again"
+    "retry": "Try again",
+    "sessionExpired": "Your session has expired. Signing in again reloads the page: copy any unsaved changes first.",
+    "signInAgain": "Sign in again"
   },
   "statuses": {
     "draft": "Draft",

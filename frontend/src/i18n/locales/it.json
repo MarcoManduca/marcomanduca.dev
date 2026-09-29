@@ -550,7 +550,9 @@
     "signOut": "Esci",
     "errorTitle": "Accesso non riuscito",
     "errorMessage": "Si è verificato un problema durante l'accesso. Riprova.",
-    "retry": "Riprova"
+    "retry": "Riprova",
+    "sessionExpired": "La sessione è scaduta. Accedere di nuovo ricarica la pagina: copia prima le modifiche non salvate.",
+    "signInAgain": "Accedi di nuovo"
   },
   "statuses": {
     "draft": "Bozza",

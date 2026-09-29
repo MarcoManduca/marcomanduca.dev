@@ -22,6 +22,8 @@ export interface ProjectFormProps {
   isSaving: boolean
   onSubmit: (input: ProjectInput) => void
   onCancel: () => void
+  /** Called on every edit, to guard unsaved changes. */
+  onDirty?: () => void
 }
 
 /** Create / edit form of a project: its card, its page and its lab. */
@@ -30,6 +32,7 @@ export const ProjectForm = ({
   isSaving,
   onSubmit,
   onCancel,
+  onDirty,
 }: ProjectFormProps) => {
   const { t } = useTranslation()
   const [technologies, setTechnologies] = useState(initial?.technologies ?? [])
@@ -53,7 +56,7 @@ export const ProjectForm = ({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-6">
+    <form onSubmit={handleSubmit} onInput={onDirty} className="grid gap-6">
       <FormSection legend={t('admin.form.cardSection')}>
         {initial && (
           <div className="sm:col-span-2">
@@ -78,7 +81,13 @@ export const ProjectForm = ({
           value={initial?.metrics ?? []}
           hint={listHint}
         />
-        <TechnologyPicker value={technologies} onChange={setTechnologies} />
+        <TechnologyPicker
+          value={technologies}
+          onChange={(next) => {
+            setTechnologies(next)
+            onDirty?.()
+          }}
+        />
       </FormSection>
       <ProjectPageFields initial={initial} />
       <FormSection legend={t('admin.form.labSection')}>

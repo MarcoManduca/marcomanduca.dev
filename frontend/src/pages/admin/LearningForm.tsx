@@ -23,6 +23,8 @@ interface LearningFormProps {
   isSaving: boolean
   onSubmit: (input: LearningArticleInput) => void
   onCancel: () => void
+  /** Called on every edit, to guard unsaved changes. */
+  onDirty?: () => void
 }
 
 const toInput = (data: FormData, tags: string[]): LearningArticleInput => ({
@@ -38,6 +40,7 @@ export const LearningForm = ({
   isSaving,
   onSubmit,
   onCancel,
+  onDirty,
 }: LearningFormProps) => {
   const { t } = useTranslation()
   const [tags, setTags] = useState<string[]>(initial?.tags ?? [])
@@ -48,7 +51,11 @@ export const LearningForm = ({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
+    <form
+      onSubmit={handleSubmit}
+      onInput={onDirty}
+      className="grid gap-4 sm:grid-cols-2"
+    >
       {initial && (
         <Input
           label={t('admin.form.slug')}
@@ -72,7 +79,13 @@ export const LearningForm = ({
         rows={10}
         defaultValue={initial?.content_markdown}
       />
-      <TagPicker value={tags} onChange={setTags} />
+      <TagPicker
+        value={tags}
+        onChange={(next) => {
+          setTags(next)
+          onDirty?.()
+        }}
+      />
       <StatusSelect defaultValue={initial?.status} />
       <FormActions isSaving={isSaving} onCancel={onCancel} />
     </form>

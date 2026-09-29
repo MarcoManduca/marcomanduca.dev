@@ -14,6 +14,7 @@ interface LearningEditorProps {
   isSaving: boolean
   onSubmit: (input: LearningArticleInput) => void
   onCancel: () => void
+  onDirty: () => void
 }
 
 /**
@@ -30,6 +31,7 @@ export const LearningEditor = ({
   isSaving,
   onSubmit,
   onCancel,
+  onDirty,
 }: LearningEditorProps) => {
   const { t } = useTranslation()
   if (!editing) return null
@@ -53,6 +55,7 @@ export const LearningEditor = ({
         isSaving={isSaving}
         onSubmit={onSubmit}
         onCancel={onCancel}
+        onDirty={onDirty}
       />
     </EditorPanel>
   )

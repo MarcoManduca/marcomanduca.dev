@@ -37,6 +37,7 @@ export const AdminProjects = () => {
     isSaving: isCreating || isUpdating,
     onSubmit: editor.save,
     onCancel: editor.cancel,
+    onDirty: editor.markDirty,
   }
 
   if (isLoading) return <Spinner />

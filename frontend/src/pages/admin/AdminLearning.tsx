@@ -55,6 +55,7 @@ export const AdminLearning = () => {
         isSaving={isCreating || isUpdating}
         onSubmit={editor.save}
         onCancel={editor.cancel}
+        onDirty={editor.markDirty}
       />
       <AdminErrorAlert
         title={t('admin.errors.deleteFailed')}

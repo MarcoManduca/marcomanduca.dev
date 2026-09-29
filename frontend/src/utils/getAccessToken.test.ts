@@ -1,6 +1,6 @@
 import { COGNITO_AUTHORITY, COGNITO_CLIENT_ID } from '@/utils/env'
 
-import { getAccessToken } from './getAccessToken'
+import { getAccessToken, hasRenewableSession } from './getAccessToken'
 
 const STORAGE_KEY = `oidc.user:${COGNITO_AUTHORITY}:${COGNITO_CLIENT_ID}`
 const nowSeconds = () => Math.floor(Date.now() / 1000)
@@ -37,5 +37,39 @@ describe('getAccessToken', () => {
     sessionStorage.setItem(STORAGE_KEY, '{not json')
 
     expect(getAccessToken()).toBeNull()
+  })
+})
+
+describe('hasRenewableSession', () => {
+  afterEach(() => sessionStorage.clear())
+
+  it('is false when nothing is stored', () => {
+    expect(hasRenewableSession()).toBe(false)
+  })
+
+  it.each([
+    [
+      'the token is still valid',
+      {
+        access_token: 'a',
+        refresh_token: 'r',
+        expires_at: nowSeconds() + 3600,
+      },
+      false,
+    ],
+    [
+      'the token expired without a refresh token',
+      { access_token: 'a', expires_at: nowSeconds() - 60 },
+      false,
+    ],
+    [
+      'the token expired and a refresh token is stored',
+      { access_token: 'a', refresh_token: 'r', expires_at: nowSeconds() - 60 },
+      true,
+    ],
+  ])('when %s: %s', (_case, user, expected) => {
+    storeUser(user)
+
+    expect(hasRenewableSession()).toBe(expected)
   })
 })
