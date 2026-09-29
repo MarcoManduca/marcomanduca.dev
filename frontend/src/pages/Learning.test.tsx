@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 
@@ -58,5 +58,15 @@ describe('Learning', () => {
     expect(
       screen.getByText('No articles in this category yet.'),
     ).toBeInTheDocument()
+  })
+})
+
+describe('Learning title', () => {
+  it('names the page in the document title', async () => {
+    renderWithProviders(<Learning />)
+
+    await waitFor(() =>
+      expect(document.title).toBe('Learning — marcomanduca.dev'),
+    )
   })
 })

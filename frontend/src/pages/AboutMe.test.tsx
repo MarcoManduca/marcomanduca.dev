@@ -1,4 +1,4 @@
-import { fireEvent, screen, within } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import { renderWithProviders } from '@/test/utils'
@@ -201,5 +201,15 @@ describe('AboutMe', () => {
     expect(
       screen.getByRole('button', { name: 'Download CV' }),
     ).toBeInTheDocument()
+  })
+})
+
+describe('AboutMe title', () => {
+  it('names the page in the document title', async () => {
+    renderWithProviders(<AboutMe />)
+
+    await waitFor(() =>
+      expect(document.title).toBe('About me — marcomanduca.dev'),
+    )
   })
 })

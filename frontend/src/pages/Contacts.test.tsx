@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 
@@ -72,5 +72,15 @@ describe('Contacts', () => {
       'Thank you! Your message has been sent.',
     )
     expect(apiCalled).toBe(false)
+  })
+})
+
+describe('Contacts title', () => {
+  it('names the page in the document title', async () => {
+    renderWithProviders(<Contacts />)
+
+    await waitFor(() =>
+      expect(document.title).toBe('Contacts — marcomanduca.dev'),
+    )
   })
 })

@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 
@@ -118,5 +118,15 @@ describe('Projects', () => {
     expect(
       screen.getByText('No projects match the current filters.'),
     ).toBeInTheDocument()
+  })
+})
+
+describe('Projects title', () => {
+  it('names the page in the document title', async () => {
+    renderWithProviders(<Projects />)
+
+    await waitFor(() =>
+      expect(document.title).toBe('Projects — marcomanduca.dev'),
+    )
   })
 })
