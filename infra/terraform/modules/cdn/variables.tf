@@ -33,6 +33,21 @@ variable "frontend_bucket_regional_domain" {
   type        = string
 }
 
+variable "media_bucket_id" {
+  description = "Name of the media bucket (for its bucket policy)."
+  type        = string
+}
+
+variable "media_bucket_arn" {
+  description = "ARN of the media bucket."
+  type        = string
+}
+
+variable "media_bucket_regional_domain" {
+  description = "Regional domain name of the media bucket (S3 origin for /media/images/*)."
+  type        = string
+}
+
 variable "backend_origin_host" {
   description = "Hostname of the backend API Gateway HTTP API (origin for /api/*)."
   type        = string

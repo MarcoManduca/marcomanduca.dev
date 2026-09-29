@@ -23,6 +23,11 @@ output "media_bucket_arn" {
   value       = aws_s3_bucket.this["media"].arn
 }
 
+output "media_bucket_regional_domain" {
+  description = "Regional domain name of the media bucket (CloudFront origin for /media/images/*)."
+  value       = aws_s3_bucket.this["media"].bucket_regional_domain_name
+}
+
 output "media_bucket_domains" {
   description = "Hostnames presigned media URLs may use (global and regional virtual-hosted style), for the CSP."
   value = [

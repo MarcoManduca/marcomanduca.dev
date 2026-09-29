@@ -16,13 +16,18 @@ output "cloudfront_distribution_id" {
   value       = module.cdn.distribution_id
 }
 
+output "routes_kvs_arn" {
+  description = "CloudFront key value store of the pre-rendered routes, needed by deploy-frontend.sh."
+  value       = module.cdn.routes_kvs_arn
+}
+
 output "frontend_bucket_name" {
   description = "S3 bucket hosting the built SPA, target of deploy-frontend.sh."
   value       = module.storage.frontend_bucket_name
 }
 
 output "media_bucket_name" {
-  description = "S3 bucket for project/learning images and CV exports (private, presigned URLs)."
+  description = "S3 bucket for project/learning images (served as /media/images/*) and CV exports (presigned URLs)."
   value       = module.storage.media_bucket_name
 }
 
