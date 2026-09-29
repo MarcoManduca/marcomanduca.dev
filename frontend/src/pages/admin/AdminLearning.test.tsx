@@ -228,4 +228,19 @@ describe('AdminLearning', () => {
       'Could not delete the item. You do not have permission',
     )
   })
+
+  it('offers a retry when the list fails to load', async () => {
+    server.use(
+      http.get(
+        `${API_URL}/learning`,
+        () => HttpResponse.json({ detail: 'boom' }, { status: 500 }),
+        { once: true },
+      ),
+    )
+    renderWithProviders(<AdminLearning />)
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Retry' }))
+
+    expect(await screen.findByText('Big-O notation')).toBeInTheDocument()
+  })
 })

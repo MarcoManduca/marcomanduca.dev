@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { AdminErrorAlert } from '@/components/admin/AdminErrorAlert'
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader'
 import { AdminTable } from '@/components/admin/AdminTable'
+import { ErrorState } from '@/components/ui/ErrorState'
 import { Spinner } from '@/components/ui/Spinner'
 import { useLanguage } from '@/hooks/useLanguage'
 import {
@@ -24,7 +25,7 @@ import { useAdminEditor } from './useAdminEditor'
 export const AdminLearning = () => {
   const { t } = useTranslation()
   const { localize } = useLanguage()
-  const { data, isLoading } = useGetArticlesQuery()
+  const { data, isLoading, isError, refetch } = useGetArticlesQuery()
   const [createArticle, { isLoading: isCreating }] = useCreateArticleMutation()
   const [updateArticle, { isLoading: isUpdating }] = useUpdateArticleMutation()
   const [deleteArticle, { isLoading: isDeleting }] = useDeleteArticleMutation()
@@ -40,6 +41,8 @@ export const AdminLearning = () => {
   const versionsArticle = data?.find(({ slug }) => slug === versionsSlug)
 
   if (isLoading) return <Spinner />
+  // Only without data: a failed refetch after a save keeps the open editor.
+  if (isError && !data) return <ErrorState onRetry={() => void refetch()} />
 
   return (
     <>
