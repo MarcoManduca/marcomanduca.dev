@@ -5,7 +5,7 @@
 #   dns ──> email (SES DNS records)
 #   storage / database / auth ──> backend (IAM scoping + env vars)
 #   storage + backend + acm ──> cdn (origins, bucket policies, certificate, aliases)
-#   backend ──> monitoring (budget, SNS alerts, CloudWatch alarms)
+#   backend ──> monitoring (budget, SNS alerts, CloudWatch alarms, ECR scan alerts)
 
 locals {
   ses_sender_email = "noreply@${var.domain_name}"
@@ -157,6 +157,7 @@ module "monitoring" {
   alert_email        = local.alert_email
   monthly_budget_usd = var.monthly_budget_usd
 
-  function_name = module.backend.function_name
-  api_id        = module.backend.api_id
+  function_name       = module.backend.function_name
+  api_id              = module.backend.api_id
+  ecr_repository_name = module.backend.ecr_repository_name
 }

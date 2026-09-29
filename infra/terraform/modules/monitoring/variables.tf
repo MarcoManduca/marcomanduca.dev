@@ -60,3 +60,8 @@ variable "ses_complaint_rate_threshold" {
   default     = 0.0008
 }
 
+
+variable "ecr_repository_name" {
+  description = "Backend ECR repository whose scan findings are alerted on."
+  type        = string
+}
