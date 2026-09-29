@@ -8,14 +8,18 @@ import pytest
 
 from src.utils.structured_logging import JsonFormatter, configure_logging
 
+_SERVER_LOGGERS = ("uvicorn", "uvicorn.error", "uvicorn.access")
+
 
 @pytest.fixture
 def app_logger() -> Iterator[logging.Logger]:
-    """Yield the ``src`` logger and restore its handlers and level after."""
-    logger = logging.getLogger("src")
-    saved = (list(logger.handlers), logger.level)
-    yield logger
-    logger.handlers, logger.level = saved[0], saved[1]
+    """Yield the ``src`` logger; restore it and the uvicorn loggers after."""
+    names = ("src", *_SERVER_LOGGERS)
+    loggers = [logging.getLogger(name) for name in names]
+    saved = [(list(lg.handlers), lg.level, lg.propagate) for lg in loggers]
+    yield loggers[0]
+    for lg, (handlers, level, propagate) in zip(loggers, saved, strict=True):
+        lg.handlers, lg.level, lg.propagate = handlers, level, propagate
 
 
 def _record(message: str = "aws_client_error", **kwargs: object) -> logging.LogRecord:
@@ -88,3 +92,23 @@ def test_configure_logging_does_not_stack_handlers(
     # Assert
     assert len(app_logger.handlers) == 1
     assert app_logger.level == logging.WARNING
+
+
+@pytest.mark.parametrize("name", _SERVER_LOGGERS)
+def test_configure_logging_writes_uvicorn_records_once_as_json(
+    app_logger: logging.Logger, capsys: pytest.CaptureFixture[str], name: str
+) -> None:
+    # Arrange
+    configure_logging("INFO")
+    server_logger = logging.getLogger(name)
+    server_logger.setLevel(logging.INFO)
+
+    # Act
+    server_logger.error("boom", extra={"color_message": "\x1b[31mboom\x1b[0m"})
+
+    # Assert
+    lines = capsys.readouterr().out.splitlines()
+    assert len(lines) == 1
+    entry = json.loads(lines[0])
+    assert entry["logger"] == name
+    assert "color_message" not in entry
