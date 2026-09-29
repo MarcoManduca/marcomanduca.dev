@@ -2,9 +2,13 @@
 #
 # Build the backend image, push it to ECR and update the Lambda function.
 #
-# The ECR repository has IMMUTABLE tags: only the git short SHA is pushed
+# The ECR repository has IMMUTABLE tags: only the git SHA of HEAD is pushed
 # (no moving "latest"), and the function is pointed at that exact tag, so
 # each deploy is traceable and a rollback is re-pointing to an older SHA.
+# The SHA is abbreviated to a fixed 12 characters: plain --short grows with
+# the repository, and a rollback target copied from `git log` would then stop
+# matching the tag in ECR. Images pushed before that keep their 7-character
+# tags; roll back to one of them by passing that tag as IMAGE_TAG.
 # If the tag already exists (redeploy of the same commit, rollback) the
 # build/push is skipped and the function is simply pointed at it.
 #
@@ -19,7 +23,7 @@
 #   ECR_REPOSITORY_URL  terraform output -raw ecr_repository_url
 #   FUNCTION_NAME       terraform output -raw backend_function_name
 #   AWS_REGION          deployment region
-#   IMAGE_TAG           image tag to deploy (default: git short SHA of HEAD)
+#   IMAGE_TAG           image tag to deploy (default: 12-char git SHA of HEAD)
 #   SKIP_LAMBDA_UPDATE  1 = push only (bootstrap, before the function exists)
 #   ALLOW_DIRTY         1 = build even with uncommitted changes in backend/
 #
@@ -45,7 +49,7 @@ ALLOW_DIRTY="${ALLOW_DIRTY:-0}"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 ECR_REGISTRY="${ECR_REPOSITORY_URL%%/*}"
 REPOSITORY_NAME="${ECR_REPOSITORY_URL#*/}"
-HEAD_SHA="$(git -C "${REPO_ROOT}" rev-parse --short HEAD)"
+HEAD_SHA="$(git -C "${REPO_ROOT}" rev-parse --short=12 HEAD)"
 IMAGE_TAG="${IMAGE_TAG:-${HEAD_SHA}}"
 
 # A tag that names a commit must name HEAD: the build packages the checkout,
