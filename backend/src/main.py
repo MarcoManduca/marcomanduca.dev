@@ -9,7 +9,7 @@ CloudFront origin secret) are mandatory.
 
 import logging
 
-from botocore.exceptions import ClientError
+from botocore.exceptions import BotoCoreError, ClientError
 from fastapi import APIRouter, FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -26,7 +26,8 @@ from src.utils.origin_verify import OriginVerifyMiddleware
 from src.utils.structured_logging import configure_logging
 
 API_PREFIX = "/api/v1"
-# AWS error codes meaning "slow down": transient, so 503 + Retry-After.
+# AWS error codes meaning "slow down": transient, so 503 + Retry-After
+# (botocore timeouts and connection errors get the same answer).
 _THROTTLING_CODES = frozenset(
     {
         "ThrottlingException",
@@ -134,13 +135,12 @@ def _register_error_handlers(app: FastAPI) -> None:
     ) -> JSONResponse:
         # Safety net: never echo AWS error messages (they name tables/keys).
         code = exc.response.get("Error", {}).get("Code", "Unknown")
-        logger.error("aws_client_error", extra={"error_code": code})
+        logger.error(
+            "aws_client_error",
+            extra={"error_code": code, "operation": exc.operation_name},
+        )
         if code in _THROTTLING_CODES:
-            return JSONResponse(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                content={"detail": "Service busy. Please try again shortly."},
-                headers={"Retry-After": _RETRY_AFTER_SECONDS},
-            )
+            return _service_busy()
         if code == "ValidationException":
             return JSONResponse(
                 status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
@@ -150,6 +150,24 @@ def _register_error_handlers(app: FastAPI) -> None:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={"detail": "Internal Server Error"},
         )
+
+    @app.exception_handler(BotoCoreError)
+    async def handle_aws_connection_error(
+        request: Request, exc: BotoCoreError
+    ) -> JSONResponse:
+        # Timeouts and connection failures never reached AWS (or got no
+        # answer): transient, like throttling.
+        logger.error("aws_connection_error", extra={"error_type": type(exc).__name__})
+        return _service_busy()
+
+
+def _service_busy() -> JSONResponse:
+    """Build the 503 asking the client to retry shortly."""
+    return JSONResponse(
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        content={"detail": "Service busy. Please try again shortly."},
+        headers={"Retry-After": _RETRY_AFTER_SECONDS},
+    )
 
 
 app = create_app()
