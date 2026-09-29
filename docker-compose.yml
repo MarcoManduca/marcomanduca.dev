@@ -68,14 +68,14 @@ services:
   dynamodb-local:
     # Tag + multi-arch index digest, like the Dockerfiles; Dependabot
     # (docker-compose ecosystem) bumps both.
-    image: amazon/dynamodb-local:2.5.2@sha256:d7ebddeb60fa418bcda218a6c6a402a58441b2a20d54c9cb1d85fd5194341753
+    image: amazon/dynamodb-local:3.3.1@sha256:ff89bd48ff32cd8d9be5fee8873b65b8854dc408f1afe881be6eb00247bc0dab
     # -inMemory: nothing is persisted, a fresh database on every start.
     command: ["-jar", "DynamoDBLocal.jar", "-inMemory", "-sharedDb"]
     ports:
       - "127.0.0.1:8001:8000"
 
   dynamodb-init:
-    image: amazon/aws-cli:2.22.35@sha256:6977c83ae3dc99f28fcf8276b9ea5eec33833cd5be40574b34112e98113ec7a2
+    image: amazon/aws-cli:2.37.4@sha256:fdd8d1fcbea9c371678dee5a40df8b178c7a781b4586605756ee28114c97ead6
     entrypoint: ["bash", "/scripts/create-local-tables.sh"]
     environment:
       DYNAMODB_ENDPOINT_URL: http://dynamodb-local:8000
