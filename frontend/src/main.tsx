@@ -11,9 +11,13 @@ import { userManager } from '@/services/userManager'
 import { store } from '@/store'
 import { COGNITO_REDIRECT_URI } from '@/utils/env'
 import { isSigninCallback } from '@/utils/isSigninCallback'
+import { installPreloadErrorReload } from '@/utils/reloadOnPreloadError'
 
 import '@/i18n'
 import '@/index.css'
+
+// A deploy replaces the chunks an open tab would lazy-load: reload once.
+installPreloadErrorReload()
 
 const onSigninCallback = () => {
   // Remove OIDC query params from the URL after the redirect.
