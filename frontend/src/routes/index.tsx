@@ -12,9 +12,7 @@ import { Learning } from '@/pages/Learning'
 import { NotFound } from '@/pages/NotFound'
 import { Projects } from '@/pages/Projects'
 
-import { AuthCallback } from './AuthCallback'
 import { LearningGate } from './LearningGate'
-import { ProtectedRoute } from './ProtectedRoute'
 
 // Public detail pages pull in the markdown renderer and are rarely the entry
 // point, so they are split out too. PublicLayout wraps its outlet in a
@@ -31,30 +29,10 @@ const PrivacyPolicy = lazy(() =>
   import('@/pages/PrivacyPolicy').then((m) => ({ default: m.PrivacyPolicy })),
 )
 
-// The admin area (forms, pickers, media uploader) is only reached by the
-// owner, so it is code-split out of the public bundle and loaded on demand.
-const AdminLayout = lazy(() =>
-  import('@/components/layout/AdminLayout').then((m) => ({
-    default: m.AdminLayout,
-  })),
-)
-const AdminDashboard = lazy(() =>
-  import('@/pages/admin/AdminDashboard').then((m) => ({
-    default: m.AdminDashboard,
-  })),
-)
-const AdminProjects = lazy(() =>
-  import('@/pages/admin/AdminProjects').then((m) => ({
-    default: m.AdminProjects,
-  })),
-)
-const AdminLearning = lazy(() =>
-  import('@/pages/admin/AdminLearning').then((m) => ({
-    default: m.AdminLearning,
-  })),
-)
-const AdminMedia = lazy(() =>
-  import('@/pages/admin/AdminMedia').then((m) => ({ default: m.AdminMedia })),
+// The admin area, with its auth context and the OIDC libraries, is only
+// reached by the owner: it is code-split out of the public bundle.
+const AdminRoutes = lazy(() =>
+  import('./AdminRoutes').then((m) => ({ default: m.AdminRoutes })),
 )
 
 // Pages sit behind their layout's error boundary; this outer one is the last
@@ -62,7 +40,6 @@ const AdminMedia = lazy(() =>
 export const AppRoutes = () => (
   <ErrorBoundary>
     <Routes>
-      <Route path="/admin/callback" element={<AuthCallback />} />
       <Route element={<PublicLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/about-me" element={<AboutMe />} />
@@ -76,20 +53,14 @@ export const AppRoutes = () => (
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="*" element={<NotFound />} />
       </Route>
-      <Route element={<ProtectedRoute />}>
-        <Route
-          element={
-            <Suspense fallback={<Spinner className="min-h-screen" />}>
-              <AdminLayout />
-            </Suspense>
-          }
-        >
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/projects" element={<AdminProjects />} />
-          <Route path="/admin/learning" element={<AdminLearning />} />
-          <Route path="/admin/media" element={<AdminMedia />} />
-        </Route>
-      </Route>
+      <Route
+        path="/admin/*"
+        element={
+          <Suspense fallback={<Spinner className="min-h-screen" />}>
+            <AdminRoutes />
+          </Suspense>
+        }
+      />
     </Routes>
   </ErrorBoundary>
 )
