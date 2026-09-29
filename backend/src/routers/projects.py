@@ -35,7 +35,7 @@ def list_projects(
     context : ProjectContext, optional
         Context filter.
     technology : str, optional
-        Technology id filter.
+        Technology name filter (exact match, e.g. ``Tailwind CSS``).
     search : str, optional
         Free-text search on title, description and topics.
     admin : dict or None

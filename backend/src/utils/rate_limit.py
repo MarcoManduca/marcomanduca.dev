@@ -209,7 +209,8 @@ def enforce_contact_rate_limit(request: Request) -> None:
     """FastAPI dependency enforcing the per-network contact limit.
 
     It runs before the body is validated, so bots are throttled whatever
-    they send.
+    fields they send (only a body that is not JSON at all is rejected
+    earlier, by FastAPI, without being counted).
 
     Parameters
     ----------

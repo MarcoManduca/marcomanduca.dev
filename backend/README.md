@@ -37,21 +37,28 @@ belonging to the `Administrators` group.
   `SES_RECIPIENT_EMAIL` is empty (`src/config.py`, `REQUIRED_IN_PROD`).
   `APP_ENV=local` (docker-compose, tests) keeps the docs and allows them
   empty.
-- **Logging**: application loggers (`src.*`) write one JSON object per line
-  to stdout (`src/utils/structured_logging.py`), including the `extra=`
-  context, so CloudWatch Logs Insights can filter on fields such as
-  `error_code`. Only ids and error classes go in `extra`, never PII.
+- **Logging**: application loggers (`src.*`) and uvicorn's own loggers write
+  one JSON object per line to stdout (`src/utils/structured_logging.py`),
+  including the `extra=` context, so CloudWatch Logs Insights can filter on
+  fields such as `error_code` and a traceback stays one event. Only ids and
+  error classes go in `extra`, never PII.
 - **Resilience**: list endpoints skip (and log) a stored item that no
   longer matches the current schema instead of failing with 500
-  (`src/services/parsing.py`); AWS throttling becomes 503 with
-  `Retry-After`.
+  (`src/services/parsing.py`). Every boto3 client has short timeouts and at
+  most 3 attempts (`src/utils/aws_clients.py`), so a slow AWS call fails
+  well inside the 30 s Lambda timeout; AWS throttling, timeouts and
+  connection errors become 503 with `Retry-After`.
+- **Versioned writes**: Learning updates and deletes run as DynamoDB
+  transactions after a strongly consistent read, so an update racing a
+  delete cannot bring the article back, and contended writes retry with
+  jittered backoff before answering 409.
 
 ## Endpoints
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
 | GET | `/api/v1/health` | public | Liveness check (also the Lambda readiness probe; no origin secret needed) |
-| GET | `/api/v1/projects` | public* | List light project cards (`area`, `context`, `technology`, `search` filters) |
+| GET | `/api/v1/projects` | public* | List light project cards (`area`, `context`, `technology` (a technology **name**, e.g. `Tailwind CSS`), `search` filters) |
 | GET | `/api/v1/projects/{slug}` | public* | Full project, as its page shows it |
 | POST | `/api/v1/projects` | admin | Create project |
 | PUT | `/api/v1/projects/{slug}` | admin | Replace project |

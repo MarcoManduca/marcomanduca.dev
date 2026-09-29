@@ -17,7 +17,7 @@ from src.schemas.common import (
     LocalizedSummary,
     LocalizedTitle,
     PublicationStatus,
-    TechnologyId,
+    TechnologyName,
 )
 from src.schemas.project_lab import ProjectLab
 from src.schemas.project_parts import MediaItem, Metric, ProjectLink, QuestBrief
@@ -68,7 +68,8 @@ class ProjectCardFields(BaseModel):
     metrics : list[Metric]
         Up to four key numbers; cards show the first three.
     technologies : list[str]
-        Technology ids in display order; cards show the first five.
+        Technology names (as registered in ``/technologies``) in display
+        order; cards show the first five.
     """
 
     title: LocalizedTitle
@@ -77,7 +78,7 @@ class ProjectCardFields(BaseModel):
     context: ProjectContext
     cover: MediaItem | None = None
     metrics: list[Metric] = Field(default_factory=list, max_length=4)
-    technologies: list[TechnologyId] = Field(default_factory=list, max_length=30)
+    technologies: list[TechnologyName] = Field(default_factory=list, max_length=30)
 
     _unique_areas = field_validator("areas")(_require_unique_areas)
 

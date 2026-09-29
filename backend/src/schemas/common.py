@@ -18,7 +18,8 @@ MARKDOWN_MAX_LENGTH = 60_000
 URL_MAX_LENGTH = 512
 
 Tag = Annotated[str, Field(min_length=1, max_length=40)]
-TechnologyId = Annotated[str, Field(min_length=1, max_length=100)]
+# A technology display name, e.g. "Tailwind CSS" (``TechnologyResponse.name``).
+TechnologyName = Annotated[str, Field(min_length=1, max_length=100)]
 # An image source: an http(s) URL or a site path (see ``require_media_ref``).
 MediaRef = Annotated[
     str, Field(min_length=1, max_length=1024), AfterValidator(require_media_ref)
