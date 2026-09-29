@@ -9,11 +9,15 @@ import { useUnlockOnMount } from '@/hooks/useUnlockOnMount'
 import { useSendContactMutation } from '@/services/contactApi'
 
 import { ConsentCheckbox } from './ConsentCheckbox'
+import { contactErrorKey } from './contactErrorKey'
 import { HONEYPOT_FIELD, HoneypotField } from './HoneypotField'
+
+/** Mirrors the backend limits (ContactRequest in backend/src/schemas/contact.py). */
+const MAX_LENGTH = { name: 120, email: 254, message: 5000 }
 
 export const ContactForm = () => {
   const { t } = useTranslation()
-  const [sendContact, { isLoading, isSuccess, isError }] =
+  const [sendContact, { isLoading, isSuccess, isError, error }] =
     useSendContactMutation()
   const [honeypotTriggered, setHoneypotTriggered] = useState(false)
   const [consent, setConsent] = useState(false)
@@ -48,19 +52,32 @@ export const ContactForm = () => {
 
   return (
     <form onSubmit={handleSubmit} className="flex max-w-xl flex-col gap-4">
-      <Input label={t('contacts.nameLabel')} name="name" required />
+      <Input
+        label={t('contacts.nameLabel')}
+        name="name"
+        autoComplete="name"
+        maxLength={MAX_LENGTH.name}
+        required
+      />
       <Input
         label={t('contacts.emailLabel')}
         name="email"
         type="email"
+        autoComplete="email"
+        maxLength={MAX_LENGTH.email}
         required
       />
-      <Textarea label={t('contacts.messageLabel')} name="message" required />
+      <Textarea
+        label={t('contacts.messageLabel')}
+        name="message"
+        maxLength={MAX_LENGTH.message}
+        required
+      />
       <HoneypotField />
       <ConsentCheckbox checked={consent} onChange={setConsent} />
       {isError && (
         <p role="alert" className="rounded-lg bg-danger/15 p-4 text-danger">
-          {t('contacts.error')}
+          {t(contactErrorKey(error))}
         </p>
       )}
       <Button

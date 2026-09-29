@@ -487,7 +487,11 @@
     "submit": "Send message",
     "sending": "Sending…",
     "success": "Thank you! Your message has been sent.",
-    "error": "Could not send the message. Please try again later.",
+    "errors": {
+      "generic": "Could not send the message. Please try again later.",
+      "validation": "Please check the fields: the email address looks invalid or a field is too long.",
+      "rateLimited": "Too many messages in a short time. Please try again in a few minutes."
+    },
     "consent": "I have read and accept the <privacy>Privacy Policy</privacy> and consent to the processing of my data to receive a reply."
   },
   "privacy": {

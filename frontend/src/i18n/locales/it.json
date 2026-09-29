@@ -487,7 +487,11 @@
     "submit": "Invia messaggio",
     "sending": "Invio in corso…",
     "success": "Grazie! Il tuo messaggio è stato inviato.",
-    "error": "Impossibile inviare il messaggio. Riprova più tardi.",
+    "errors": {
+      "generic": "Impossibile inviare il messaggio. Riprova più tardi.",
+      "validation": "Controlla i campi: l'indirizzo email non sembra valido o un campo è troppo lungo.",
+      "rateLimited": "Troppi messaggi in poco tempo. Riprova tra qualche minuto."
+    },
     "consent": "Ho letto e accetto la <privacy>Privacy Policy</privacy> e acconsento al trattamento dei miei dati per ricevere una risposta."
   },
   "privacy": {

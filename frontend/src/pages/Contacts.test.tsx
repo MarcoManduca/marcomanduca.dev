@@ -54,6 +54,37 @@ describe('Contacts', () => {
     )
   })
 
+  it.each([
+    [422, 'Please check the fields'],
+    [429, 'Too many messages in a short time'],
+  ])('explains a %i rejection', async (status, message) => {
+    server.use(
+      http.post(`${API_URL}/contact`, () =>
+        HttpResponse.json({ detail: 'rejected' }, { status }),
+      ),
+    )
+    renderWithProviders(<Contacts />)
+
+    await fillForm()
+    await userEvent.click(screen.getByRole('button', { name: 'Send message' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(message)
+  })
+
+  it('limits the fields to what the backend accepts', () => {
+    renderWithProviders(<Contacts />)
+
+    expect(screen.getByLabelText('Name')).toHaveAttribute('maxlength', '120')
+    expect(screen.getByLabelText('Email')).toHaveAttribute(
+      'autocomplete',
+      'email',
+    )
+    expect(screen.getByLabelText('Message')).toHaveAttribute(
+      'maxlength',
+      '5000',
+    )
+  })
+
   it('silently skips the API call when the honeypot field is filled', async () => {
     let apiCalled = false
     server.use(
