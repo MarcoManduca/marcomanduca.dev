@@ -114,12 +114,13 @@ export const handlers = [
     ),
   ),
 
-  // Media presign — { url, key, expires_in }.
+  // Media presign — { url, key, expires_in, public_path }.
   http.post(`${API_URL}/media/presign`, () =>
     HttpResponse.json({
       url: S3_UPLOAD_URL,
       key: 'images/projects/uploaded.png',
       expires_in: 900,
+      public_path: '/media/images/projects/uploaded.png',
     }),
   ),
 

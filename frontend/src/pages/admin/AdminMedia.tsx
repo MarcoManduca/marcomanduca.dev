@@ -8,9 +8,11 @@ import { useMediaUpload } from '@/hooks/useMediaUpload'
 import type { MediaPrefix } from '@/types'
 import { MEDIA_PREFIXES } from '@/types'
 
+import { MediaUploadResult } from './MediaUploadResult'
+
 export const AdminMedia = () => {
   const { t } = useTranslation()
-  const { status, key, upload } = useMediaUpload()
+  const { status, key, publicPath, upload, reset } = useMediaUpload()
   const [prefix, setPrefix] = useState<MediaPrefix>('images/projects/')
   const [file, setFile] = useState<File | null>(null)
   const accept = prefix === 'cv/' ? 'application/pdf' : 'image/*'
@@ -36,6 +38,7 @@ export const AdminMedia = () => {
           onChange={(e) => {
             setPrefix(e.target.value as MediaPrefix)
             setFile(null)
+            reset()
           }}
         />
         <div className="flex flex-col gap-1.5">
@@ -50,7 +53,10 @@ export const AdminMedia = () => {
             id="media-file"
             type="file"
             accept={accept}
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            onChange={(e) => {
+              setFile(e.target.files?.[0] ?? null)
+              reset()
+            }}
             className="text-sm text-body file:mr-3 file:rounded-lg file:border-0 file:bg-accent file:px-4 file:py-2 file:text-sm file:font-medium file:text-background"
           />
         </div>
@@ -65,15 +71,7 @@ export const AdminMedia = () => {
         </Button>
       </form>
       {status === 'success' && key && (
-        <div
-          role="status"
-          className="mt-6 rounded-lg bg-success/15 p-4 text-sm"
-        >
-          <p className="text-success">{t('admin.media.success')}</p>
-          <p className="mt-2 font-mono text-xs text-body">
-            {t('admin.media.objectKey')}: {key}
-          </p>
-        </div>
+        <MediaUploadResult objectKey={key} publicPath={publicPath} />
       )}
       {status === 'error' && (
         <p

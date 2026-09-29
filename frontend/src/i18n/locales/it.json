@@ -665,7 +665,11 @@
       "uploading": "Caricamento…",
       "success": "File caricato con successo.",
       "error": "Caricamento fallito. Riprova.",
-      "objectKey": "Chiave oggetto"
+      "objectKey": "Chiave oggetto",
+      "publicPath": "Percorso pubblico",
+      "publicPathHint": "Usalo come sorgente dell'immagine in progetti e articoli, ad es. ![testo alternativo](percorso).",
+      "copy": "Copia",
+      "copied": "Copiato"
     },
     "confirm": {
       "deleteTitle": "Eliminare “{{title}}”?",

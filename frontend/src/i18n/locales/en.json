@@ -665,7 +665,11 @@
       "uploading": "Uploading…",
       "success": "File uploaded successfully.",
       "error": "Upload failed. Please try again.",
-      "objectKey": "Object key"
+      "objectKey": "Object key",
+      "publicPath": "Public path",
+      "publicPathHint": "Use it as the image source in projects and articles, e.g. ![alt text](path).",
+      "copy": "Copy",
+      "copied": "Copied"
     },
     "confirm": {
       "deleteTitle": "Delete “{{title}}”?",
