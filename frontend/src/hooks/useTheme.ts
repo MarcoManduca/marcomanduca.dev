@@ -1,20 +1,27 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useSyncExternalStore } from 'react'
 
-import { applyTheme, readTheme, type Theme } from '@/utils/theme'
+import {
+  applyTheme,
+  readTheme,
+  subscribeTheme,
+  type Theme,
+} from '@/utils/theme'
 
 export interface ThemeState {
   theme: Theme
   toggleTheme: () => void
 }
 
-/** Current colour theme plus a toggle that applies and persists it. */
+/**
+ * Current colour theme plus a toggle that applies and persists it. Every
+ * caller reads the same source (the document), so all the toggles on the
+ * page (desktop header and mobile menu) stay in step.
+ */
 export const useTheme = (): ThemeState => {
-  const [theme, setTheme] = useState<Theme>(readTheme)
+  const theme = useSyncExternalStore(subscribeTheme, readTheme)
 
   const toggleTheme = useCallback(() => {
-    const next: Theme = readTheme() === 'dark' ? 'light' : 'dark'
-    applyTheme(next)
-    setTheme(next)
+    applyTheme(readTheme() === 'dark' ? 'light' : 'dark')
   }, [])
 
   return { theme, toggleTheme }

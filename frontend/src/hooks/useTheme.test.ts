@@ -37,4 +37,13 @@ describe('useTheme', () => {
     expect(meta).toHaveAttribute('content', '#EFE3C8')
     meta.remove()
   })
+
+  it('keeps every caller in step with the last toggle', () => {
+    const first = renderHook(() => useTheme())
+    const second = renderHook(() => useTheme())
+
+    act(() => first.result.current.toggleTheme())
+
+    expect(second.result.current.theme).toBe('light')
+  })
 })
