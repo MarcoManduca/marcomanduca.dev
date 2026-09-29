@@ -73,20 +73,47 @@ def to_dynamodb(value: Any) -> Any:
     return value
 
 
-def scan_all(table: Any) -> list[dict[str, Any]]:
+def scan_all(table: Any, **kwargs: Any) -> list[dict[str, Any]]:
     """Return every item in a table, following pagination.
 
     Parameters
     ----------
     table : Any
         A boto3 DynamoDB ``Table`` resource.
+    **kwargs : Any
+        Arguments forwarded to ``Table.scan`` on every page (e.g. a
+        projection, see :func:`projection`).
 
     Returns
     -------
     list[dict[str, Any]]
         All items, with numeric types converted to native Python.
     """
-    return _paginate(table.scan)
+    return _paginate(table.scan, **kwargs)
+
+
+def projection(*attributes: str) -> dict[str, Any]:
+    """Build the arguments that read only the given attributes.
+
+    Every name goes through a placeholder, so reserved words such as
+    ``status`` need no special care.
+
+    Parameters
+    ----------
+    *attributes : str
+        Top-level attribute names to read.
+
+    Returns
+    -------
+    dict[str, Any]
+        ``ProjectionExpression`` and ``ExpressionAttributeNames`` for a
+        scan, query or get.
+    """
+    names = {f"#p{index}": name for index, name in enumerate(attributes)}
+    return {
+        "ProjectionExpression": ", ".join(names),
+        "ExpressionAttributeNames": names,
+    }
 
 
 def query_all(table: Any, **kwargs: Any) -> list[dict[str, Any]]:

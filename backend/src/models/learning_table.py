@@ -17,12 +17,26 @@ from boto3.dynamodb.conditions import Key
 from src.config import get_settings
 from src.models.base import (
     get_dynamodb_resource,
+    projection,
     put_if_absent,
     query_all,
     scan_all,
     to_dynamodb,
     to_native,
     transact_write,
+)
+
+# Everything a list entry shows: the markdown bodies are never read.
+_SUMMARY_ATTRIBUTES = (
+    "slug",
+    "version",
+    "title",
+    "excerpt",
+    "category",
+    "tags",
+    "status",
+    "created_at",
+    "updated_at",
 )
 
 
@@ -220,12 +234,16 @@ class LearningTable:
         )
         return len(numbers) if deleted_newest else None
 
-    def scan_all(self) -> list[dict[str, Any]]:
-        """Return every version item in the table, following pagination.
+    def scan_summaries(self) -> list[dict[str, Any]]:
+        """Return the list fields of every version item, following pagination.
+
+        Only the attributes a list entry needs are projected, so the
+        markdown bodies never travel to the function (read capacity is
+        still charged on the full items).
 
         Returns
         -------
         list[dict[str, Any]]
-            All items in the table.
+            One partial item per stored version.
         """
-        return scan_all(self._table)
+        return scan_all(self._table, **projection(*_SUMMARY_ATTRIBUTES))

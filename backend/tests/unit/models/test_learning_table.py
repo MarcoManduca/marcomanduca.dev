@@ -156,3 +156,19 @@ def test_get_version_forwards_the_read_consistency(
     # Assert
     call = mocked_table._table.get_item.call_args
     assert call.kwargs["ConsistentRead"] is consistent
+
+
+def test_scan_summaries_never_reads_the_markdown_bodies(
+    mocked_table: LearningTable,
+) -> None:
+    # Arrange
+    mocked_table._table.scan.return_value = {"Items": []}
+
+    # Act
+    mocked_table.scan_summaries()
+
+    # Assert
+    call = mocked_table._table.scan.call_args
+    projected = set(call.kwargs["ExpressionAttributeNames"].values())
+    assert "content_markdown" not in projected
+    assert {"slug", "version", "excerpt", "status"} <= projected

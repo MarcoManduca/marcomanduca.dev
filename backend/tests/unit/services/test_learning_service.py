@@ -453,3 +453,72 @@ def test_update_article_sets_created_at_when_the_stored_item_has_none(
 
     # Assert
     assert item["created_at"] == item["updated_at"]
+
+
+def test_create_article_stores_an_excerpt_of_each_language(
+    service: LearningService,
+    article_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange
+    payload = ArticleCreate(
+        **article_payload_factory(
+            content_markdown={"it": "# Titolo\n\n**Ciao** mondo", "en": "# Title"}
+        )
+    )
+
+    # Act
+    service.create_article(payload)
+
+    # Assert
+    stored = service._table.get_version("demo-article", 1)
+    assert stored["excerpt"] == {"it": "Titolo Ciao mondo", "en": "Title"}
+
+
+def test_list_articles_returns_excerpts_instead_of_bodies(
+    service: LearningService,
+    article_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange
+    service.create_article(ArticleCreate(**article_payload_factory()))
+
+    # Act
+    (summary,) = service.list_articles(include_unpublished=True)
+
+    # Assert
+    assert summary.excerpt.model_dump() == {"it": "Nota", "en": "Note"}
+    assert "content_markdown" not in summary.model_dump()
+
+
+def test_list_articles_computes_the_excerpt_of_a_version_stored_without_one(
+    service: LearningService,
+    article_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange: written by a release that did not store excerpts.
+    _store_raw_version(article_payload_factory)
+
+    # Act
+    (summary,) = service.list_articles(include_unpublished=True)
+
+    # Assert
+    assert summary.slug == "legacy-note"
+    assert summary.excerpt.en == "Note"
+
+
+def test_rollback_article_recomputes_the_excerpt_of_the_restored_version(
+    service: LearningService,
+    article_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange: v1 predates excerpts, v2 is current.
+    _store_raw_version(article_payload_factory)
+    service.update_article(
+        "legacy-note",
+        ArticleUpdate(
+            **article_payload_factory(content_markdown={"it": "Due", "en": "Two"})
+        ),
+    )
+
+    # Act
+    restored = service.rollback_article("legacy-note", 1)
+
+    # Assert
+    assert restored["excerpt"] == {"it": "Nota", "en": "Note"}

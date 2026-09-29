@@ -56,8 +56,8 @@ belonging to the `Administrators` group.
 | POST | `/api/v1/projects` | admin | Create project |
 | PUT | `/api/v1/projects/{slug}` | admin | Replace project |
 | DELETE | `/api/v1/projects/{slug}` | admin | Delete project |
-| GET | `/api/v1/learning` | public* | List latest article versions (`category`, `tag` filters) |
-| GET | `/api/v1/learning/{slug}` | public* | Latest article version |
+| GET | `/api/v1/learning` | public* | List latest article versions as summaries: a bilingual `excerpt`, no markdown body (`category`, `tag` filters) |
+| GET | `/api/v1/learning/{slug}` | public* | Latest article version, full body |
 | GET | `/api/v1/learning/{slug}/versions` | admin | Version history |
 | POST | `/api/v1/learning/{slug}/rollback` | admin | Restore an old version as a new latest version |
 | POST | `/api/v1/learning` | admin | Create article (version 1) |

@@ -10,6 +10,10 @@ from src.schemas.common import (
     PublicationStatus,
     Tag,
 )
+from src.utils.excerpt import DEFAULT_LENGTH
+
+# The excerpt text plus its trailing ellipsis.
+EXCERPT_MAX_LENGTH = DEFAULT_LENGTH + 1
 
 
 class LearningCategory(StrEnum):
@@ -22,15 +26,13 @@ class LearningCategory(StrEnum):
     MATH = "Math"
 
 
-class ArticleBase(BaseModel):
-    """Fields shared by article write and read models.
+class ArticleFields(BaseModel):
+    """Article fields shared by every model, the body excluded.
 
     Attributes
     ----------
     title : LocalizedTitle
         Bilingual title.
-    content_markdown : LocalizedMarkdown
-        Bilingual markdown body.
     category : LearningCategory
         Knowledge-base category.
     tags : list[str]
@@ -40,10 +42,21 @@ class ArticleBase(BaseModel):
     """
 
     title: LocalizedTitle
-    content_markdown: LocalizedMarkdown
     category: LearningCategory
     tags: list[Tag] = Field(default_factory=list, max_length=20)
     status: PublicationStatus = PublicationStatus.DRAFT
+
+
+class ArticleBase(ArticleFields):
+    """Fields shared by article write and full read models.
+
+    Attributes
+    ----------
+    content_markdown : LocalizedMarkdown
+        Bilingual markdown body.
+    """
+
+    content_markdown: LocalizedMarkdown
 
 
 class ArticleCreate(ArticleBase):
@@ -69,6 +82,42 @@ class ArticleResponse(ArticleBase):
 
     slug: str
     version: int
+    created_at: str
+    updated_at: str
+
+
+class LocalizedExcerpt(BaseModel):
+    """Plain-text preview of the body in both languages.
+
+    Attributes
+    ----------
+    it, en : str
+        Excerpt of each language (see ``src.utils.excerpt``); empty when
+        the body has no text left once markdown is stripped.
+    """
+
+    it: str = Field(max_length=EXCERPT_MAX_LENGTH)
+    en: str = Field(max_length=EXCERPT_MAX_LENGTH)
+
+
+class ArticleSummary(ArticleFields):
+    """Latest version of an article as listed: an excerpt, not the body.
+
+    Attributes
+    ----------
+    slug : str
+        Partition key, generated from the English title.
+    version : int
+        Latest version number.
+    excerpt : LocalizedExcerpt
+        Plain-text preview of the body.
+    created_at, updated_at : str
+        ISO-8601 UTC timestamps.
+    """
+
+    slug: str
+    version: int
+    excerpt: LocalizedExcerpt
     created_at: str
     updated_at: str
 
