@@ -1,12 +1,12 @@
-import type { CSSProperties, ReactNode } from 'react'
+import type { KeyboardEvent, ReactNode } from 'react'
 
 import { useTranslation } from 'react-i18next'
 
-import { THROW_DISTANCE, THROW_MS, useCardDeck } from '@/hooks/useCardDeck'
+import { useCardDeck } from '@/hooks/useCardDeck'
 import { cn } from '@/utils/cn'
-import { deckPose, dragPose, throwPose } from '@/utils/deckPose'
 
 import { DeckCard } from './DeckCard'
+import { deckCardStyle } from './deckCardStyle'
 
 export interface DeckItem {
   key: string
@@ -44,30 +44,15 @@ export const SideQuestDeck = ({
   const count = items.length
   const { top, dragX, dragging, thrown, next, previous, dragHandlers } =
     useCardDeck(count)
-  const pull = Math.min(1, Math.abs(dragX) / THROW_DISTANCE)
-
-  const topPose = (): CSSProperties => {
-    if (thrown) {
-      return {
-        transform: throwPose(thrown),
-        opacity: 0,
-        transition: `transform ${THROW_MS}ms ease-in, opacity ${THROW_MS}ms ease-in`,
-      }
+  const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    const moves: Partial<Record<string, () => void>> = {
+      ArrowRight: next,
+      ArrowLeft: previous,
     }
-    if (dragging) return { transform: dragPose(dragX), transition: 'none' }
-    return { transform: deckPose(0).transform }
-  }
-
-  const lowerPose = (depth: number): CSSProperties => {
-    const { transform, filter, hidden } = deckPose(
-      thrown ? depth - 1 : depth - pull,
-    )
-    return {
-      transform,
-      filter,
-      opacity: hidden ? 0 : 1,
-      transition: dragging ? 'none' : undefined,
-    }
+    const move = moves[event.key]
+    if (!move) return
+    event.preventDefault()
+    move()
   }
 
   return (
@@ -77,15 +62,7 @@ export const SideQuestDeck = ({
       aria-labelledby={labelledBy}
       aria-describedby={describedBy}
       tabIndex={0}
-      onKeyDown={(event) => {
-        if (event.key === 'ArrowRight') {
-          event.preventDefault()
-          next()
-        } else if (event.key === 'ArrowLeft') {
-          event.preventDefault()
-          previous()
-        }
-      }}
+      onKeyDown={onKeyDown}
       className={cn(
         'relative mx-auto w-full max-w-[406px] rounded-[22px] focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-highlight',
         DECK_HEIGHT,
@@ -101,7 +78,7 @@ export const SideQuestDeck = ({
             isTop={isTop}
             handlers={isTop ? dragHandlers : undefined}
             style={{
-              ...(isTop ? topPose() : lowerPose(depth)),
+              ...deckCardStyle({ depth, dragX, dragging, thrown }),
               zIndex: count - depth,
             }}
           >

@@ -8,6 +8,8 @@ import { useLanguage } from '@/hooks/useLanguage'
 import type { ProjectSummary } from '@/types'
 import { safeExternalUrl, safeMediaUrl } from '@/utils/safeUrl'
 
+import { SourceCodeLink } from './SourceCodeLink'
+
 /** Technologies that fit on the card; the project page lists them all. */
 const TECH_SHOWN = 5
 
@@ -73,31 +75,7 @@ export const SideQuestCard = ({
         >
           {t('home.sideQuests.open')} →
         </Link>
-        {github && (
-          <a
-            href={github}
-            target="_blank"
-            rel="noopener noreferrer"
-            tabIndex={tabIndex}
-            draggable={false}
-            aria-label={t('home.sideQuests.code')}
-            className="flex h-11 w-11 items-center justify-center rounded-xl border-2 border-edge text-body transition-colors hover:border-highlight hover:text-highlight"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-              className="h-5 w-5"
-            >
-              <path d="m8 8-4 4 4 4" />
-              <path d="m16 8 4 4-4 4" />
-            </svg>
-          </a>
-        )}
+        {github && <SourceCodeLink href={github} tabIndex={tabIndex} />}
       </div>
     </div>
   )
