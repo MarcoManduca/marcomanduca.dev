@@ -156,9 +156,12 @@ class ProjectCard(ProjectCardFields):
         Publication state (admins also list drafts).
     created_at : str
         ISO-8601 UTC creation time; it orders the deck.
+    updated_at : str
+        ISO-8601 UTC time of the last change (the sitemap ``<lastmod>``).
     """
 
     slug: str
     repo_url: str | None = None
     status: PublicationStatus
     created_at: str
+    updated_at: str

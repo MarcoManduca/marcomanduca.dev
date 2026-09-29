@@ -139,6 +139,7 @@ def test_list_projects_returns_light_cards(
     assert card["repo_url"] == "https://github.com/marco/demo"
     assert card["areas"] == ["backend"]
     assert card["metrics"][0]["value"] == "3"
+    assert card["updated_at"] == card["created_at"]
     assert not {"content_markdown", "brief", "links", "media", "lab"} & set(card)
 
 
