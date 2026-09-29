@@ -8,8 +8,16 @@ import { API_URL } from '@/test/mocks/handlers'
 import { server } from '@/test/mocks/server'
 import { renderWithProviders } from '@/test/utils'
 import type { Project } from '@/types'
+import { markdownHeadings } from '@/utils/markdownHeadings'
 
 import { ProjectDetail } from './ProjectDetail'
+
+// Pass-through spy: the real headings, plus a call count.
+vi.mock('@/utils/markdownHeadings', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('@/utils/markdownHeadings')>()
+  return { markdownHeadings: vi.fn(actual.markdownHeadings) }
+})
 
 const renderDetail = (slug: string) =>
   renderWithProviders(
@@ -31,6 +39,16 @@ const findTitle = (name: string) =>
   screen.findByRole('heading', { level: 1, name })
 
 describe('ProjectDetail', () => {
+  it('parses the body for the table of contents only once', async () => {
+    vi.mocked(markdownHeadings).mockClear()
+    renderDetail('data-pipeline')
+
+    await findTitle('Data pipeline')
+    await screen.findByRole('link', { name: /next/i })
+
+    expect(markdownHeadings).toHaveBeenCalledOnce()
+  })
+
   it('opens with the classification, description, license and main links', async () => {
     renderDetail('data-pipeline')
 

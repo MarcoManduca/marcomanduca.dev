@@ -1,3 +1,5 @@
+import { useMemo } from 'react'
+
 import { useParams } from 'react-router'
 
 import { ProjectAside } from '@/components/projects/detail/ProjectAside'
@@ -38,14 +40,18 @@ export const ProjectDetail = () => {
   } = useGetProjectBySlugQuery(slug)
   const neighbours = useProjectNeighbours(slug)
   useTrackProjectVisit(project?.slug)
+  const markdown = localize(project?.content_markdown)
+  // Parsing the whole body (unified + remark) is not free: once per text.
+  const headings = useMemo(
+    () => (markdown ? markdownHeadings(markdown) : []),
+    [markdown],
+  )
 
   if (isLoading) return <Spinner />
   if (isError && !isNotFoundError(error)) {
     return <ErrorState onRetry={() => void refetch()} />
   }
   if (!project) return <NotFound />
-
-  const markdown = localize(project.content_markdown)
 
   return (
     <article className="flex flex-col gap-16 lg:gap-20">
@@ -65,7 +71,7 @@ export const ProjectDetail = () => {
       </div>
       <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-16">
         <ProjectBody markdown={markdown} />
-        <ProjectAside project={project} headings={markdownHeadings(markdown)} />
+        <ProjectAside project={project} headings={headings} />
       </div>
       <ProjectGallery media={project.media} />
       {project.lab && <LabSection lab={project.lab} />}
