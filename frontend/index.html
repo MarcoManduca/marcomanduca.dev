@@ -6,18 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0D1B1F" />
     <script src="/theme-init.js"></script>
-    <title>marcomanduca.dev</title>
+    <!-- seo:start -->
     <!--
-      Static defaults for crawlers and link previews that do not run JS.
-      `data-rh` hands them over to react-helmet-async, which replaces them
-      with the per-page tags emitted by <Seo /> instead of duplicating them.
+      Generic defaults, used for routes that have no pre-rendered page (the
+      build writes one per public route, see scripts/prerender, replacing
+      everything between the seo markers). No canonical or og:url here: this
+      shell is served for every path. `data-rh` hands the tags over to
+      react-helmet-async, which replaces them with the per-page tags emitted
+      by <Seo /> instead of duplicating them.
     -->
+    <title>marcomanduca.dev</title>
     <meta
       data-rh="true"
       name="description"
       content="Marco Manduca — Data Engineer & Data Scientist. Portfolio, technical knowledge base and CV."
     />
-    <link data-rh="true" rel="canonical" href="https://marcomanduca.dev/" />
     <meta data-rh="true" property="og:site_name" content="marcomanduca.dev" />
     <meta data-rh="true" property="og:title" content="marcomanduca.dev" />
     <meta
@@ -26,11 +29,6 @@
       content="Marco Manduca — Data Engineer & Data Scientist. Portfolio, technical knowledge base and CV."
     />
     <meta data-rh="true" property="og:type" content="website" />
-    <meta
-      data-rh="true"
-      property="og:url"
-      content="https://marcomanduca.dev/"
-    />
     <meta
       data-rh="true"
       property="og:image"
@@ -52,6 +50,7 @@
       name="twitter:image"
       content="https://marcomanduca.dev/og-image.png"
     />
+    <!-- seo:end -->
   </head>
   <body>
     <div id="root"></div>

@@ -25,9 +25,12 @@ User-agent: Timpibot
 User-agent: DuckAssistBot
 Disallow: /
 
-# Everyone else (search engines) have full access except the admin area.
+# Everyone else (search engines) have full access except the admin area and
+# the internal copies of the pre-rendered pages (served under their routes).
 User-agent: *
 Allow: /
 Disallow: /admin
+Disallow: /_routes/
+Disallow: /_deploys/
 
 Sitemap: https://marcomanduca.dev/sitemap.xml
