@@ -85,7 +85,7 @@ def get_article(
 def list_article_versions(
     slug: str,
     service: LearningService = Depends(get_learning_service),
-) -> list[dict[str, Any]]:
+) -> list[ArticleVersionInfo]:
     """List all stored versions of an article (admin only).
 
     Parameters
@@ -97,7 +97,7 @@ def list_article_versions(
 
     Returns
     -------
-    list[dict[str, Any]]
+    list[ArticleVersionInfo]
         Version descriptors, newest first.
     """
     return service.list_versions(slug)

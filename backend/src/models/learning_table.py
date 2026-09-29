@@ -39,6 +39,9 @@ _SUMMARY_ATTRIBUTES = (
     "updated_at",
 )
 
+# What the version history shows.
+_VERSION_ATTRIBUTES = ("version", "updated_at", "status")
+
 
 class LearningTable:
     """Thin wrapper around the DynamoDB Learning table."""
@@ -160,7 +163,10 @@ class LearningTable:
         return to_native(item) if item else None
 
     def list_versions(self, slug: str) -> list[dict[str, Any]]:
-        """Return all versions for a slug, newest first.
+        """Return the descriptor of every version of a slug, newest first.
+
+        Only ``version``, ``updated_at`` and ``status`` are read, never the
+        markdown bodies.
 
         Parameters
         ----------
@@ -170,12 +176,13 @@ class LearningTable:
         Returns
         -------
         list[dict[str, Any]]
-            Version items in descending version order.
+            Partial version items in descending version order.
         """
         return query_all(
             self._table,
             KeyConditionExpression=Key("slug").eq(slug),
             ScanIndexForward=False,
+            **projection(*_VERSION_ATTRIBUTES),
         )
 
     def delete_all_versions(self, slug: str) -> int | None:

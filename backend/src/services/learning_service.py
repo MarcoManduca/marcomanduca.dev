@@ -12,6 +12,7 @@ from src.schemas.learning import (
     ArticleResponse,
     ArticleSummary,
     ArticleUpdate,
+    ArticleVersionInfo,
     LearningCategory,
 )
 from src.services.backoff import backoff_delay
@@ -25,6 +26,7 @@ _FIRST_VERSION = 1
 _MAX_WRITE_RETRIES = 5
 _EMPTY_SLUG_MESSAGE = "Title must contain at least one alphanumeric character."
 _INVALID_SHAPE_EVENT = "article_invalid_shape"
+_INVALID_VERSION_EVENT = "article_version_invalid_shape"
 
 
 class LearningService:
@@ -132,7 +134,7 @@ class LearningService:
             raise NotFoundError(f"Article '{slug}' not found.")
         return article
 
-    def list_versions(self, slug: str) -> list[dict[str, Any]]:
+    def list_versions(self, slug: str) -> list[ArticleVersionInfo]:
         """Return all stored versions of an article, newest first.
 
         Parameters
@@ -142,8 +144,10 @@ class LearningService:
 
         Returns
         -------
-        list[dict[str, Any]]
-            Version items in descending version order.
+        list[ArticleVersionInfo]
+            Version descriptors in descending version order. A version
+            stored in an outdated shape is left out (and logged) rather
+            than failing the whole history.
 
         Raises
         ------
@@ -153,7 +157,9 @@ class LearningService:
         versions = self._table.list_versions(slug)
         if not versions:
             raise NotFoundError(f"Article '{slug}' not found.")
-        return versions
+        return parse_items(
+            ArticleVersionInfo, versions, key="version", event=_INVALID_VERSION_EVENT
+        )
 
     def create_article(self, payload: ArticleCreate) -> dict[str, Any]:
         """Create an article as version 1.

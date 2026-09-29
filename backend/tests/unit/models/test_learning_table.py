@@ -172,3 +172,15 @@ def test_scan_summaries_never_reads_the_markdown_bodies(
     projected = set(call.kwargs["ExpressionAttributeNames"].values())
     assert "content_markdown" not in projected
     assert {"slug", "version", "excerpt", "status"} <= projected
+
+
+def test_list_versions_reads_only_the_version_descriptors(
+    paged_table: LearningTable,
+) -> None:
+    # Act
+    paged_table.list_versions("a")
+
+    # Assert
+    call = paged_table._table.query.call_args_list[0]
+    projected = set(call.kwargs["ExpressionAttributeNames"].values())
+    assert projected == {"version", "updated_at", "status"}

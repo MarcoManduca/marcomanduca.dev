@@ -255,7 +255,7 @@ def test_list_versions_returns_versions_newest_first(
     versions = service.list_versions("demo-article")
 
     # Assert
-    assert [item["version"] for item in versions] == [2, 1]
+    assert [item.version for item in versions] == [2, 1]
 
 
 def test_list_versions_raises_not_found_on_missing_slug(
@@ -522,3 +522,18 @@ def test_rollback_article_recomputes_the_excerpt_of_the_restored_version(
 
     # Assert
     assert restored["excerpt"] == {"it": "Nota", "en": "Note"}
+
+
+def test_list_versions_skips_a_version_with_an_unknown_status(
+    service: LearningService,
+    article_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange: v1 has a status the current enum no longer knows.
+    _store_raw_version(article_payload_factory, status="retired")
+    _store_raw_version(article_payload_factory, version=2)
+
+    # Act
+    versions = service.list_versions("legacy-note")
+
+    # Assert
+    assert [item.version for item in versions] == [2]
