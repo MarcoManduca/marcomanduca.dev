@@ -132,6 +132,7 @@ export const toSummaries = (projects: Project[]): ProjectSummary[] =>
     repo_url: project.links.find(({ kind }) => kind === 'repo')?.url ?? null,
     status: project.status,
     created_at: project.created_at,
+    updated_at: project.updated_at,
   }))
 
 export const projectSummariesFixture = toSummaries(projectsFixture)
