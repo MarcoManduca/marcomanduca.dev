@@ -1,4 +1,4 @@
-"""Shared DynamoDB helpers (resource factory, type conversion)."""
+"""Shared DynamoDB helpers (resource factory, type conversion, writes)."""
 
 from decimal import Decimal
 from typing import Any
@@ -9,6 +9,9 @@ from src.config import get_settings
 from src.utils.aws_clients import get_resource
 
 _CONDITION_FAILED = "ConditionalCheckFailedException"
+# Raised when any condition in a transaction fails, or when a concurrent
+# transaction touched the same items: both mean "re-read and retry".
+_TRANSACTION_CANCELED = "TransactionCanceledException"
 
 
 def get_dynamodb_resource() -> Any:
@@ -188,6 +191,35 @@ def delete_if_present(table: Any, key: dict[str, Any], key_name: str) -> bool:
         Key=key,
         ConditionExpression=f"attribute_exists({key_name})",
     )
+
+
+def transact_write(table: Any, actions: list[dict[str, Any]]) -> bool:
+    """Apply write actions atomically: all of them or none.
+
+    Parameters
+    ----------
+    table : Any
+        A boto3 DynamoDB ``Table`` resource. Its client runs the call and,
+        being a resource client, serialises the plain Python keys and items
+        in ``actions`` itself (floats must already be ``Decimal``, see
+        :func:`to_dynamodb`).
+    actions : list[dict[str, Any]]
+        ``TransactItems`` entries (``Put``, ``Delete``, ``ConditionCheck``,
+        ...).
+
+    Returns
+    -------
+    bool
+        ``True`` when committed, ``False`` when the transaction was
+        cancelled (a condition failed or it conflicted with another one).
+    """
+    try:
+        table.meta.client.transact_write_items(TransactItems=actions)
+    except ClientError as exc:
+        if exc.response["Error"]["Code"] == _TRANSACTION_CANCELED:
+            return False
+        raise
+    return True
 
 
 def _conditional(operation: Any, **kwargs: Any) -> bool:

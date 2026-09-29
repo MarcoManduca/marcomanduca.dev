@@ -64,7 +64,7 @@ def contended_table() -> MagicMock:
     """A table whose conditional write always loses the race."""
     table = MagicMock()
     table.get_latest.return_value = {"version": 1, "created_at": "t"}
-    table.put_version_if_absent.return_value = False
+    table.append_version.return_value = False
     return table
 
 
@@ -129,6 +129,81 @@ def test_update_article_writes_a_new_version(
     # Assert
     assert item["version"] == 2
     assert item["tags"] == ["python", "aws"]
+
+
+def test_update_article_refuses_to_resurrect_a_deleted_article(
+    service: LearningService,
+    article_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange: the update read version 1, then a delete removed it.
+    service.create_article(ArticleCreate(**article_payload_factory()))
+    item = article_payload_factory() | {"slug": "demo-article", "version": 2}
+    service._table.delete_all_versions("demo-article")
+
+    # Act
+    written = service._table.append_version(item, previous=1)
+
+    # Assert
+    assert written is False
+    assert service._table.get_latest("demo-article", consistent=True) is None
+
+
+def test_append_version_refuses_a_version_already_claimed(
+    service: LearningService,
+    article_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange
+    service.create_article(ArticleCreate(**article_payload_factory()))
+    service.update_article("demo-article", ArticleUpdate(**article_payload_factory()))
+    item = article_payload_factory() | {"slug": "demo-article", "version": 2}
+
+    # Act
+    written = service._table.append_version(item, previous=1)
+
+    # Assert
+    assert written is False
+
+
+def test_create_article_raises_conflict_when_only_a_later_version_exists(
+    service: LearningService,
+    article_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange: version 1 is gone, version 2 still holds the slug.
+    _store_raw_version(article_payload_factory, slug="demo-article", version=2)
+
+    # Act / Assert
+    with pytest.raises(ConflictError):
+        service.create_article(ArticleCreate(**article_payload_factory()))
+
+
+@pytest.mark.parametrize(
+    ("outcomes", "expected_calls"),
+    [([None, 2], 2), ([None, 0], 2), ([3], 1)],
+)
+def test_delete_article_retries_until_the_newest_version_is_deleted(
+    outcomes: list[int | None], expected_calls: int
+) -> None:
+    # Arrange: None = a concurrent update appended a version meanwhile.
+    table = MagicMock()
+    table.delete_all_versions.side_effect = outcomes
+    service = LearningService(table, sleep=MagicMock())
+
+    # Act
+    service.delete_article("demo-article")
+
+    # Assert
+    assert table.delete_all_versions.call_count == expected_calls
+
+
+def test_delete_article_raises_conflict_while_updates_keep_racing() -> None:
+    # Arrange
+    table = MagicMock()
+    table.delete_all_versions.return_value = None
+    service = LearningService(table, sleep=MagicMock())
+
+    # Act / Assert
+    with pytest.raises(ConflictError):
+        service.delete_article("demo-article")
 
 
 def test_get_article_returns_latest_version(

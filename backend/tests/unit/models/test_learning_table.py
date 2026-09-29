@@ -4,6 +4,7 @@ from decimal import Decimal
 from unittest.mock import MagicMock
 
 import pytest
+from botocore.exceptions import ClientError
 
 from src.models.learning_table import LearningTable
 
@@ -56,9 +57,60 @@ def test_delete_all_versions_deletes_items_from_every_page(
     # Act
     deleted = paged_table.delete_all_versions("a")
 
-    # Assert
+    # Assert: older versions in the batch, the newest one last.
     assert deleted == 3
-    assert batch.delete_item.call_count == 3
+    batch_versions = [c.kwargs["Key"]["version"] for c in batch.delete_item.mock_calls]
+    assert batch_versions == [1, 2]
+
+
+def test_delete_all_versions_deletes_the_newest_only_if_nothing_newer(
+    paged_table: LearningTable,
+) -> None:
+    # Arrange
+    client = paged_table._table.meta.client
+
+    # Act
+    paged_table.delete_all_versions("a")
+
+    # Assert
+    delete, check = client.transact_write_items.call_args.kwargs["TransactItems"]
+    assert delete["Delete"]["Key"] == {"slug": "a", "version": 3}
+    assert check["ConditionCheck"]["Key"] == {"slug": "a", "version": 4}
+    assert check["ConditionCheck"]["ConditionExpression"] == (
+        "attribute_not_exists(slug)"
+    )
+
+
+def test_delete_all_versions_reports_a_concurrent_append(
+    paged_table: LearningTable,
+) -> None:
+    # Arrange
+    cancelled = ClientError(
+        {"Error": {"Code": "TransactionCanceledException", "Message": "x"}},
+        "TransactWriteItems",
+    )
+    paged_table._table.meta.client.transact_write_items.side_effect = cancelled
+
+    # Act
+    deleted = paged_table.delete_all_versions("a")
+
+    # Assert
+    assert deleted is None
+
+
+def test_delete_all_versions_raises_other_transaction_errors(
+    paged_table: LearningTable,
+) -> None:
+    # Arrange
+    failure = ClientError(
+        {"Error": {"Code": "InternalServerError", "Message": "x"}},
+        "TransactWriteItems",
+    )
+    paged_table._table.meta.client.transact_write_items.side_effect = failure
+
+    # Act / Assert
+    with pytest.raises(ClientError):
+        paged_table.delete_all_versions("a")
 
 
 def test_delete_all_versions_projects_only_the_version_key(

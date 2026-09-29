@@ -167,13 +167,17 @@ class LearningService:
         Raises
         ------
         ConflictError
-            When the derived slug already exists.
+            When the derived slug already exists (at any version).
         InvalidInputError
             When the English title yields an empty slug.
         """
         slug = slugify(payload.title.en)
         if not slug:
             raise InvalidInputError(_EMPTY_SLUG_MESSAGE)
+        # Version 1 alone is not enough to tell: it may be gone while later
+        # versions (or a delete in progress) still hold the slug.
+        if self._table.get_latest(slug, consistent=True) is not None:
+            raise ConflictError(f"Article '{slug}' already exists.")
         now = utc_now_iso()
         item = payload.model_dump(mode="json") | {
             "slug": slug,
@@ -219,7 +223,7 @@ class LearningService:
                 "created_at": latest.get("created_at") or now,
                 "updated_at": now,
             }
-            if self._table.put_version_if_absent(item):
+            if self._table.append_version(item, previous=latest["version"]):
                 return item
         raise ConflictError(f"Article '{slug}' is being updated concurrently.")
 
@@ -268,7 +272,7 @@ class LearningService:
                 "version": latest["version"] + 1,
                 "updated_at": utc_now_iso(),
             }
-            if self._table.put_version_if_absent(item):
+            if self._table.append_version(item, previous=latest["version"]):
                 return item
         raise ConflictError(f"Article '{slug}' is being updated concurrently.")
 
@@ -284,10 +288,18 @@ class LearningService:
         ------
         NotFoundError
             When the article does not exist.
+        ConflictError
+            When concurrent updates keep appending versions.
         """
-        deleted = self._table.delete_all_versions(slug)
-        if deleted == 0:
-            raise NotFoundError(f"Article '{slug}' not found.")
+        for attempt in range(_MAX_WRITE_RETRIES):
+            self._pause_before(attempt)
+            deleted = self._table.delete_all_versions(slug)
+            # Nothing left on a retry: a concurrent delete finished the job.
+            if deleted == 0 and attempt == 0:
+                raise NotFoundError(f"Article '{slug}' not found.")
+            if deleted is not None:
+                return
+        raise ConflictError(f"Article '{slug}' is being updated concurrently.")
 
     def _pause_before(self, attempt: int) -> None:
         """Back off before every retry (not before the first attempt)."""

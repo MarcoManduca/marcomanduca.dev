@@ -3,6 +3,11 @@
 Every article update writes a new item with an incremented ``version``
 sort key; the latest version is resolved by querying with
 ``ScanIndexForward=False``.
+
+Writes that depend on another version run as transactions, so an update
+racing a delete can never bring a deleted article back: appending version
+N+1 requires version N to still exist, and deleting the newest version
+requires that no newer one appeared meanwhile.
 """
 
 from typing import Any
@@ -15,7 +20,9 @@ from src.models.base import (
     put_if_absent,
     query_all,
     scan_all,
+    to_dynamodb,
     to_native,
+    transact_write,
 )
 
 
@@ -29,10 +36,9 @@ class LearningTable:
     def put_version_if_absent(self, item: dict[str, Any]) -> bool:
         """Write a version only if the (slug, version) pair is free.
 
-        The conditional write is the concurrency guard for both the
-        first version and every subsequent one: two writers that compute
-        the same next ``version`` cannot both succeed, preventing lost
-        updates.
+        Two writers that compute the same ``version`` cannot both succeed,
+        preventing lost updates. Used for the first version of an article;
+        later versions go through :meth:`append_version`.
 
         Parameters
         ----------
@@ -45,6 +51,46 @@ class LearningTable:
             ``True`` on success, ``False`` when the item already exists.
         """
         return put_if_absent(self._table, item, "slug")
+
+    def append_version(self, item: dict[str, Any], previous: int) -> bool:
+        """Write ``item`` as the version that follows ``previous``, atomically.
+
+        One transaction checks that ``previous`` still exists and that the
+        new (slug, version) pair is free, then writes the item.
+
+        Parameters
+        ----------
+        item : dict[str, Any]
+            Full article item; its ``version`` must be ``previous + 1``.
+        previous : int
+            Version the caller read as the latest one.
+
+        Returns
+        -------
+        bool
+            ``True`` on success, ``False`` when ``previous`` was deleted or
+            another writer claimed the version first.
+        """
+        previous_key = {"slug": item["slug"], "version": previous}
+        return transact_write(
+            self._table,
+            [
+                {
+                    "ConditionCheck": {
+                        "TableName": self._table.name,
+                        "Key": previous_key,
+                        "ConditionExpression": "attribute_exists(slug)",
+                    }
+                },
+                {
+                    "Put": {
+                        "TableName": self._table.name,
+                        "Item": to_dynamodb(item),
+                        "ConditionExpression": "attribute_not_exists(slug)",
+                    }
+                },
+            ],
+        )
 
     def get_latest(
         self, slug: str, *, consistent: bool = False
@@ -118,8 +164,13 @@ class LearningTable:
             ScanIndexForward=False,
         )
 
-    def delete_all_versions(self, slug: str) -> int:
-        """Delete every version of an article.
+    def delete_all_versions(self, slug: str) -> int | None:
+        """Delete every version of an article, the newest one last.
+
+        Older versions go first in a batch, so the article stays at its
+        latest version until the end (an older published version is never
+        exposed). The newest one is then deleted in a transaction that
+        also checks that no newer version was appended meanwhile.
 
         Parameters
         ----------
@@ -128,8 +179,10 @@ class LearningTable:
 
         Returns
         -------
-        int
-            Number of deleted version items.
+        int or None
+            Number of deleted version items (``0`` when the slug is
+            unknown), or ``None`` when a concurrent update appended a new
+            version: the caller retries.
         """
         # Only the sort key is needed: avoid reading full markdown bodies.
         versions = query_all(
@@ -137,11 +190,35 @@ class LearningTable:
             KeyConditionExpression=Key("slug").eq(slug),
             ProjectionExpression="#version",
             ExpressionAttributeNames={"#version": "version"},
+            ConsistentRead=True,
         )
+        if not versions:
+            return 0
+        numbers = sorted(item["version"] for item in versions)
+        *older, newest = numbers
         with self._table.batch_writer() as batch:
-            for item in versions:
-                batch.delete_item(Key={"slug": slug, "version": item["version"]})
-        return len(versions)
+            for version in older:
+                batch.delete_item(Key={"slug": slug, "version": version})
+        deleted_newest = transact_write(
+            self._table,
+            [
+                {
+                    "Delete": {
+                        "TableName": self._table.name,
+                        "Key": {"slug": slug, "version": newest},
+                        "ConditionExpression": "attribute_exists(slug)",
+                    }
+                },
+                {
+                    "ConditionCheck": {
+                        "TableName": self._table.name,
+                        "Key": {"slug": slug, "version": newest + 1},
+                        "ConditionExpression": "attribute_not_exists(slug)",
+                    }
+                },
+            ],
+        )
+        return len(numbers) if deleted_newest else None
 
     def scan_all(self) -> list[dict[str, Any]]:
         """Return every version item in the table, following pagination.
