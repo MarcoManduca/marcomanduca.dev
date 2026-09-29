@@ -30,15 +30,22 @@ resource "aws_cloudwatch_event_target" "ecr_scan_findings" {
   rule = aws_cloudwatch_event_rule.ecr_scan_findings.name
   arn  = aws_sns_topic.alerts.arn
 
-  # A readable sentence instead of the raw event JSON in the email.
+  # A readable email instead of the raw event JSON. The counts object is
+  # used whole: the event only lists the severities that were found, and a
+  # placeholder for a missing one would render empty. Inside a string,
+  # EventBridge prints objects and arrays without their quotes, e.g.
+  # {HIGH:2,LOW:1} and [b6d691c2fb89]. Each quoted line is one line of text.
   input_transformer {
     input_paths = {
       repository = "$.detail.repository-name"
       tags       = "$.detail.image-tags"
-      critical   = "$.detail.finding-severity-counts.CRITICAL"
-      high       = "$.detail.finding-severity-counts.HIGH"
+      counts     = "$.detail.finding-severity-counts"
     }
-    input_template = "\"ECR scan of <repository> <tags>: <critical> CRITICAL and <high> HIGH findings. Details in the ECR console (image scan results).\""
+    input_template = <<-EOT
+      "ECR scan of <repository> <tags> found CRITICAL or HIGH vulnerabilities."
+      "Findings by severity: <counts>"
+      "Details: ECR console > <repository> > image scan results. Findings without a fix in the base image are expected until it ships one."
+    EOT
   }
 }
 

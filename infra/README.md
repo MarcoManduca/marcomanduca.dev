@@ -459,6 +459,24 @@ the deploy instead of publishing a site without its project pages), then:
 
 The key value store API is signed with SigV4A: use AWS CLI v2.
 
+### ECR scan alerts
+
+Every pushed backend image is scanned (ECR basic scanning) and CRITICAL/HIGH
+findings are emailed. Unlike the CI Trivy scan (`ignore-unfixed`), ECR also
+reports vulnerabilities that have no fix yet, so an alert does not always
+mean there is something to update:
+
+```bash
+aws ecr describe-image-scan-findings --repository-name marcomanduca-dev-backend \
+  --image-id imageTag=<tag> --query 'imageScanFindings.findings[?severity==`HIGH` || severity==`CRITICAL`].[name,severity]'
+```
+
+Check each CVE in the Debian security tracker
+(`https://security-tracker.debian.org/tracker/<CVE>`). When trixie has a
+fix, the next Dependabot bump of the pinned `python:3.12.x-slim` digest
+brings it in (rebuilding with the same digest does not). Until then, judge
+whether the vulnerable code is reachable from the app.
+
 ### Rotate origin secret
 
 CloudFront takes minutes to push a new `X-Origin-Verify` value to every edge,
