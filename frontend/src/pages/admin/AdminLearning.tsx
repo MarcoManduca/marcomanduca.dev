@@ -13,7 +13,7 @@ import {
   useGetArticlesQuery,
   useUpdateArticleMutation,
 } from '@/services/learningApi'
-import type { LearningArticle, LearningArticleInput } from '@/types'
+import type { LearningArticleInput, LearningArticleSummary } from '@/types'
 
 import { ArticleRow } from './ArticleRow'
 import { DeleteConfirm } from './DeleteConfirm'
@@ -28,7 +28,7 @@ export const AdminLearning = () => {
   const [createArticle, { isLoading: isCreating }] = useCreateArticleMutation()
   const [updateArticle, { isLoading: isUpdating }] = useUpdateArticleMutation()
   const [deleteArticle, { isLoading: isDeleting }] = useDeleteArticleMutation()
-  const editor = useAdminEditor<LearningArticle, LearningArticleInput>({
+  const editor = useAdminEditor<LearningArticleSummary, LearningArticleInput>({
     create: (body) => createArticle(body).unwrap(),
     update: (slug, body) => updateArticle({ slug, body }).unwrap(),
     remove: (slug) => deleteArticle(slug).unwrap(),

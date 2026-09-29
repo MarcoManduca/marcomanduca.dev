@@ -18,7 +18,7 @@ import type {
 } from '@/types'
 import { LEARNING_CATEGORIES } from '@/types'
 
-interface LearningFormProps {
+export interface LearningFormProps {
   initial: LearningArticle | null
   isSaving: boolean
   onSubmit: (input: LearningArticleInput) => void

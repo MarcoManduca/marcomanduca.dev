@@ -1,12 +1,12 @@
 import { useTranslation } from 'react-i18next'
 
 import { useLanguage } from '@/hooks/useLanguage'
-import type { LearningArticle } from '@/types'
+import type { LearningArticleSummary } from '@/types'
 
 import { VersionsList } from './VersionsList'
 
 interface VersionsPanelProps {
-  article: LearningArticle
+  article: LearningArticleSummary
 }
 
 /** Version history of one article, below the admin learning table. */

@@ -1,6 +1,7 @@
 import type {
   ArticleVersion,
   LearningArticle,
+  LearningArticleSummary,
   Project,
   ProjectLab,
   ProjectSummary,
@@ -165,6 +166,20 @@ export const articlesFixture: LearningArticle[] = [
     updated_at: '2026-02-15T09:00:00Z',
   },
 ]
+
+/** The list endpoint's view of the articles (`ArticleSummary`). */
+export const toArticleSummaries = (
+  articles: LearningArticle[],
+): LearningArticleSummary[] =>
+  articles.map(({ content_markdown, ...article }) => ({
+    ...article,
+    excerpt: {
+      it: `Excerpt: ${content_markdown.it.slice(0, 20).trimEnd()}`,
+      en: `Excerpt: ${content_markdown.en.slice(0, 20).trimEnd()}`,
+    },
+  }))
+
+export const articleSummariesFixture = toArticleSummaries(articlesFixture)
 
 export const versionsFixture: ArticleVersion[] = [
   { version: 3, updated_at: '2026-04-20T09:00:00Z', status: 'published' },

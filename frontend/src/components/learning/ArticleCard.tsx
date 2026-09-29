@@ -5,12 +5,11 @@ import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { useLanguage } from '@/hooks/useLanguage'
-import type { LearningArticle } from '@/types'
-import { excerpt } from '@/utils/excerpt'
+import type { LearningArticleSummary } from '@/types'
 import { formatDate } from '@/utils/formatDate'
 
 interface ArticleCardProps {
-  article: LearningArticle
+  article: LearningArticleSummary
 }
 
 export const ArticleCard = ({ article }: ArticleCardProps) => {
@@ -36,9 +35,7 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
       {article.status !== 'published' && (
         <StatusBadge status={article.status} className="self-start" />
       )}
-      <p className="flex-1 text-sm text-body">
-        {excerpt(localize(article.content_markdown))}
-      </p>
+      <p className="flex-1 text-sm text-body">{localize(article.excerpt)}</p>
       <p className="text-xs text-muted">
         {t('learning.updatedOn')} {formatDate(article.updated_at, language)}
       </p>
