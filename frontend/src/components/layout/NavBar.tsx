@@ -16,13 +16,14 @@ const NAV_ITEMS = [
 
 interface NavBarProps {
   orientation?: 'horizontal' | 'vertical'
+  /** Accessible name of the landmark (defaults to the main navigation). */
   label?: string
   onNavigate?: () => void
 }
 
 export const NavBar = ({
   orientation = 'horizontal',
-  label = 'Main',
+  label,
   onNavigate,
 }: NavBarProps) => {
   const { t } = useTranslation()
@@ -33,7 +34,7 @@ export const NavBar = ({
 
   return (
     <nav
-      aria-label={label}
+      aria-label={label ?? t('nav.mainLabel')}
       className={cn(
         'flex gap-1 font-display text-base font-bold uppercase tracking-wider',
         vertical ? 'w-full flex-col' : 'flex-wrap items-center',

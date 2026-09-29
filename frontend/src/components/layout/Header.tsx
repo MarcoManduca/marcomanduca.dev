@@ -59,7 +59,11 @@ export const Header = () => {
           id="mobile-menu"
           className="absolute inset-x-0 top-full flex flex-col items-start gap-4 border-b border-edge bg-background px-4 py-4 shadow-lg lg:hidden"
         >
-          <NavBar orientation="vertical" label="Mobile" onNavigate={close} />
+          <NavBar
+            orientation="vertical"
+            label={t('nav.mobileLabel')}
+            onNavigate={close}
+          />
           <div className="flex items-center gap-3">
             <LanguageSwitcher />
             <ThemeToggle />

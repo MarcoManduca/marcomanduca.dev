@@ -8,7 +8,9 @@
     "admin": "Admin",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
-    "skipToContent": "Skip to content"
+    "skipToContent": "Skip to content",
+    "mainLabel": "Main",
+    "mobileLabel": "Mobile"
   },
   "common": {
     "loading": "Loading…",
@@ -570,7 +572,8 @@
       "dashboard": "Dashboard",
       "projects": "Projects",
       "learning": "Learning",
-      "media": "Media"
+      "media": "Media",
+      "label": "Admin"
     },
     "dashboard": {
       "title": "Dashboard",

@@ -32,6 +32,10 @@ export const LanguageSwitcher = () => {
         <button
           key={code}
           type="button"
+          // The full language name, pronounced in that language: a screen
+          // reader would read "it" as the English pronoun.
+          aria-label={t(`language.${code}`)}
+          lang={code}
           aria-pressed={language === code}
           onClick={() => handleSelect(code)}
           className={cn(
