@@ -6,9 +6,9 @@ import { useTranslation } from 'react-i18next'
 import { BilingualFields } from '@/components/admin/BilingualFields'
 import { FormActions } from '@/components/admin/FormActions'
 import { readBilingual } from '@/components/admin/readBilingual'
+import { SlugField } from '@/components/admin/SlugField'
 import { StatusSelect } from '@/components/admin/StatusSelect'
 import { TagPicker } from '@/components/learning/TagPicker'
-import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import type {
   ArticleStatus,
@@ -56,14 +56,7 @@ export const LearningForm = ({
       onInput={onDirty}
       className="grid gap-4 sm:grid-cols-2"
     >
-      {initial && (
-        <Input
-          label={t('admin.form.slug')}
-          name="slug"
-          defaultValue={initial.slug}
-          disabled
-        />
-      )}
+      {initial && <SlugField slug={initial.slug} />}
       <Select
         label={t('admin.form.category')}
         name="category"

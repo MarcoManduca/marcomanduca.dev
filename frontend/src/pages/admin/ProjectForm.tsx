@@ -7,13 +7,14 @@ import { BilingualFields } from '@/components/admin/BilingualFields'
 import { FormActions } from '@/components/admin/FormActions'
 import { FormSection } from '@/components/admin/FormSection'
 import { JsonField } from '@/components/admin/JsonField'
+import { SlugField } from '@/components/admin/SlugField'
 import { StatusSelect } from '@/components/admin/StatusSelect'
 import { TechnologyPicker } from '@/components/projects/TechnologyPicker'
-import { Input } from '@/components/ui/Input'
 import type { Project, ProjectInput } from '@/types'
 
 import { ProjectClassificationFields } from './ProjectClassificationFields'
 import { ProjectCoverFields } from './ProjectCoverFields'
+import { ProjectLabFields } from './ProjectLabFields'
 import { InvalidJsonError, toProjectInput } from './projectFormInput'
 import { ProjectPageFields } from './ProjectPageFields'
 
@@ -60,12 +61,7 @@ export const ProjectForm = ({
       <FormSection legend={t('admin.form.cardSection')}>
         {initial && (
           <div className="sm:col-span-2">
-            <Input
-              label={t('admin.form.slug')}
-              name="slug"
-              defaultValue={initial.slug}
-              disabled
-            />
+            <SlugField slug={initial.slug} />
           </div>
         )}
         <ProjectClassificationFields initial={initial} />
@@ -90,14 +86,7 @@ export const ProjectForm = ({
         />
       </FormSection>
       <ProjectPageFields initial={initial} />
-      <FormSection legend={t('admin.form.labSection')}>
-        <JsonField
-          name="lab"
-          value={initial?.lab ?? null}
-          hint={t('admin.form.labHint')}
-          rows={6}
-        />
-      </FormSection>
+      <ProjectLabFields lab={initial?.lab ?? null} />
       <StatusSelect defaultValue={initial?.status} />
       {jsonError && (
         <p role="alert" className="text-sm text-danger">
