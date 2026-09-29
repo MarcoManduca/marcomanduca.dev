@@ -35,7 +35,8 @@
 # exists in ECR. On a fresh account, apply the repository first, push once,
 # then apply the rest:
 #   terraform apply -target=module.backend.aws_ecr_repository.backend
-#   ./infra/scripts/deploy-backend.sh
+#   IMAGE_TAG=bootstrap SKIP_LAMBDA_UPDATE=1 ECR_REPOSITORY_URL=... \
+#     ./infra/scripts/deploy-backend.sh
 #   terraform apply
 
 resource "aws_cloudwatch_log_group" "backend" {

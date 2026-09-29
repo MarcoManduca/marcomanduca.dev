@@ -9,6 +9,7 @@ development stack.
                          ┌────────────────────────────────────────────┐
  Browser ──HTTPS──> CloudFront (marcomanduca.dev + www)               │
                          │  default ──OAC──> S3 frontend bucket (SPA) │
+                         │  /media/images/* ──OAC──> S3 media bucket  │
                          │  /api/*  ──secret header──> API Gateway     │
                          └───────────────────────┬────────────────────┘
                                                  │
@@ -45,10 +46,21 @@ Design decisions:
   public IP to pay for.
 - **SPA routing at the edge.** A viewer-request CloudFront Function on the
   default behavior rewrites extension-less paths (`/projects/foo`, `/admin`)
-  to `/index.html`; paths with an extension go to S3 untouched. There is no
-  distribution-wide `custom_error_response`, so real API statuses
-  (401/403/404/429…) reach the SPA unchanged and a missing asset is a real
-  404. The same function 301-redirects `www.` to the apex.
+  to the route's pre-rendered page (`/_routes/projects/foo.html`, written by
+  `npm run build` with that page's meta tags, for link previews and crawlers
+  that do not run JS) when the routes **key value store** lists the path, and
+  to `/index.html` otherwise, so content published after the last frontend
+  deploy (or a store error) still gets the SPA shell. The deploy script owns
+  the store's keys, Terraform only the store. Paths with an extension go to
+  S3 untouched. There is no distribution-wide `custom_error_response`, so
+  real API statuses (401/403/404/429…) reach the SPA unchanged and a missing
+  asset is a real 404. The same function 301-redirects `www.` to the apex and
+  drops trailing slashes (one canonical URL per page).
+- **Uploaded images.** The admin uploads to the private media bucket through
+  presigned PUT URLs; `/media/images/*` serves `images/*` from it through an
+  OAC (a function strips the `/media` prefix, since `/images/` belongs to the
+  frontend bucket). The bucket policy only lets CloudFront read `images/*`:
+  the CV under `cv/` stays behind short-lived presigned GET URLs.
 - **Real client IP.** A viewer-request function on `/api/*` overwrites the
   `x-viewer-ip` header with the viewer IP (client-supplied values are
   discarded); the backend rate limiter keys on it.
@@ -59,7 +71,7 @@ Design decisions:
   concurrency, where the account quota allows one) caps the blast radius of a
   traffic flood; a monthly AWS Budget and CloudWatch alarms (Lambda
   errors/throttles, API 5xx/4xx spike, SES bounce/complaint rate) email the
-  owner. API Gateway access logs (no client IPs) record every request,
+  owner, as do CRITICAL/HIGH findings of the ECR scan of every pushed image. API Gateway access logs (no client IPs) record every request,
   including the 429s the stage answers itself.
 
 ## Layout
@@ -69,7 +81,7 @@ infra/
 ├── README.md                  # this runbook
 ├── scripts/
 │   ├── create-local-tables.sh # DynamoDB Local table bootstrap
-│   ├── deploy-frontend.sh     # build + s3 sync + CloudFront invalidation
+│   ├── deploy-frontend.sh     # build + s3 sync + route keys + asset prune + invalidation
 │   └── deploy-backend.sh      # docker build/push + lambda update-function-code
 └── terraform/
     ├── bootstrap/             # separate root (local state): the remote-state S3 bucket
@@ -87,8 +99,8 @@ infra/
         ├── auth/              # Cognito user pool (TOTP MFA), SPA client, optional dev client, hosted UI, group
         ├── email/             # SES domain identity, DKIM, MAIL FROM (SPF) and DMARC records
         ├── backend/           # ECR, Lambda + API Gateway HTTP API (throttled, access-logged), origin secret, IAM, logs
-        ├── cdn/               # CloudFront distribution, edge functions, headers policies, OAC
-        └── monitoring/        # monthly budget, SNS alert topic, CloudWatch alarms
+        ├── cdn/               # CloudFront distribution, edge functions + routes KVS, headers policies, OACs, bucket policies
+        └── monitoring/        # monthly budget, SNS alert topic, CloudWatch alarms, ECR scan alerts
 ```
 
 ---
@@ -220,9 +232,10 @@ ECR_REPOSITORY_URL=$(terraform -chdir=infra/terraform output -raw ecr_repository
 FUNCTION_NAME=$(terraform -chdir=infra/terraform output -raw backend_function_name) \
 ./infra/scripts/deploy-backend.sh
 
-# Frontend: build, sync to S3, invalidate CloudFront
+# Frontend: build + pre-render, sync to S3, sync the route keys, invalidate CloudFront
 FRONTEND_BUCKET=$(terraform -chdir=infra/terraform output -raw frontend_bucket_name) \
 DISTRIBUTION_ID=$(terraform -chdir=infra/terraform output -raw cloudfront_distribution_id) \
+ROUTES_KVS_ARN=$(terraform -chdir=infra/terraform output -raw routes_kvs_arn) \
 ./infra/scripts/deploy-frontend.sh
 ```
 
@@ -336,6 +349,7 @@ Backend variable names must match the `Settings` fields in
 | `https://<domain>` (convention)              | `CORS_ORIGINS`                | —                             |
 | `prod` (fixed on Lambda)                     | `APP_ENV`                     | —                             |
 | generated by Terraform (`random_password`)   | `ORIGIN_VERIFY_SECRET`        | —                             |
+| tfvars `origin_verify_secret_previous` (rotation only) | `ORIGIN_VERIFY_SECRET_PREVIOUS` | —               |
 | tfvars `contact_rate_limit_daily_max` (50)   | `CONTACT_RATE_LIMIT_DAILY_MAX`| —                             |
 | `/api/v1` (relative; CloudFront routes to API Gateway)| —                    | `VITE_API_BASE_URL`           |
 | region (tfvars `aws_region`)                 | `AWS_REGION`                  | —                             |
@@ -367,10 +381,10 @@ cost of the hosted zone. The trade-off is an occasional ~1–2 s cold start.
 | Guardrail                         | Variable (default)                                   | Effect |
 |-----------------------------------|------------------------------------------------------|--------|
 | Lambda reserved concurrency       | `backend_reserved_concurrency` (5; -1 = off)          | hard cap on parallel executions → throttles, not bills |
-| API Gateway stage throttling      | `api_throttling_rate_limit` (20 rps), `api_throttling_burst_limit` (40) | excess requests get 429 before Lambda runs |
+| API Gateway stage throttling      | `api_throttling_rate_limit` (20 rps), `api_throttling_burst_limit` (10) | excess requests get 429 before Lambda runs, as long as the burst stays at or below the Lambda concurrency (reserved, or the account quota with -1); beyond it they end as Lambda throttles (5xx + alarms) |
 | Contact-form daily cap            | `contact_rate_limit_daily_max` (50)                  | global SES send cap in the backend |
 | Monthly budget                    | `monthly_budget_usd` (10)                            | email at 80% actual and 100% forecasted |
-| CloudWatch alarms → SNS email     | `alert_email` (null → `contact_email`)               | Lambda errors/throttles, API 5xx, API 4xx spike, SES bounce/complaint rate |
+| CloudWatch alarms → SNS email     | `alert_email` (null → `contact_email`)               | Lambda errors/throttles, API 5xx, API 4xx spike, SES bounce/complaint rate; ECR scan findings via EventBridge |
 
 Budgets and alarms only notify; the first two rows are the actual caps.
 With `backend_reserved_concurrency = -1` (accounts whose concurrency quota is
@@ -413,7 +427,7 @@ Notes:
 | Deploy frontend            | `./infra/scripts/deploy-frontend.sh` (env vars from terraform output) |
 | Tail backend logs          | `aws logs tail /aws/lambda/marcomanduca-dev-backend --follow`      |
 | Infrastructure change      | edit Terraform → `terraform plan` → `terraform apply`              |
-| Roll back backend          | `IMAGE_TAG=<older-sha> ./infra/scripts/deploy-backend.sh` (no rebuild; the image must still be in ECR, which keeps the last 10) |
+| Roll back backend          | `IMAGE_TAG=<older-sha> ./infra/scripts/deploy-backend.sh` (no rebuild; the image must still be in ECR, which keeps the last 10; tags are 12-character SHAs, older images keep their 7-character tags) |
 | Rotate origin secret       | two applies, see below                                             |
 
 Backend deploys only ever build the committed checkout, because an image
@@ -426,11 +440,24 @@ out the commit and deploy it without `IMAGE_TAG`.
 Frontend deploys stop before building if a `VITE_COGNITO_*` value is missing
 from both the environment and `frontend/.env.production`.
 
-Frontend deploys upload hashed `assets/` first with
-`Cache-Control: public,max-age=31536000,immutable`, then `index.html` and the
-other root files with `no-cache`. Old hashed assets are kept for
-`ASSET_RETENTION_DAYS` (default 7) so visitors still on the previous
-`index.html` keep working, then pruned.
+Frontend deploys build with `PRERENDER_STRICT=1` (an unreachable API stops
+the deploy instead of publishing a site without its project pages), then:
+
+1. upload hashed `assets/` with `Cache-Control: public,max-age=31536000,immutable`
+   and this deploy's asset manifest (`_deploys/<UTC timestamp>.txt`);
+2. upload `index.html`, the pre-rendered `_routes/` pages and the other root
+   files with `no-cache`, deleting nothing yet;
+3. make the routes key value store list exactly this build's pages (keys
+   added only once their page is in the bucket);
+4. delete stale root files (pages of unpublished content, now keyless);
+5. prune old hashed assets: an asset goes only when no kept manifest lists it
+   (the current one, the previous one, and every one younger than
+   `ASSET_RETENTION_DAYS`, default 7) and it was uploaded before that window
+   too. Open tabs of the previous build keep loading their lazy chunks however
+   long ago it shipped (and a tab that still fails reloads once);
+6. invalidate CloudFront.
+
+The key value store API is signed with SigV4A: use AWS CLI v2.
 
 ### Rotate origin secret
 
