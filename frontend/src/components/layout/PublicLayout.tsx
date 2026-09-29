@@ -5,6 +5,7 @@ import { Outlet, useLocation } from 'react-router'
 import { AchievementToast } from '@/components/game/AchievementToast'
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 import { Spinner } from '@/components/ui/Spinner'
+import { useFocusOnNavigate } from '@/hooks/useFocusOnNavigate'
 import { useUnlockOnMount } from '@/hooks/useUnlockOnMount'
 
 import { BackgroundContours } from './BackgroundContours'
@@ -17,6 +18,7 @@ import { MAIN_CONTENT_ID, SkipLink } from './SkipLink'
 export const PublicLayout = () => {
   const { pathname } = useLocation()
   useUnlockOnMount('firstStep')
+  useFocusOnNavigate(MAIN_CONTENT_ID)
 
   return (
     <div className="relative isolate flex min-h-screen flex-col overflow-x-clip">
