@@ -28,8 +28,13 @@ variable "timeout_s" {
 }
 
 variable "dynamodb_table_arns" {
-  description = "ARNs of the DynamoDB tables the function may access."
-  type        = list(string)
+  description = "ARNs of the DynamoDB tables the function may access, by logical name."
+  type = object({
+    projects     = string
+    technologies = string
+    learning     = string
+    ratelimit    = string
+  })
 }
 
 variable "media_bucket_arn" {
