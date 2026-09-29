@@ -3,7 +3,11 @@
 from enum import StrEnum
 from functools import lru_cache
 
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# SigV4 presigned URLs cannot outlive 7 days: S3 rejects longer ones.
+_PRESIGN_MAX_SECONDS = 604_800
 
 
 class AppEnv(StrEnum):
@@ -18,12 +22,24 @@ class AppEnv(StrEnum):
     PROD = "prod"
 
 
+class LogLevel(StrEnum):
+    """Level names accepted by :mod:`logging` (``LOG_LEVEL``)."""
+
+    DEBUG = "DEBUG"
+    INFO = "INFO"
+    WARNING = "WARNING"
+    ERROR = "ERROR"
+    CRITICAL = "CRITICAL"
+
+
 class Settings(BaseSettings):
     """Application configuration loaded from environment variables.
 
     Every attribute maps to an upper-case environment variable of the
     same name (for example ``aws_region`` maps to ``AWS_REGION``).
-    Values may also be provided through a local ``.env`` file.
+    Values may also be provided through a local ``.env`` file. Values that
+    would only fail later (an unknown log level, a zero rate-limit window)
+    are rejected when the settings load, i.e. at cold start.
     """
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
@@ -39,7 +55,7 @@ class Settings(BaseSettings):
     ratelimit_table_name: str = "portfolio-ratelimit"
 
     media_bucket_name: str = "marcomanduca-dev-media"
-    presign_expiration_seconds: int = 900
+    presign_expiration_seconds: int = Field(default=900, gt=0, le=_PRESIGN_MAX_SECONDS)
 
     cognito_user_pool_id: str = ""
     cognito_client_id: str = ""
@@ -58,12 +74,18 @@ class Settings(BaseSettings):
     # (infra/README.md, "Rotate origin secret"); empty otherwise.
     origin_verify_secret_previous: str = ""
 
-    contact_rate_limit_max_requests: int = 5
-    contact_rate_limit_window_seconds: int = 900
+    contact_rate_limit_max_requests: int = Field(default=5, gt=0)
+    contact_rate_limit_window_seconds: int = Field(default=900, gt=0)
     # Site-wide cap on contact submissions per UTC day, across all IPs.
-    contact_rate_limit_daily_max: int = 50
+    contact_rate_limit_daily_max: int = Field(default=50, gt=0)
 
-    log_level: str = "INFO"
+    log_level: LogLevel = LogLevel.INFO
+
+    @field_validator("log_level", mode="before")
+    @classmethod
+    def _upper_case_log_level(cls, value: object) -> object:
+        """Accept level names in any case (``info`` -> ``INFO``)."""
+        return value.upper() if isinstance(value, str) else value
 
     @property
     def is_prod(self) -> bool:

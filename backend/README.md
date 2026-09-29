@@ -94,7 +94,7 @@ See `.env.example` for the full annotated list.
 | `RATELIMIT_TABLE_NAME` | DynamoDB contact rate-limit table | `portfolio-ratelimit` |
 | `DYNAMODB_ENDPOINT_URL` | Optional DynamoDB Local endpoint | unset |
 | `MEDIA_BUCKET_NAME` | S3 bucket for media | `marcomanduca-dev-media` |
-| `PRESIGN_EXPIRATION_SECONDS` | Presigned URL validity | `900` |
+| `PRESIGN_EXPIRATION_SECONDS` | Presigned URL validity (1 s to 7 days) | `900` |
 | `COGNITO_USER_POOL_ID` | Cognito user pool id (required in prod) | empty |
 | `COGNITO_CLIENT_ID` | Cognito app client id (required in prod) | empty |
 | `SES_SENDER_EMAIL` | Verified SES sender | `noreply@marcomanduca.dev` |
@@ -103,10 +103,14 @@ See `.env.example` for the full annotated list.
 | `APP_ENV` | `local` or `prod` (see Architecture) | `prod` |
 | `ORIGIN_VERIFY_SECRET` | CloudFront `X-Origin-Verify` secret (required in prod; empty disables the check locally) | empty |
 | `ORIGIN_VERIFY_SECRET_PREVIOUS` | Former secret, still accepted while a rotation propagates (see infra/README.md) | empty |
-| `LOG_LEVEL` | Minimum level of the application loggers | `INFO` |
+| `LOG_LEVEL` | Minimum level of the application loggers (`DEBUG` … `CRITICAL`, any case) | `INFO` |
 | `CONTACT_RATE_LIMIT_MAX_REQUESTS` | Requests per window per IP (IPv6: per `/64`) | `5` |
 | `CONTACT_RATE_LIMIT_WINDOW_SECONDS` | Window length | `900` |
 | `CONTACT_RATE_LIMIT_DAILY_MAX` | Emailed contact submissions per UTC day, all IPs | `50` |
+
+Invalid values (an unknown log level, a rate-limit setting of zero or less,
+a presign validity above 7 days) stop the app at startup instead of failing
+on the first request.
 
 ## Local development
 
