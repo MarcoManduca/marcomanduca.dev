@@ -1,5 +1,4 @@
 import ReactMarkdown from 'react-markdown'
-import rehypeHighlight from 'rehype-highlight'
 import rehypeKatex from 'rehype-katex'
 
 // Themes live with the renderer so they ship in its lazy chunk, not in the
@@ -8,13 +7,15 @@ import 'katex/dist/katex.min.css'
 import 'highlight.js/styles/github-dark.css'
 
 import { REMARK_PLUGINS } from '@/utils/markdownPlugins'
+import { rehypeHighlight } from '@/utils/rehypeHighlight'
 
 interface MarkdownContentProps {
   content: string
 }
 
 /**
- * Heavy markdown implementation (react-markdown + KaTeX + highlight.js).
+ * Heavy markdown implementation (react-markdown + KaTeX + highlight.js,
+ * with only the languages the content uses, see `rehypeHighlight`).
  *
  * Isolated in its own module so it can be code-split: the public detail and
  * admin pages load it on demand instead of bloating the initial bundle.

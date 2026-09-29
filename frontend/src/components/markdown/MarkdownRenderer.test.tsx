@@ -52,8 +52,39 @@ describe('MarkdownRenderer', () => {
     await screen.findByText(/def/)
     const code = container.querySelector('pre code')
     expect(code).not.toBeNull()
-    expect(code).toHaveClass('language-python')
+    expect(code).toHaveClass('hljs', 'language-python')
     expect(container.querySelector('.hljs-keyword')).not.toBeNull()
+  })
+
+  it('highlights a language through its alias', async () => {
+    const { container } = render(
+      <MarkdownRenderer content={'```ts\nconst answer: number = 42\n```'} />,
+    )
+
+    await screen.findByText(/answer/)
+    expect(container.querySelector('.hljs-keyword')).not.toBeNull()
+  })
+
+  it('keeps a block in an unregistered language as plain text', async () => {
+    const { container } = render(
+      <MarkdownRenderer content={'```hcl\nresource "x" "y" {}\n```'} />,
+    )
+
+    await screen.findByText(/resource/)
+    expect(container.querySelector('pre code')).toHaveClass(
+      'hljs',
+      'language-hcl',
+    )
+    expect(container.querySelector('[class^="hljs-"]')).toBeNull()
+  })
+
+  it('leaves a block without a language untouched', async () => {
+    const { container } = render(
+      <MarkdownRenderer content={'```\nplain text\n```'} />,
+    )
+
+    await screen.findByText(/plain text/)
+    expect(container.querySelector('pre code')).not.toHaveClass('hljs')
   })
 
   it('renders LaTeX math with KaTeX', async () => {
