@@ -29,6 +29,8 @@ belonging to the `Administrators` group.
   by `/64`, the block a single subscriber usually holds.
 - **Origin lock**: CloudFront adds an `X-Origin-Verify` secret; the API
   Gateway endpoint rejects requests without it (constant-time comparison).
+  Only `GET /api/v1/health` is exempt: the Lambda Web Adapter readiness
+  probe calls it from inside the execution environment, without the header.
 - **Environments**: `APP_ENV=prod` (default, fail-secure) disables `/docs`,
   `/redoc` and `/openapi.json` and refuses to start while
   `ORIGIN_VERIFY_SECRET`, `COGNITO_USER_POOL_ID`, `COGNITO_CLIENT_ID` or
@@ -48,7 +50,7 @@ belonging to the `Administrators` group.
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
-| GET | `/api/v1/health` | public | Liveness check |
+| GET | `/api/v1/health` | public | Liveness check (also the Lambda readiness probe; no origin secret needed) |
 | GET | `/api/v1/projects` | public* | List light project cards (`area`, `context`, `technology`, `search` filters) |
 | GET | `/api/v1/projects/{slug}` | public* | Full project, as its page shows it |
 | POST | `/api/v1/projects` | admin | Create project |

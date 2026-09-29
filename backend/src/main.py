@@ -26,6 +26,9 @@ from src.utils.origin_verify import OriginVerifyMiddleware
 from src.utils.structured_logging import configure_logging
 
 API_PREFIX = "/api/v1"
+# The Lambda Web Adapter readiness probe calls this from inside the
+# execution environment, without the CloudFront origin header.
+_READINESS_PROBE = ("GET", f"{API_PREFIX}/health")
 # AWS error codes meaning "slow down": transient, so 503 + Retry-After
 # (botocore timeouts and connection errors get the same answer).
 _THROTTLING_CODES = frozenset(
@@ -79,6 +82,7 @@ def create_app() -> FastAPI:
         OriginVerifyMiddleware,
         secret=settings.origin_verify_secret,
         previous_secret=settings.origin_verify_secret_previous,
+        exempt=frozenset({_READINESS_PROBE}),
     )
     _register_routers(app)
     _register_error_handlers(app)

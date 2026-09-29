@@ -10,6 +10,11 @@ the check.
 
 During a rotation the previous secret is accepted too, so edges that have
 not picked up the new header value yet keep working.
+
+A few exact ``(method, path)`` pairs can be exempted: the Lambda Web
+Adapter probes ``GET /api/v1/health`` from inside the execution
+environment, without the CDN header, before it routes traffic to a new
+instance.
 """
 
 import hmac
@@ -34,12 +39,23 @@ class OriginVerifyMiddleware(BaseHTTPMiddleware):
         Expected header value. An empty string disables the check.
     previous_secret : str, optional
         Former value, still accepted while a rotation propagates.
+    exempt : frozenset[tuple[str, str]], optional
+        ``(method, path)`` pairs served without the header, matched
+        exactly (e.g. ``("GET", "/api/v1/health")``; ``HEAD`` is not
+        implied).
     """
 
-    def __init__(self, app: ASGIApp, secret: str, previous_secret: str = "") -> None:
+    def __init__(
+        self,
+        app: ASGIApp,
+        secret: str,
+        previous_secret: str = "",
+        exempt: frozenset[tuple[str, str]] = frozenset(),
+    ) -> None:
         super().__init__(app)
         accepted = (secret, previous_secret) if secret else ()
         self._secrets = [value.encode() for value in accepted if value]
+        self._exempt = exempt
 
     async def dispatch(
         self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
@@ -58,6 +74,8 @@ class OriginVerifyMiddleware(BaseHTTPMiddleware):
         fastapi.Response
             The downstream response, or 403 when the secret is wrong.
         """
+        if (request.method, request.url.path) in self._exempt:
+            return await call_next(request)
         if self._secrets and not self._matches(request):
             return JSONResponse(
                 status_code=status.HTTP_403_FORBIDDEN,

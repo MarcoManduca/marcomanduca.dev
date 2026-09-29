@@ -9,6 +9,9 @@ from src.main import create_app
 
 pytestmark = pytest.mark.integration
 
+# Any route other than the exempt readiness probe (GET /api/v1/health).
+_PROTECTED_PATH = "/api/v1/technologies"
+
 
 async def _client(app: FastAPI) -> AsyncClient:
     return AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
@@ -36,7 +39,7 @@ async def test_request_rejected_when_secret_set_and_header_missing(
 
     # Act
     async with await _client(app) as client:
-        response = await client.get("/api/v1/health")
+        response = await client.get(_PROTECTED_PATH)
 
     # Assert
     assert response.status_code == 403
@@ -53,7 +56,7 @@ async def test_request_allowed_when_secret_set_and_header_matches(
     # Act
     async with await _client(app) as client:
         response = await client.get(
-            "/api/v1/health", headers={"X-Origin-Verify": "s3cret"}
+            _PROTECTED_PATH, headers={"X-Origin-Verify": "s3cret"}
         )
 
     # Assert
@@ -74,7 +77,7 @@ async def test_request_rejected_when_header_does_not_match(
     # Act
     async with await _client(app) as client:
         response = await client.get(
-            "/api/v1/health", headers={"X-Origin-Verify": header}
+            _PROTECTED_PATH, headers={"X-Origin-Verify": header}
         )
 
     # Assert
@@ -104,7 +107,7 @@ async def test_previous_secret_is_accepted_during_a_rotation(
     # Act
     async with await _client(app) as client:
         response = await client.get(
-            "/api/v1/health", headers={"X-Origin-Verify": header}
+            _PROTECTED_PATH, headers={"X-Origin-Verify": header}
         )
 
     # Assert
@@ -122,7 +125,47 @@ async def test_previous_secret_alone_does_not_enable_the_check(
 
     # Act
     async with await _client(app) as client:
+        response = await client.get(_PROTECTED_PATH)
+
+    # Assert
+    assert response.status_code == 200
+
+
+@pytest.fixture
+async def guarded_client(
+    aws_backend: None, monkeypatch: pytest.MonkeyPatch
+) -> AsyncClient:
+    """Client for an app that requires the origin secret."""
+    monkeypatch.setenv("ORIGIN_VERIFY_SECRET", "s3cret")
+    get_settings.cache_clear()
+    return await _client(create_app())
+
+
+async def test_readiness_probe_reaches_health_without_the_header(
+    guarded_client: AsyncClient,
+) -> None:
+    # Act
+    async with guarded_client as client:
         response = await client.get("/api/v1/health")
 
     # Assert
     assert response.status_code == 200
+
+
+@pytest.mark.parametrize(
+    "method, path",
+    [
+        ("HEAD", "/api/v1/health"),
+        ("POST", "/api/v1/health"),
+        ("GET", "/api/v1/health/"),
+    ],
+)
+async def test_only_get_health_is_exempt(
+    guarded_client: AsyncClient, method: str, path: str
+) -> None:
+    # Act
+    async with guarded_client as client:
+        response = await client.request(method, path)
+
+    # Assert
+    assert response.status_code == 403
