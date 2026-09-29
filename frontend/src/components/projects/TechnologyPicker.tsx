@@ -1,14 +1,10 @@
-import { useState } from 'react'
-
 import { useTranslation } from 'react-i18next'
 
 import { AdminErrorAlert } from '@/components/admin/AdminErrorAlert'
 import { ChipButton } from '@/components/admin/ChipButton'
 import { InlineAddField } from '@/components/admin/InlineAddField'
-import {
-  useCreateTechnologyMutation,
-  useGetTechnologiesQuery,
-} from '@/services/technologiesApi'
+import { useAddTechnology } from '@/hooks/useAddTechnology'
+import { toggleItem } from '@/utils/toggleItem'
 
 interface TechnologyPickerProps {
   /** Selected technology names. */
@@ -27,43 +23,10 @@ export const TechnologyPicker = ({
   onChange,
 }: TechnologyPickerProps) => {
   const { t } = useTranslation()
-  const { data: technologies = [] } = useGetTechnologiesQuery()
-  const [createTechnology, { isLoading }] = useCreateTechnologyMutation()
-  const [newName, setNewName] = useState('')
-  const [error, setError] = useState<unknown>(null)
-
-  const toggle = (name: string) =>
-    onChange(
-      value.includes(name)
-        ? value.filter((item) => item !== name)
-        : [...value, name],
-    )
-
-  const resolveName = async (name: string): Promise<string> => {
-    const existing = technologies.find(
-      (tech) => tech.name.toLowerCase() === name.toLowerCase(),
-    )
-    if (existing) return existing.name
-    const created = await createTechnology({
-      name,
-      icon: name.toLowerCase(),
-      category: 'other',
-    }).unwrap()
-    return created.name
-  }
-
-  const addTechnology = async () => {
-    const name = newName.trim()
-    if (!name) return
-    setError(null)
-    try {
-      const resolved = await resolveName(name)
-      if (!value.includes(resolved)) onChange([...value, resolved])
-      setNewName('')
-    } catch (caught) {
-      setError(caught)
-    }
-  }
+  const { technologies, name, setName, add, isAdding, error } =
+    useAddTechnology((added) => {
+      if (!value.includes(added)) onChange([...value, added])
+    })
 
   return (
     <div className="sm:col-span-2">
@@ -75,7 +38,7 @@ export const TechnologyPicker = ({
           <ChipButton
             key={tech.id}
             selected={value.includes(tech.name)}
-            onClick={() => toggle(tech.name)}
+            onClick={() => onChange(toggleItem(value, tech.name))}
           >
             {tech.name}
           </ChipButton>
@@ -87,10 +50,10 @@ export const TechnologyPicker = ({
       <InlineAddField
         label={t('admin.form.addTechnology')}
         placeholder={t('admin.form.addTechnologyPlaceholder')}
-        value={newName}
-        onChange={setNewName}
-        onAdd={() => void addTechnology()}
-        isPending={isLoading}
+        value={name}
+        onChange={setName}
+        onAdd={() => void add()}
+        isPending={isAdding}
       />
       <AdminErrorAlert
         title={t('admin.errors.createTechnologyFailed')}

@@ -32,6 +32,10 @@ WORKDIR /app
 
 COPY --from=builder /install /usr/local
 COPY src ./src
+# Lambda's filesystem is read-only, so Python cannot cache bytecode at run
+# time and would recompile src/ on every cold start. unchecked-hash: the
+# image never changes, so the .pyc files are used without stat checks.
+RUN python -m compileall -q --invalidation-mode unchecked-hash src
 
 USER app
 

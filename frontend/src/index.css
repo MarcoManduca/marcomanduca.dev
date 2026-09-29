@@ -58,7 +58,7 @@
     --color-body: 46 58 51; /* #2E3A33 */
     --color-heading: 11 58 68; /* #0B3A44 */
     --color-muted: 110 94 62; /* #6E5E3E */
-    --color-success: 47 107 58; /* #2F6B3A */
+    --color-success: 40 94 50; /* #285E32, 4.5:1 under a 15% success tint */
     --color-danger: 168 50 42; /* #A8322A */
     --color-card: 251 245 230; /* #FBF5E6 */
     --color-card-ink: 11 58 68; /* #0B3A44 */

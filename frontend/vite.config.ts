@@ -28,9 +28,12 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],
-      include: ['src/**'],
+      include: ['src/**', 'scripts/prerender/**'],
       exclude: [
         'src/main.tsx',
+        // I/O entry point, exercised by `npm run build`.
+        'scripts/prerender/index.mjs',
+        'scripts/**/*.test.mjs',
         'src/test/**',
         'src/types/**',
         'src/**/*.d.ts',

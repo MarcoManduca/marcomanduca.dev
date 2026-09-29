@@ -25,6 +25,7 @@ async def test_presign_upload_returns_url_for_admin(
     body = response.json()
     assert body["key"].startswith("images/projects/")
     assert "test-media-bucket" in body["url"]
+    assert body["public_path"] == f"/media/{body['key']}"
 
 
 async def test_presign_upload_returns_401_without_token(

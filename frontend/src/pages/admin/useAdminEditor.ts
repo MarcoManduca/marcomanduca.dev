@@ -1,5 +1,7 @@
 import { useState } from 'react'
 
+import { useUnsavedChangesGuard } from '@/hooks/useUnsavedChangesGuard'
+
 export type Editing<T> = { mode: 'new' } | { mode: 'edit'; item: T } | null
 
 interface AdminEditorActions<I> {
@@ -15,7 +17,9 @@ interface AdminEditorActions<I> {
  * A failed save keeps the form open and exposes `saveError`; deletion goes
  * through a confirmation step (`pendingDelete`) and exposes `deleteError`.
  * `formKey` changes with the edited item so the form remounts with fresh
- * default values when switching from one item to another.
+ * default values when switching from one item to another. Forms report
+ * edits through `markDirty`: while an open form has unsaved changes, leaving
+ * the page asks for confirmation.
  */
 export const useAdminEditor = <T extends { slug: string }, I>({
   create,
@@ -26,9 +30,12 @@ export const useAdminEditor = <T extends { slug: string }, I>({
   const [saveError, setSaveError] = useState<unknown>(null)
   const [pendingDelete, setPendingDelete] = useState<T | null>(null)
   const [deleteError, setDeleteError] = useState<unknown>(null)
+  const [isDirty, setIsDirty] = useState(false)
+  useUnsavedChangesGuard(editing !== null && isDirty)
 
   const open = (next: Editing<T>) => {
     setSaveError(null)
+    setIsDirty(false)
     setEditing(next)
   }
 
@@ -37,6 +44,7 @@ export const useAdminEditor = <T extends { slug: string }, I>({
     try {
       if (editing?.mode === 'edit') await update(editing.item.slug, input)
       else await create(input)
+      setIsDirty(false)
       setEditing(null)
     } catch (error) {
       setSaveError(error)
@@ -65,6 +73,7 @@ export const useAdminEditor = <T extends { slug: string }, I>({
     cancel: () => open(null),
     save,
     saveError,
+    markDirty: () => setIsDirty(true),
     pendingDelete,
     requestDelete: (item: T) => setPendingDelete(item),
     cancelDelete: () => setPendingDelete(null),

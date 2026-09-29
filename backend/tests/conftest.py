@@ -22,7 +22,7 @@ from src.services.learning_service import get_learning_service  # noqa: E402
 from src.services.media_service import get_media_service  # noqa: E402
 from src.services.project_service import get_project_service  # noqa: E402
 from src.services.technology_service import get_technology_service  # noqa: E402
-from src.utils.auth import optional_admin, require_admin  # noqa: E402
+from src.utils.auth import _get_jwks_client, optional_admin, require_admin  # noqa: E402
 from src.utils.aws_clients import clear_aws_caches  # noqa: E402
 from src.utils.rate_limit import reset_contact_limiter  # noqa: E402
 
@@ -55,6 +55,14 @@ _TEST_ENV = {
     "SES_RECIPIENT_EMAIL": "owner@test.dev",
     "CONTACT_RATE_LIMIT_MAX_REQUESTS": "5",
     "CONTACT_RATE_LIMIT_WINDOW_SECONDS": "900",
+    "CONTACT_RATE_LIMIT_DAILY_MAX": "50",
+    # Pinned so a local backend/.env cannot leak in (an origin secret there
+    # would turn every integration test into a 403).
+    "ORIGIN_VERIFY_SECRET": "",
+    "ORIGIN_VERIFY_SECRET_PREVIOUS": "",
+    "PRESIGN_EXPIRATION_SECONDS": "900",
+    "LOG_LEVEL": "INFO",
+    "CORS_ORIGINS": "http://localhost:5173",
 }
 
 
@@ -69,9 +77,10 @@ def test_environment(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
 
 
 def _clear_caches() -> None:
-    """Drop cached settings, boto3 objects, services and the limiter."""
+    """Drop cached settings, boto3 and JWKS clients, services, the limiter."""
     get_settings.cache_clear()
     clear_aws_caches()
+    _get_jwks_client.cache_clear()
     for factory in _SERVICE_FACTORIES:
         factory.cache_clear()
     reset_contact_limiter()

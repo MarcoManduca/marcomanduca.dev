@@ -15,9 +15,18 @@ export interface PresignRequest {
   content_length: number
 }
 
-/** Presigned PUT URL and the key it targets (`PresignUploadResponse`). */
+/** A presigned URL and the key it targets (`PresignDownloadResponse`). */
 export interface PresignResponse {
   url: string
   key: string
   expires_in: number
+}
+
+/** Presigned PUT URL for an upload (`PresignUploadResponse`). */
+export interface PresignUploadResponse extends PresignResponse {
+  /**
+   * Where the site serves an uploaded image (`/media/images/...`), to use as
+   * an image source in content; null for the CV, which stays private.
+   */
+  public_path: string | null
 }

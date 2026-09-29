@@ -32,7 +32,7 @@ export const AboutMe = () => {
 
   return (
     <>
-      <Seo description={t('about.subtitle')} />
+      <Seo title={t('about.title')} description={t('about.subtitle')} />
       <h1 className="text-3xl font-bold text-heading">{t('about.title')}</h1>
       <p className="mt-2 text-muted">{t('about.subtitle')}</p>
       <Prose className="mt-6 leading-relaxed">

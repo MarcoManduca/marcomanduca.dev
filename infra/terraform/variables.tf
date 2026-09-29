@@ -94,9 +94,14 @@ variable "api_throttling_rate_limit" {
 }
 
 variable "api_throttling_burst_limit" {
-  description = "API Gateway burst limit (requests) for all routes."
+  description = <<-EOT
+    API Gateway burst limit (requests) for all routes. Keep it at or below the
+    concurrency the backend Lambda can really get (its reserved concurrency,
+    or the account quota when that is -1): a larger burst reaches Lambda and
+    ends as throttles (5xx and alarms) instead of clean 429s at the gateway.
+  EOT
   type        = number
-  default     = 40
+  default     = 10
 }
 
 variable "contact_rate_limit_daily_max" {

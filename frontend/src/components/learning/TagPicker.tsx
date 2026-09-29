@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { ChipButton } from '@/components/admin/ChipButton'
 import { InlineAddField } from '@/components/admin/InlineAddField'
 import { useGetArticlesQuery } from '@/services/learningApi'
+import { toggleItem } from '@/utils/toggleItem'
 
 interface TagPickerProps {
   /** Selected tags. */
@@ -29,13 +30,6 @@ export const TagPicker = ({ value, onChange }: TagPickerProps) => {
     return [...tags].sort((a, b) => a.localeCompare(b))
   }, [articles, value])
 
-  const toggle = (tag: string) =>
-    onChange(
-      value.includes(tag)
-        ? value.filter((item) => item !== tag)
-        : [...value, tag],
-    )
-
   const addTag = () => {
     const tag = newTag.trim()
     if (tag && !value.includes(tag)) onChange([...value, tag])
@@ -52,7 +46,7 @@ export const TagPicker = ({ value, onChange }: TagPickerProps) => {
           <ChipButton
             key={tag}
             selected={value.includes(tag)}
-            onClick={() => toggle(tag)}
+            onClick={() => onChange(toggleItem(value, tag))}
           >
             {tag}
           </ChipButton>

@@ -9,11 +9,11 @@ output "table_names" {
 }
 
 output "table_arns" {
-  description = "ARNs of all tables (for IAM scoping)."
-  value = [
-    aws_dynamodb_table.simple["projects"].arn,
-    aws_dynamodb_table.simple["technologies"].arn,
-    aws_dynamodb_table.learning.arn,
-    aws_dynamodb_table.ratelimit.arn,
-  ]
+  description = "Map of logical name -> table ARN (per-table IAM scoping)."
+  value = {
+    projects     = aws_dynamodb_table.simple["projects"].arn
+    technologies = aws_dynamodb_table.simple["technologies"].arn
+    learning     = aws_dynamodb_table.learning.arn
+    ratelimit    = aws_dynamodb_table.ratelimit.arn
+  }
 }

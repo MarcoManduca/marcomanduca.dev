@@ -22,14 +22,14 @@ export const ProjectCard = ({ project }: ProjectCardProps) => {
       {project.status !== 'published' && (
         <StatusBadge status={project.status} className="self-start" />
       )}
-      <h3 className="text-lg font-semibold text-heading">
+      <h2 className="text-lg font-semibold text-heading">
         <Link
           to={`/projects/${project.slug}`}
           className="hover:text-accent-hover"
         >
           {localize(project.title)}
         </Link>
-      </h3>
+      </h2>
       <p className="flex-1 text-sm text-body">
         {localize(project.description)}
       </p>

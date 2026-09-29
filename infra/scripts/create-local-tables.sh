@@ -43,8 +43,12 @@ if [[ "${ready}" != "1" ]]; then
 fi
 
 # create_table <name> <key-schema> <attribute-definitions>
+# The last two are space-separated lists, split into one CLI argument each.
 create_table() {
-  local name="$1" key_schema="$2" attributes="$3"
+  local name="$1"
+  local -a key_schema attributes
+  read -r -a key_schema <<< "$2"
+  read -r -a attributes <<< "$3"
 
   if aws dynamodb describe-table --table-name "${name}" \
     --endpoint-url "${ENDPOINT_URL}" > /dev/null 2>&1; then
@@ -55,8 +59,8 @@ create_table() {
   echo "Creating table '${name}'..."
   aws dynamodb create-table \
     --table-name "${name}" \
-    --key-schema ${key_schema} \
-    --attribute-definitions ${attributes} \
+    --key-schema "${key_schema[@]}" \
+    --attribute-definitions "${attributes[@]}" \
     --billing-mode PAY_PER_REQUEST \
     --endpoint-url "${ENDPOINT_URL}" > /dev/null
 }

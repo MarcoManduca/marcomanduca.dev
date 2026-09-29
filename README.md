@@ -7,9 +7,10 @@ Public, bilingual (IT/EN), SEO-optimized, with a protected admin panel.
 ## Architecture
 
 ```
-Browser → CloudFront → React (S3) ─┐
-                                   ├→ FastAPI (Lambda) → DynamoDB / S3 / Cognito / SES
-Browser → CloudFront → /api ───────┘
+Browser → CloudFront ─┬─ default ────────→ S3 frontend (React SPA + pre-rendered route pages)
+                      ├─ /media/images/* → S3 media (uploaded images)
+                      └─ /api/* ─────────→ API Gateway (HTTP API) → FastAPI (Lambda)
+                                                                  → DynamoDB / S3 / Cognito / SES
 ```
 
 | Layer    | Technology                                      |
@@ -86,7 +87,8 @@ See [infra/README.md](infra/README.md) for the full AWS deployment guide, includ
 5. Deploying backend (Lambda) and frontend (S3 + CloudFront invalidation)
 
 CI (`.github/workflows/ci.yml`) runs lint, tests with coverage gates,
-Terraform fmt/validate, gitleaks, hadolint, and Trivy IaC + image scans.
+Terraform fmt/validate, gitleaks, hadolint, shellcheck, and Trivy IaC + image
+scans.
 Deploys are manual (scripts in `infra/scripts`).
 
 ## Documentation

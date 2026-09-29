@@ -1,6 +1,7 @@
 import { HttpResponse, http } from 'msw'
 
 import {
+  articleSummariesFixture,
   articlesFixture,
   projectSummariesFixture,
   projectsFixture,
@@ -46,7 +47,9 @@ export const handlers = [
   ),
 
   // Learning — list and versions are bare arrays.
-  http.get(`${API_URL}/learning`, () => HttpResponse.json(articlesFixture)),
+  http.get(`${API_URL}/learning`, () =>
+    HttpResponse.json(articleSummariesFixture),
+  ),
   http.get(`${API_URL}/learning/:slug`, ({ params }) => {
     const article = articlesFixture.find((a) => a.slug === params.slug)
     return article
@@ -111,12 +114,13 @@ export const handlers = [
     ),
   ),
 
-  // Media presign — { url, key, expires_in }.
+  // Media presign — { url, key, expires_in, public_path }.
   http.post(`${API_URL}/media/presign`, () =>
     HttpResponse.json({
       url: S3_UPLOAD_URL,
       key: 'images/projects/uploaded.png',
       expires_in: 900,
+      public_path: '/media/images/projects/uploaded.png',
     }),
   ),
 

@@ -1,10 +1,15 @@
 """S3 presigned URL generation for media uploads and downloads.
 
 Uploads use presigned PUT URLs (the frontend contract). The signature
-pins the ``Content-Type`` to an allowlisted MIME type and, when the client
-declares it, the exact ``Content-Length`` (capped at 10 MB). Object keys are
-generated server side: a random UUID, a sanitised stem and an extension
-derived from the MIME type, never from the client filename.
+pins the ``Content-Type`` to an allowlisted MIME type and the exact
+``Content-Length`` the client declares (required, capped at 10 MB). Object
+keys are generated server side: a random UUID, a sanitised stem and an
+extension derived from the MIME type, never from the client filename.
+
+Uploaded images are public through the CDN: CloudFront serves
+``/media/images/*`` from the media bucket (only that prefix), so the
+upload response carries the site path to use in content. The CV stays
+private and is only reachable through a short-lived presigned GET.
 """
 
 import re
@@ -25,6 +30,10 @@ from src.utils.aws_clients import get_client
 from src.utils.slugify import slugify
 
 CV_KEY = f"{MediaPrefix.CV.value}cv.pdf"
+# CloudFront behavior serving the media bucket's images/ prefix; the key is
+# appended as is (/media/images/projects/<uuid>-<stem>.<ext>).
+PUBLIC_MEDIA_ROOT = "/media/"
+_PUBLIC_PREFIXES = frozenset({MediaPrefix.PROJECT_IMAGES, MediaPrefix.LEARNING_IMAGES})
 
 # MIME type -> file extension. SVG is excluded on purpose (it can carry script).
 _IMAGE_TYPES = {
@@ -72,7 +81,8 @@ class MediaService:
         Returns
         -------
         PresignUploadResponse
-            Presigned URL, final object key and expiry.
+            Presigned URL, final object key, expiry and, for images, the
+            public site path.
 
         Raises
         ------
@@ -90,7 +100,12 @@ class MediaService:
         url = self._client.generate_presigned_url(
             "put_object", Params=params, ExpiresIn=self._expiration
         )
-        return PresignUploadResponse(url=url, key=key, expires_in=self._expiration)
+        return PresignUploadResponse(
+            url=url,
+            key=key,
+            expires_in=self._expiration,
+            public_path=_public_path(payload.prefix, key),
+        )
 
     def create_download_url(self, key: str) -> PresignDownloadResponse:
         """Create a presigned GET URL for a public media object.
@@ -118,6 +133,11 @@ class MediaService:
             ExpiresIn=self._expiration,
         )
         return PresignDownloadResponse(url=url, key=key, expires_in=self._expiration)
+
+
+def _public_path(prefix: MediaPrefix, key: str) -> str | None:
+    """Return the CDN path of an uploaded object, ``None`` if it is private."""
+    return f"{PUBLIC_MEDIA_ROOT}{key}" if prefix in _PUBLIC_PREFIXES else None
 
 
 def _extension_for(prefix: MediaPrefix, content_type: str) -> str:

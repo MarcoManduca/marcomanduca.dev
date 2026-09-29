@@ -4,6 +4,7 @@ import { AdminErrorAlert } from '@/components/admin/AdminErrorAlert'
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader'
 import { AdminTable } from '@/components/admin/AdminTable'
 import { EditorPanel } from '@/components/admin/EditorPanel'
+import { ErrorState } from '@/components/ui/ErrorState'
 import { Spinner } from '@/components/ui/Spinner'
 import { useLanguage } from '@/hooks/useLanguage'
 import {
@@ -23,7 +24,7 @@ import { useAdminEditor } from './useAdminEditor'
 export const AdminProjects = () => {
   const { t } = useTranslation()
   const { localize } = useLanguage()
-  const { data, isLoading } = useGetProjectsQuery()
+  const { data, isLoading, isError, refetch } = useGetProjectsQuery()
   const [createProject, { isLoading: isCreating }] = useCreateProjectMutation()
   const [updateProject, { isLoading: isUpdating }] = useUpdateProjectMutation()
   const [deleteProject, { isLoading: isDeleting }] = useDeleteProjectMutation()
@@ -37,9 +38,12 @@ export const AdminProjects = () => {
     isSaving: isCreating || isUpdating,
     onSubmit: editor.save,
     onCancel: editor.cancel,
+    onDirty: editor.markDirty,
   }
 
   if (isLoading) return <Spinner />
+  // Only without data: a failed refetch after a save keeps the open editor.
+  if (isError && !data) return <ErrorState onRetry={() => void refetch()} />
 
   return (
     <>

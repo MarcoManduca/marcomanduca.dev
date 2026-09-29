@@ -8,7 +8,9 @@
     "admin": "Admin",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
-    "skipToContent": "Skip to content"
+    "skipToContent": "Skip to content",
+    "mainLabel": "Main",
+    "mobileLabel": "Mobile"
   },
   "common": {
     "loading": "Loading…",
@@ -487,7 +489,11 @@
     "submit": "Send message",
     "sending": "Sending…",
     "success": "Thank you! Your message has been sent.",
-    "error": "Could not send the message. Please try again later.",
+    "errors": {
+      "generic": "Could not send the message. Please try again later.",
+      "validation": "Please check the fields: the email address looks invalid or a field is too long.",
+      "rateLimited": "Too many messages in a short time. Please try again in a few minutes."
+    },
     "consent": "I have read and accept the <privacy>Privacy Policy</privacy> and consent to the processing of my data to receive a reply."
   },
   "privacy": {
@@ -550,7 +556,9 @@
     "signOut": "Sign out",
     "errorTitle": "Sign-in failed",
     "errorMessage": "Something went wrong while signing you in. Please try again.",
-    "retry": "Try again"
+    "retry": "Try again",
+    "sessionExpired": "Your session has expired. Signing in again reloads the page: copy any unsaved changes first.",
+    "signInAgain": "Sign in again"
   },
   "statuses": {
     "draft": "Draft",
@@ -564,7 +572,8 @@
       "dashboard": "Dashboard",
       "projects": "Projects",
       "learning": "Learning",
-      "media": "Media"
+      "media": "Media",
+      "label": "Admin"
     },
     "dashboard": {
       "title": "Dashboard",
@@ -663,7 +672,11 @@
       "uploading": "Uploading…",
       "success": "File uploaded successfully.",
       "error": "Upload failed. Please try again.",
-      "objectKey": "Object key"
+      "objectKey": "Object key",
+      "publicPath": "Public path",
+      "publicPathHint": "Use it as the image source in projects and articles, e.g. ![alt text](path).",
+      "copy": "Copy",
+      "copied": "Copied"
     },
     "confirm": {
       "deleteTitle": "Delete “{{title}}”?",

@@ -97,6 +97,7 @@ export interface ProjectSummary extends ProjectCardFields {
   repo_url: string | null
   status: ProjectStatus
   created_at: string
+  updated_at: string
 }
 
 /**

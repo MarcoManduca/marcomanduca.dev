@@ -4,8 +4,9 @@ import re
 from urllib.parse import parse_qs, urlparse
 
 import pytest
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
+from src.schemas.common import MediaRef
 from src.schemas.media import MediaPrefix, PresignUploadRequest
 from src.services.errors import InvalidInputError
 from src.services.media_service import MediaService
@@ -234,3 +235,69 @@ def test_create_download_url_rejects_keys_not_matching_generated_format(
     # Act / Assert
     with pytest.raises(InvalidInputError):
         service.create_download_url(key)
+
+
+@pytest.mark.parametrize(
+    ("prefix", "content_type", "expected_root"),
+    [
+        (MediaPrefix.PROJECT_IMAGES, "image/png", "/media/images/projects/"),
+        (MediaPrefix.LEARNING_IMAGES, "image/webp", "/media/images/learning/"),
+    ],
+)
+def test_create_upload_url_returns_the_public_path_of_images(
+    service: MediaService,
+    prefix: MediaPrefix,
+    content_type: str,
+    expected_root: str,
+) -> None:
+    # Arrange
+    payload = PresignUploadRequest(
+        prefix=prefix,
+        filename="diagram.png",
+        content_type=content_type,
+        content_length=2048,
+    )
+
+    # Act
+    response = service.create_upload_url(payload)
+
+    # Assert
+    assert response.public_path == f"/media/{response.key}"
+    assert response.public_path.startswith(expected_root)
+
+
+def test_create_upload_url_keeps_the_cv_private(service: MediaService) -> None:
+    # Arrange
+    payload = PresignUploadRequest(
+        prefix=MediaPrefix.CV,
+        filename="cv.pdf",
+        content_type="application/pdf",
+        content_length=2048,
+    )
+
+    # Act
+    response = service.create_upload_url(payload)
+
+    # Assert
+    assert response.public_path is None
+
+
+class _Media(BaseModel):
+    src: MediaRef
+
+
+def test_public_path_is_a_valid_image_source(service: MediaService) -> None:
+    # Arrange
+    payload = PresignUploadRequest(
+        prefix=MediaPrefix.PROJECT_IMAGES,
+        filename="cover.png",
+        content_type="image/png",
+        content_length=2048,
+    )
+    public_path = service.create_upload_url(payload).public_path
+
+    # Act
+    media = _Media(src=public_path)
+
+    # Assert
+    assert media.src == public_path

@@ -1,5 +1,6 @@
-import { screen, within } from '@testing-library/react'
+import { act, screen, within } from '@testing-library/react'
 
+import { leaveFootprint } from '@/store/gameSlice'
 import { renderWithProviders } from '@/test/utils'
 
 import { FigurineShelf } from './FigurineShelf'
@@ -53,5 +54,17 @@ describe('FigurineShelf', () => {
 
     expect(within(tile(/Level Up/)!).getByText('Unlocked')).toBeInTheDocument()
     expect(screen.queryByText(/1000\/1000/)).not.toBeInTheDocument()
+  })
+
+  it('follows the footprints left while it is on screen', () => {
+    const { store } = renderWithProviders(<FigurineShelf />, {
+      game: { footprints: 420 },
+    })
+
+    act(() => {
+      store.dispatch(leaveFootprint())
+    })
+
+    expect(screen.getByText('Level Up 421/1000')).toBeInTheDocument()
   })
 })

@@ -2,7 +2,11 @@ import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 
-import { articlesFixture, versionsFixture } from '@/test/mocks/fixtures'
+import {
+  articlesFixture,
+  toArticleSummaries,
+  versionsFixture,
+} from '@/test/mocks/fixtures'
 import { API_URL } from '@/test/mocks/handlers'
 import { server } from '@/test/mocks/server'
 import { renderWithProviders } from '@/test/utils'
@@ -25,7 +29,9 @@ const serveRolledBackState = () => {
     http.post(`${API_URL}/learning/:slug/rollback`, () => {
       server.use(
         http.get(`${API_URL}/learning`, () =>
-          HttpResponse.json([rolledBack, articlesFixture[1]]),
+          HttpResponse.json(
+            toArticleSummaries([rolledBack, articlesFixture[1]]),
+          ),
         ),
         http.get(`${API_URL}/learning/:slug/versions`, () =>
           HttpResponse.json([
@@ -75,7 +81,9 @@ describe('AdminLearning', () => {
     await clickButton('Edit Big-O notation')
     await clickButton('Edit DynamoDB modelling')
 
-    expect(screen.getByLabelText('Slug')).toHaveValue('dynamodb-modelling')
+    expect(await screen.findByLabelText('Slug')).toHaveValue(
+      'dynamodb-modelling',
+    )
     expect(screen.getByLabelText('Title (EN)')).toHaveValue(
       'DynamoDB modelling',
     )
@@ -99,6 +107,7 @@ describe('AdminLearning', () => {
     await renderPage()
 
     await clickButton('Edit Big-O notation')
+    await screen.findByLabelText('Slug')
     await clickButton('Save')
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
@@ -148,7 +157,12 @@ describe('AdminLearning', () => {
       http.post(`${API_URL}/learning/:slug/rollback`, () => {
         server.use(
           http.get(`${API_URL}/learning`, () =>
-            HttpResponse.json([restored, articlesFixture[1]]),
+            HttpResponse.json(
+              toArticleSummaries([restored, articlesFixture[1]]),
+            ),
+          ),
+          http.get(`${API_URL}/learning/:slug`, () =>
+            HttpResponse.json(restored),
           ),
         )
         return HttpResponse.json(restored)
@@ -156,6 +170,7 @@ describe('AdminLearning', () => {
     )
     await renderPage()
     await clickButton('Edit Big-O notation')
+    await screen.findByLabelText('Slug')
     await clickButton('Versions of Big-O notation')
     await screen.findByText('Version 1')
 
@@ -175,7 +190,7 @@ describe('AdminLearning', () => {
         deletedSlug = String(params.slug)
         server.use(
           http.get(`${API_URL}/learning`, () =>
-            HttpResponse.json([articlesFixture[1]]),
+            HttpResponse.json(toArticleSummaries([articlesFixture[1]])),
           ),
         )
         return new HttpResponse(null, { status: 204 })
@@ -212,5 +227,20 @@ describe('AdminLearning', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Could not delete the item. You do not have permission',
     )
+  })
+
+  it('offers a retry when the list fails to load', async () => {
+    server.use(
+      http.get(
+        `${API_URL}/learning`,
+        () => HttpResponse.json({ detail: 'boom' }, { status: 500 }),
+        { once: true },
+      ),
+    )
+    renderWithProviders(<AdminLearning />)
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Retry' }))
+
+    expect(await screen.findByText('Big-O notation')).toBeInTheDocument()
   })
 })

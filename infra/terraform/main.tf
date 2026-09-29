@@ -4,8 +4,8 @@
 #   dns ──> acm (us-east-1 cert) ──> cdn
 #   dns ──> email (SES DNS records)
 #   storage / database / auth ──> backend (IAM scoping + env vars)
-#   storage + backend + acm ──> cdn (origins, certificate, aliases, invoke perm)
-#   backend ──> monitoring (budget, SNS alerts, CloudWatch alarms)
+#   storage + backend + acm ──> cdn (origins, bucket policies, certificate, aliases)
+#   backend ──> monitoring (budget, SNS alerts, CloudWatch alarms, ECR scan alerts)
 
 locals {
   ses_sender_email = "noreply@${var.domain_name}"
@@ -36,6 +36,8 @@ module "storage" {
 
   project_name = var.project_name
   domain_name  = var.domain_name
+  # Local admin uploads (localhost CORS) go together with the dev client.
+  allow_dev_origin = var.enable_dev_client
 }
 
 module "database" {
@@ -122,6 +124,11 @@ module "cdn" {
   frontend_bucket_arn             = module.storage.frontend_bucket_arn
   frontend_bucket_regional_domain = module.storage.frontend_bucket_regional_domain
 
+  # /media/images/* origin: uploaded images in the private media bucket (OAC).
+  media_bucket_id              = module.storage.media_bucket_name
+  media_bucket_arn             = module.storage.media_bucket_arn
+  media_bucket_regional_domain = module.storage.media_bucket_regional_domain
+
   # /api/* origin: the backend API Gateway HTTP API, guarded by a secret header.
   backend_origin_host        = module.backend.api_origin_host
   origin_verify_secret_value = module.backend.origin_verify_secret_value
@@ -134,6 +141,15 @@ module "cdn" {
   ]
 }
 
+# The media bucket policy now grants the distribution read access to images/*,
+# so it moved into the cdn module (it needs the distribution ARN). This keeps
+# the existing policy in place instead of a destroy + create, which could race
+# and leave the bucket without a policy.
+moved {
+  from = module.storage.aws_s3_bucket_policy.media
+  to   = module.cdn.aws_s3_bucket_policy.media
+}
+
 module "monitoring" {
   source = "./modules/monitoring"
 
@@ -141,6 +157,7 @@ module "monitoring" {
   alert_email        = local.alert_email
   monthly_budget_usd = var.monthly_budget_usd
 
-  function_name = module.backend.function_name
-  api_id        = module.backend.api_id
+  function_name       = module.backend.function_name
+  api_id              = module.backend.api_id
+  ecr_repository_name = module.backend.ecr_repository_name
 }

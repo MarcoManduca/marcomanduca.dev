@@ -1,20 +1,16 @@
 import { useAppSelector } from '@/store/hooks'
-import { ACHIEVEMENT_IDS, type AchievementId } from '@/types'
+import { ACHIEVEMENT_IDS } from '@/types'
 
-/** Figurines collected so far, for the collection shelf. */
+/**
+ * Figurines collected so far, for the collection shelf. Only the unlocked
+ * list is selected: footprints change on every stride of the mouse, and the
+ * shelf must not re-render for them (see useFigurineProgress).
+ */
 export const useCollection = () => {
-  const { unlocked, visitedProjects, footprints } = useAppSelector(
-    (state) => state.game,
-  )
-  /** Count reached so far by the figurines earned with a goal. */
-  const progress: Partial<Record<AchievementId, number>> = {
-    explorer: visitedProjects.length,
-    levelUp: footprints,
-  }
+  const unlocked = useAppSelector((state) => state.game.unlocked)
 
   return {
     unlocked,
-    progress,
     count: unlocked.length,
     total: ACHIEVEMENT_IDS.length,
   }

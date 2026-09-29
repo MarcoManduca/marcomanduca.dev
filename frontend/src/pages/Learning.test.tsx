@@ -1,8 +1,8 @@
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 
-import { articlesFixture } from '@/test/mocks/fixtures'
+import { articleSummariesFixture } from '@/test/mocks/fixtures'
 import { API_URL } from '@/test/mocks/handlers'
 import { server } from '@/test/mocks/server'
 import { renderWithProviders } from '@/test/utils'
@@ -21,8 +21,16 @@ describe('Learning', () => {
     ).toBeInTheDocument()
   })
 
+  it('shows the excerpt the API sends for each article', async () => {
+    renderWithProviders(<Learning />)
+
+    expect(
+      await screen.findByText(articleSummariesFixture[0].excerpt.en),
+    ).toBeInTheDocument()
+  })
+
   it('flags the drafts an admin is served, and only those', async () => {
-    const [published, draft] = articlesFixture
+    const [published, draft] = articleSummariesFixture
     server.use(
       http.get(`${API_URL}/learning`, () =>
         HttpResponse.json([published, { ...draft, status: 'draft' }]),
@@ -58,5 +66,23 @@ describe('Learning', () => {
     expect(
       screen.getByText('No articles in this category yet.'),
     ).toBeInTheDocument()
+  })
+
+  it('titles each card one level below the page heading', async () => {
+    renderWithProviders(<Learning />)
+
+    expect(
+      await screen.findByRole('heading', { level: 2, name: 'Big-O notation' }),
+    ).toBeInTheDocument()
+  })
+})
+
+describe('Learning title', () => {
+  it('names the page in the document title', async () => {
+    renderWithProviders(<Learning />)
+
+    await waitFor(() =>
+      expect(document.title).toBe('Learning — marcomanduca.dev'),
+    )
   })
 })

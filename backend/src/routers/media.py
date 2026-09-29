@@ -27,15 +27,16 @@ def presign_upload(
     Parameters
     ----------
     payload : PresignUploadRequest
-        Destination prefix, filename, allowlisted MIME type and optional
-        exact size (signed into the URL when provided).
+        Destination prefix, filename, allowlisted MIME type and exact size
+        (required, signed into the URL).
     service : MediaService
         Injected media service.
 
     Returns
     -------
     PresignUploadResponse
-        Presigned URL, final object key and expiry.
+        Presigned URL, final object key, expiry and, for images, the
+        ``/media/...`` path to use in content.
     """
     return service.create_upload_url(payload)
 

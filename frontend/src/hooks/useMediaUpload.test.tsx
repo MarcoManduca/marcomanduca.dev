@@ -26,6 +26,9 @@ describe('useMediaUpload', () => {
 
     await waitFor(() => expect(result.current.status).toBe('success'))
     expect(result.current.key).toBe('images/projects/uploaded.png')
+    expect(result.current.publicPath).toBe(
+      '/media/images/projects/uploaded.png',
+    )
   })
 
   it('sends the file size so the presigned URL pins the upload length', async () => {

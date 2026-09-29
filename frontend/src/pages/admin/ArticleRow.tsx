@@ -1,13 +1,13 @@
 import { useTranslation } from 'react-i18next'
 
 import { RowActions } from '@/components/admin/RowActions'
-import { StatusBadge } from '@/components/ui/StatusBadge'
 import { Button } from '@/components/ui/Button'
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import { useLanguage } from '@/hooks/useLanguage'
-import type { LearningArticle } from '@/types'
+import type { LearningArticleSummary } from '@/types'
 
 interface ArticleRowProps {
-  article: LearningArticle
+  article: LearningArticleSummary
   onEdit: () => void
   onToggleVersions: () => void
   onDelete: () => void

@@ -3,9 +3,10 @@
 .env.*
 !.env.example
 
-# Python caches and local artifacts
-__pycache__/
-*.pyc
+# Python caches and local artifacts. "**/": Docker matches a bare pattern
+# only at the context root, so src/__pycache__ would otherwise be copied.
+**/__pycache__/
+**/*.pyc
 .venv/
 venv/
 .pytest_cache/

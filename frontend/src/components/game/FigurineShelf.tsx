@@ -8,7 +8,7 @@ import { FigurineTile } from './FigurineTile'
 /** The collection: figurines unlocked by exploring the site. */
 export const FigurineShelf = () => {
   const { t } = useTranslation()
-  const { unlocked, progress, count, total } = useCollection()
+  const { unlocked, count, total } = useCollection()
 
   return (
     <section aria-labelledby="collection-title" className="flex flex-col gap-4">
@@ -25,12 +25,7 @@ export const FigurineShelf = () => {
       </div>
       <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
         {ACHIEVEMENT_IDS.map((id) => (
-          <FigurineTile
-            key={id}
-            id={id}
-            unlocked={unlocked.includes(id)}
-            progress={progress[id]}
-          />
+          <FigurineTile key={id} id={id} unlocked={unlocked.includes(id)} />
         ))}
       </ul>
     </section>

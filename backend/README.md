@@ -29,33 +29,42 @@ belonging to the `Administrators` group.
   by `/64`, the block a single subscriber usually holds.
 - **Origin lock**: CloudFront adds an `X-Origin-Verify` secret; the API
   Gateway endpoint rejects requests without it (constant-time comparison).
+  Only `GET /api/v1/health` is exempt: the Lambda Web Adapter readiness
+  probe calls it from inside the execution environment, without the header.
 - **Environments**: `APP_ENV=prod` (default, fail-secure) disables `/docs`,
   `/redoc` and `/openapi.json` and refuses to start while
   `ORIGIN_VERIFY_SECRET`, `COGNITO_USER_POOL_ID`, `COGNITO_CLIENT_ID` or
   `SES_RECIPIENT_EMAIL` is empty (`src/config.py`, `REQUIRED_IN_PROD`).
   `APP_ENV=local` (docker-compose, tests) keeps the docs and allows them
   empty.
-- **Logging**: application loggers (`src.*`) write one JSON object per line
-  to stdout (`src/utils/structured_logging.py`), including the `extra=`
-  context, so CloudWatch Logs Insights can filter on fields such as
-  `error_code`. Only ids and error classes go in `extra`, never PII.
+- **Logging**: application loggers (`src.*`) and uvicorn's own loggers write
+  one JSON object per line to stdout (`src/utils/structured_logging.py`),
+  including the `extra=` context, so CloudWatch Logs Insights can filter on
+  fields such as `error_code` and a traceback stays one event. Only ids and
+  error classes go in `extra`, never PII.
 - **Resilience**: list endpoints skip (and log) a stored item that no
   longer matches the current schema instead of failing with 500
-  (`src/services/parsing.py`); AWS throttling becomes 503 with
-  `Retry-After`.
+  (`src/services/parsing.py`). Every boto3 client has short timeouts and at
+  most 3 attempts (`src/utils/aws_clients.py`), so a slow AWS call fails
+  well inside the 30 s Lambda timeout; AWS throttling, timeouts and
+  connection errors become 503 with `Retry-After`.
+- **Versioned writes**: Learning updates and deletes run as DynamoDB
+  transactions after a strongly consistent read, so an update racing a
+  delete cannot bring the article back, and contended writes retry with
+  jittered backoff before answering 409.
 
 ## Endpoints
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
-| GET | `/api/v1/health` | public | Liveness check |
-| GET | `/api/v1/projects` | public* | List light project cards (`area`, `context`, `technology`, `search` filters) |
+| GET | `/api/v1/health` | public | Liveness check (also the Lambda readiness probe; no origin secret needed) |
+| GET | `/api/v1/projects` | public* | List light project cards (`area`, `context`, `technology` (a technology **name**, e.g. `Tailwind CSS`), `search` filters) |
 | GET | `/api/v1/projects/{slug}` | public* | Full project, as its page shows it |
 | POST | `/api/v1/projects` | admin | Create project |
 | PUT | `/api/v1/projects/{slug}` | admin | Replace project |
 | DELETE | `/api/v1/projects/{slug}` | admin | Delete project |
-| GET | `/api/v1/learning` | public* | List latest article versions (`category`, `tag` filters) |
-| GET | `/api/v1/learning/{slug}` | public* | Latest article version |
+| GET | `/api/v1/learning` | public* | List latest article versions as summaries: a bilingual `excerpt`, no markdown body (`category`, `tag` filters) |
+| GET | `/api/v1/learning/{slug}` | public* | Latest article version, full body |
 | GET | `/api/v1/learning/{slug}/versions` | admin | Version history |
 | POST | `/api/v1/learning/{slug}/rollback` | admin | Restore an old version as a new latest version |
 | POST | `/api/v1/learning` | admin | Create article (version 1) |
@@ -65,7 +74,7 @@ belonging to the `Administrators` group.
 | POST | `/api/v1/technologies` | admin | Register technology |
 | DELETE | `/api/v1/technologies/{id}` | admin | Delete technology |
 | POST | `/api/v1/contact` | public | Contact form (honeypot + rate limit) |
-| POST | `/api/v1/media/presign` | admin | Presigned S3 PUT URL |
+| POST | `/api/v1/media/presign` | admin | Presigned S3 PUT URL (+ public `/media/…` path for images) |
 | GET | `/api/v1/media/url?key=...` | public | Presigned S3 GET URL (CV and generated image keys only) |
 
 \* Authenticated administrators also see `draft`/`archived` content.
@@ -76,10 +85,24 @@ belonging to the `Administrators` group.
 `image/png`, `image/jpeg`, `image/webp`, `image/gif` under the image prefixes,
 and `application/pdf` under `cv/` (SVG is rejected). The object key is
 generated server side (`<prefix><uuid>-<slug>.<ext>`, extension derived from
-the content type; the CV is always `cv/cv.pdf`). The optional
-`content_length` field (bytes, max 10 MB) is signed into the URL so S3
-rejects any other body size; clients that omit it get no size enforcement,
-so the admin UI should send `file.size`.
+the content type; the CV is always `cv/cv.pdf`). The required
+`content_length` field (bytes, max 10 MB) is signed into the URL, so S3
+rejects any other body size; the admin UI sends `file.size`.
+
+For images the response also carries `public_path`
+(`/media/images/<projects|learning>/<uuid>-<slug>.<ext>`): CloudFront serves
+the media bucket's `images/` prefix under `/media/`, so that path is what
+project covers, galleries and markdown should reference. It is `null` for the
+CV, which stays private (download it through `GET /media/url`).
+
+```json
+{
+  "url": "https://<bucket>.s3.eu-west-1.amazonaws.com/images/projects/…?X-Amz-…",
+  "key": "images/projects/0f4c…e1-cover.png",
+  "expires_in": 900,
+  "public_path": "/media/images/projects/0f4c…e1-cover.png"
+}
+```
 
 ## Environment variables
 
@@ -94,7 +117,7 @@ See `.env.example` for the full annotated list.
 | `RATELIMIT_TABLE_NAME` | DynamoDB contact rate-limit table | `portfolio-ratelimit` |
 | `DYNAMODB_ENDPOINT_URL` | Optional DynamoDB Local endpoint | unset |
 | `MEDIA_BUCKET_NAME` | S3 bucket for media | `marcomanduca-dev-media` |
-| `PRESIGN_EXPIRATION_SECONDS` | Presigned URL validity | `900` |
+| `PRESIGN_EXPIRATION_SECONDS` | Presigned URL validity (1 s to 7 days) | `900` |
 | `COGNITO_USER_POOL_ID` | Cognito user pool id (required in prod) | empty |
 | `COGNITO_CLIENT_ID` | Cognito app client id (required in prod) | empty |
 | `SES_SENDER_EMAIL` | Verified SES sender | `noreply@marcomanduca.dev` |
@@ -103,10 +126,14 @@ See `.env.example` for the full annotated list.
 | `APP_ENV` | `local` or `prod` (see Architecture) | `prod` |
 | `ORIGIN_VERIFY_SECRET` | CloudFront `X-Origin-Verify` secret (required in prod; empty disables the check locally) | empty |
 | `ORIGIN_VERIFY_SECRET_PREVIOUS` | Former secret, still accepted while a rotation propagates (see infra/README.md) | empty |
-| `LOG_LEVEL` | Minimum level of the application loggers | `INFO` |
+| `LOG_LEVEL` | Minimum level of the application loggers (`DEBUG` … `CRITICAL`, any case) | `INFO` |
 | `CONTACT_RATE_LIMIT_MAX_REQUESTS` | Requests per window per IP (IPv6: per `/64`) | `5` |
 | `CONTACT_RATE_LIMIT_WINDOW_SECONDS` | Window length | `900` |
 | `CONTACT_RATE_LIMIT_DAILY_MAX` | Emailed contact submissions per UTC day, all IPs | `50` |
+
+Invalid values (an unknown log level, a rate-limit setting of zero or less,
+a presign validity above 7 days) stop the app at startup instead of failing
+on the first request.
 
 ## Local development
 

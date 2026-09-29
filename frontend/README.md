@@ -5,24 +5,26 @@ plus a protected admin panel backed by the FastAPI REST API (`/api/v1`).
 
 ## Stack
 
-| Concern    | Technology                                                         |
-| ---------- | ------------------------------------------------------------------ |
-| Framework  | React 18 + Vite + TypeScript                                       |
-| Styling    | Tailwind CSS (dark/light themes via CSS variables, `cn()`)         |
-| State/Data | Redux Toolkit + RTK Query (single injected API slice)              |
-| Routing    | React Router                                                       |
-| Animations | Tailwind keyframes, `motion-safe:` only (reduced-motion aware)     |
-| i18n       | i18next + react-i18next + browser language detector                |
-| Auth       | react-oidc-context (OIDC against AWS Cognito hosted UI)            |
-| Markdown   | react-markdown + rehype-highlight + remark-math/rehype-katex       |
-| SEO        | react-helmet-async                                                 |
-| Fonts      | @fontsource Barlow, Barlow Condensed, JetBrains Mono (self-hosted) |
-| Tests      | Vitest + React Testing Library + MSW (jsdom)                       |
+| Concern    | Technology                                                          |
+| ---------- | ------------------------------------------------------------------- |
+| Framework  | React 18 + Vite + TypeScript                                        |
+| Styling    | Tailwind CSS (dark/light themes via CSS variables, `cn()`)          |
+| State/Data | Redux Toolkit + RTK Query (single injected API slice)               |
+| Routing    | React Router                                                        |
+| Animations | Tailwind keyframes, `motion-safe:` only (reduced-motion aware)      |
+| i18n       | i18next + react-i18next + browser language detector                 |
+| Auth       | react-oidc-context (OIDC against AWS Cognito hosted UI), admin only |
+| Markdown   | react-markdown + lowlight (highlight.js) + remark-math/rehype-katex |
+| SEO        | react-helmet-async                                                  |
+| Fonts      | @fontsource Barlow, Barlow Condensed, JetBrains Mono (self-hosted)  |
+| Tests      | Vitest + React Testing Library + MSW (jsdom)                        |
 
 No dependencies beyond the agreed list. `oidc-client-ts` is the peer
-dependency required by `react-oidc-context`; `highlight.js` and `katex` are
-only pulled in for their CSS themes (the rehype plugins already depend on
-them at runtime).
+dependency required by `react-oidc-context`; both load only with the admin
+routes. Code blocks are highlighted by a small rehype plugin
+(`utils/rehypeHighlight.ts`) on `lowlight` + `hast-util-to-text`, registering
+only the highlight.js grammars the content uses (rehype-highlight would bundle
+all 37 "common" ones); `katex` is pulled in for its CSS theme.
 
 ## Design
 
@@ -128,27 +130,27 @@ them at runtime).
 
 ```bash
 npm run dev               # Vite dev server (proxies /api to localhost:8000)
-npm run build             # Type-check (tsc -b) + production build
+npm run build             # Type-check (tsc -b) + production build + pre-render
 npm run preview           # Preview the production build
 npm test                  # Run all tests once
 npm run test:watch        # Watch mode
 npm run test:coverage     # Coverage (v8, 80% line threshold)
 npm run lint              # ESLint (flat config + typescript-eslint)
 npm run format            # Prettier
-npm run generate:sitemap  # Write public/sitemap.xml (static routes)
+npm run prerender         # Write dist/_routes/** + dist/sitemap.xml (after vite build)
 ```
 
 ## Environment variables
 
 Copy `.env.example` to `.env` (never committed):
 
-| Variable                    | Description                                   |
-| --------------------------- | --------------------------------------------- |
-| `VITE_API_BASE_URL`         | Backend REST API base URL (default `/api/v1`) |
-| `VITE_COGNITO_AUTHORITY`    | Cognito user-pool OIDC issuer URL             |
-| `VITE_COGNITO_CLIENT_ID`    | Cognito app client id                         |
-| `VITE_COGNITO_REDIRECT_URI` | Redirect URI after login (e.g. `/admin`)      |
-| `VITE_COGNITO_DOMAIN`       | Cognito hosted UI origin (sign-out redirect)  |
+| Variable                    | Description                                       |
+| --------------------------- | ------------------------------------------------- |
+| `VITE_API_BASE_URL`         | Backend REST API base URL (default `/api/v1`)     |
+| `VITE_COGNITO_AUTHORITY`    | Cognito user-pool OIDC issuer URL                 |
+| `VITE_COGNITO_CLIENT_ID`    | Cognito app client id                             |
+| `VITE_COGNITO_REDIRECT_URI` | OIDC callback (default `<origin>/admin/callback`) |
+| `VITE_COGNITO_DOMAIN`       | Cognito hosted UI origin (sign-out redirect)      |
 
 ## Structure
 
@@ -157,9 +159,9 @@ src/
 ├── components/
 │   ├── ui/          # Atomic primitives: Button, Card, Badge, Tag, Input, ...
 │   ├── layout/      # Header, NavBar, Footer, LanguageSwitcher, layouts
-│   ├── markdown/    # MarkdownRenderer (highlight.js + KaTeX)
+│   ├── markdown/    # MarkdownRenderer (lazy: highlight subset + KaTeX)
 │   ├── seo/         # Seo (helmet meta + OpenGraph + canonical)
-│   ├── home/        # Hero, PreviewSection
+│   ├── home/        # CharacterCard, stats radar, side-quests deck
 │   ├── projects/    # ProjectCard, ProjectFilters, AreaChip, AreaArt, detail/, lab/
 │   ├── learning/    # ArticleCard
 │   └── contact/     # ContactForm (with honeypot anti-spam)
@@ -170,7 +172,7 @@ src/
 ├── i18n/            # i18next init + locales/{en,it}.json
 ├── types/           # Interfaces mirroring backend schemas + enums
 ├── utils/           # cn, formatDate, env, getAccessToken, markdown helpers
-├── routes/          # Route table + ProtectedRoute (Cognito admin guard)
+├── routes/          # Route table, lazy AdminRoutes (auth context) + ProtectedRoute
 └── test/            # Vitest setup, MSW server/handlers, render helpers
 ```
 
@@ -192,13 +194,20 @@ src/
    (`cognito:groups` claim); otherwise a forbidden message is shown.
 3. The Cognito access token is attached as a `Bearer` header by the RTK
    Query base layer.
-4. When the API rejects a token (401), the base layer renews it with a silent
-   refresh-token grant and retries. Requests rejected at the same time share
-   one refresh. If no new token is available, the session is ended through
-   the shared `UserManager` (`services/userManager.ts`), so the auth context
-   signs out and `ProtectedRoute` asks to sign in again. The request is then
-   retried anonymously, so public pages keep working.
-5. The `?code=&state=` exchange runs only on the redirect URI's path
+4. An expired stored token is renewed (silent refresh-token grant) before
+   the request goes out. When the API rejects a token (401), the base layer
+   renews it and retries. Requests rejected at the same time share one
+   refresh. If Cognito refuses the refresh (or there is no refresh token),
+   the session is ended through the shared `UserManager`
+   (`services/userManager.ts`) and the request is retried anonymously, so
+   public pages keep working; a network failure keeps the session instead.
+5. A session that ends while an admin page is open never redirects away:
+   `ProtectedRoute` keeps the page (and any unsaved form) under a
+   "sign in again" banner, and leaving a form with unsaved changes asks for
+   confirmation (`useUnsavedChangesGuard`).
+6. The auth context (`AuthProvider`) lives in the lazy `routes/AdminRoutes.tsx`
+   chunk, so the OIDC libraries never ship in the public bundle. The
+   `?code=&state=` exchange runs only on the redirect URI's path
    (`/admin/callback`), never on public pages.
 
 ## Testing
@@ -214,8 +223,9 @@ src/
 Multi-stage image: `node:24-slim` build → `nginxinc/nginx-unprivileged:1.30-alpine`
 serve (non-root, listens on **8080**), both pinned by digest. nginx stays on the
 stable branch (even minors): Dependabot only proposes its patch releases, and
-the yearly move to the next stable is done by hand. nginx does the SPA fallback to
-`index.html` and proxies `/api/` to the backend; the upstream is templated via
+the yearly move to the next stable is done by hand. nginx mirrors the CloudFront
+routing (a route's pre-rendered page from `dist/_routes/`, else the SPA shell;
+a missing file with an extension is a real 404) and proxies `/api/` to the backend; the upstream is templated via
 the `BACKEND_UPSTREAM` env var (default `http://backend:8000`), so it works out
 of the box with compose. Security headers (CSP, Permissions-Policy,
 Referrer-Policy, …) live in `nginx/security-headers.conf`, mirroring the
@@ -233,13 +243,24 @@ docker run -p 8080:8080 -e BACKEND_UPSTREAM=http://backend:8000 marcomanduca-fro
 
 ## SEO
 
-- `index.html` ships static default meta (description, canonical, OpenGraph,
-  Twitter card, `public/og-image.png`) for crawlers that do not run JS; they
-  carry `data-rh` so `Seo` replaces rather than duplicates them.
+- Link previews (LinkedIn, Slack, X, …) and crawlers that do not run JS only
+  see the served HTML, so `npm run build` pre-renders every public route:
+  `scripts/prerender/` copies the built `index.html` to
+  `dist/_routes/<path>.html` with that route's title, description, canonical,
+  OpenGraph and Twitter tags (English, the fallback language), replacing the
+  block between the `<!-- seo:start -->` / `<!-- seo:end -->` markers. On AWS
+  the CloudFront function serves those pages for the paths the deploy lists
+  in its key value store, and the generic shell otherwise (content published
+  after the last deploy still works, with generic meta). The tags carry
+  `data-rh`, so `Seo` replaces rather than duplicates them at runtime; keep
+  `scripts/prerender/html.mjs` in sync with `components/seo/Seo.tsx`.
 - `Seo` component sets title, description, canonical, OpenGraph
   (`en_GB`/`it_IT` locales) and optional `noindex` per page; 404 pages are
   `noindex`. Detail pages use slug-based URLs.
-- `public/robots.txt` allows everything except `/admin`.
-- `npm run generate:sitemap` writes `public/sitemap.xml` for the static
-  routes plus published project/learning pages, with `/learning` itself only
-  once an article is published (run automatically by `npm run build`).
+- `public/robots.txt` allows everything except `/admin` and the internal
+  `/_routes/` and `/_deploys/` prefixes.
+- The same pre-render step writes `dist/sitemap.xml`: the static routes plus
+  the published project and learning pages (with `<lastmod>`), `/learning`
+  itself only once an article is published. It reads the live API and skips
+  the dynamic pages when it can't (`PRERENDER_STRICT=1`, set by the deploy
+  script, makes that an error).

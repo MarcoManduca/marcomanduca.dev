@@ -1,4 +1,4 @@
-"""Shared DynamoDB helpers (resource factory, type conversion)."""
+"""Shared DynamoDB helpers (resource factory, type conversion, writes)."""
 
 from decimal import Decimal
 from typing import Any
@@ -9,6 +9,9 @@ from src.config import get_settings
 from src.utils.aws_clients import get_resource
 
 _CONDITION_FAILED = "ConditionalCheckFailedException"
+# Raised when any condition in a transaction fails, or when a concurrent
+# transaction touched the same items: both mean "re-read and retry".
+_TRANSACTION_CANCELED = "TransactionCanceledException"
 
 
 def get_dynamodb_resource() -> Any:
@@ -70,20 +73,47 @@ def to_dynamodb(value: Any) -> Any:
     return value
 
 
-def scan_all(table: Any) -> list[dict[str, Any]]:
+def scan_all(table: Any, **kwargs: Any) -> list[dict[str, Any]]:
     """Return every item in a table, following pagination.
 
     Parameters
     ----------
     table : Any
         A boto3 DynamoDB ``Table`` resource.
+    **kwargs : Any
+        Arguments forwarded to ``Table.scan`` on every page (e.g. a
+        projection, see :func:`projection`).
 
     Returns
     -------
     list[dict[str, Any]]
         All items, with numeric types converted to native Python.
     """
-    return _paginate(table.scan)
+    return _paginate(table.scan, **kwargs)
+
+
+def projection(*attributes: str) -> dict[str, Any]:
+    """Build the arguments that read only the given attributes.
+
+    Every name goes through a placeholder, so reserved words such as
+    ``status`` need no special care.
+
+    Parameters
+    ----------
+    *attributes : str
+        Top-level attribute names to read.
+
+    Returns
+    -------
+    dict[str, Any]
+        ``ProjectionExpression`` and ``ExpressionAttributeNames`` for a
+        scan, query or get.
+    """
+    names = {f"#p{index}": name for index, name in enumerate(attributes)}
+    return {
+        "ProjectionExpression": ", ".join(names),
+        "ExpressionAttributeNames": names,
+    }
 
 
 def query_all(table: Any, **kwargs: Any) -> list[dict[str, Any]]:
@@ -188,6 +218,35 @@ def delete_if_present(table: Any, key: dict[str, Any], key_name: str) -> bool:
         Key=key,
         ConditionExpression=f"attribute_exists({key_name})",
     )
+
+
+def transact_write(table: Any, actions: list[dict[str, Any]]) -> bool:
+    """Apply write actions atomically: all of them or none.
+
+    Parameters
+    ----------
+    table : Any
+        A boto3 DynamoDB ``Table`` resource. Its client runs the call and,
+        being a resource client, serialises the plain Python keys and items
+        in ``actions`` itself (floats must already be ``Decimal``, see
+        :func:`to_dynamodb`).
+    actions : list[dict[str, Any]]
+        ``TransactItems`` entries (``Put``, ``Delete``, ``ConditionCheck``,
+        ...).
+
+    Returns
+    -------
+    bool
+        ``True`` when committed, ``False`` when the transaction was
+        cancelled (a condition failed or it conflicted with another one).
+    """
+    try:
+        table.meta.client.transact_write_items(TransactItems=actions)
+    except ClientError as exc:
+        if exc.response["Error"]["Code"] == _TRANSACTION_CANCELED:
+            return False
+        raise
+    return True
 
 
 def _conditional(operation: Any, **kwargs: Any) -> bool:

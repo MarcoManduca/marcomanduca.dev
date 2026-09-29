@@ -23,7 +23,8 @@ COPY package.json package-lock.json* ./
 RUN npm ci
 
 COPY . .
-# `npm run build` also generates public/sitemap.xml before bundling.
+# `npm run build` also pre-renders the route pages and sitemap.xml into dist/
+# (without the API in reach it only covers the static routes).
 RUN npm run build
 
 # --- Serve stage (non-root nginx on the stable branch, listens on 8080) ---

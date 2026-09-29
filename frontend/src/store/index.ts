@@ -4,7 +4,8 @@ import { api } from '@/services/api'
 import type { GameState } from '@/types'
 
 import { gameSlice, initialGameState } from './gameSlice'
-import { loadGameState, saveGameState } from './gameStorage'
+import { persistGameState } from './gamePersistence'
+import { loadGameState } from './gameStorage'
 
 /** Factory used by the app entry point and by tests (fresh store per test). */
 export const makeStore = (game: GameState = initialGameState) =>
@@ -20,14 +21,7 @@ export const makeStore = (game: GameState = initialGameState) =>
 
 export const store = makeStore(loadGameState())
 
-// Persist only when game progress changes, not on every API cache update.
-let savedGame = store.getState().game
-store.subscribe(() => {
-  const { game } = store.getState()
-  if (game === savedGame) return
-  savedGame = game
-  saveGameState(game)
-})
+persistGameState(store)
 
 export type AppStore = ReturnType<typeof makeStore>
 export type RootState = ReturnType<AppStore['getState']>

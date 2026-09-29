@@ -1,5 +1,7 @@
 """Business logic for learning articles, including versioning."""
 
+import time
+from collections.abc import Callable
 from functools import lru_cache
 from typing import Any
 
@@ -8,18 +10,23 @@ from src.schemas.common import PublicationStatus
 from src.schemas.learning import (
     ArticleCreate,
     ArticleResponse,
+    ArticleSummary,
     ArticleUpdate,
+    ArticleVersionInfo,
     LearningCategory,
 )
+from src.services.backoff import backoff_delay
 from src.services.errors import ConflictError, InvalidInputError, NotFoundError
 from src.services.parsing import parse_item, parse_items
 from src.services.timestamps import utc_now_iso
+from src.utils.excerpt import excerpt
 from src.utils.slugify import slugify
 
 _FIRST_VERSION = 1
 _MAX_WRITE_RETRIES = 5
 _EMPTY_SLUG_MESSAGE = "Title must contain at least one alphanumeric character."
 _INVALID_SHAPE_EVENT = "article_invalid_shape"
+_INVALID_VERSION_EVENT = "article_version_invalid_shape"
 
 
 class LearningService:
@@ -27,16 +34,24 @@ class LearningService:
 
     Every update writes a new item with an incremented ``version`` sort
     key; rollback restores an old version as a brand-new latest
-    version, so history is never rewritten.
+    version, so history is never rewritten. Each write also stores a
+    plain-text ``excerpt`` of the body, which the list returns instead of
+    the markdown.
 
     Parameters
     ----------
     table : LearningTable
         DynamoDB access layer for learning articles.
+    sleep : Callable[[float], None], optional
+        Waits between retries of a contended write (``time.sleep``);
+        tests pass a no-op.
     """
 
-    def __init__(self, table: LearningTable) -> None:
+    def __init__(
+        self, table: LearningTable, sleep: Callable[[float], None] = time.sleep
+    ) -> None:
         self._table = table
+        self._sleep = sleep
 
     def list_articles(
         self,
@@ -44,8 +59,8 @@ class LearningService:
         category: LearningCategory | None = None,
         tag: str | None = None,
         include_unpublished: bool = False,
-    ) -> list[ArticleResponse]:
-        """Return the latest version of each article, filtered.
+    ) -> list[ArticleSummary]:
+        """Return the summary of the latest version of each article, filtered.
 
         Parameters
         ----------
@@ -59,19 +74,19 @@ class LearningService:
 
         Returns
         -------
-        list[ArticleResponse]
+        list[ArticleSummary]
             Latest article versions, newest first. A latest version stored
             in an outdated shape is left out (and logged) rather than
             failing the whole list.
         """
         latest_by_slug: dict[str, dict[str, Any]] = {}
-        for item in self._table.scan_all():
+        for item in self._table.scan_summaries():
             current = latest_by_slug.get(item["slug"])
             if current is None or item["version"] > current["version"]:
                 latest_by_slug[item["slug"]] = item
         articles = parse_items(
-            ArticleResponse,
-            latest_by_slug.values(),
+            ArticleSummary,
+            (self._with_stored_excerpt(item) for item in latest_by_slug.values()),
             key="slug",
             event=_INVALID_SHAPE_EVENT,
         )
@@ -119,7 +134,7 @@ class LearningService:
             raise NotFoundError(f"Article '{slug}' not found.")
         return article
 
-    def list_versions(self, slug: str) -> list[dict[str, Any]]:
+    def list_versions(self, slug: str) -> list[ArticleVersionInfo]:
         """Return all stored versions of an article, newest first.
 
         Parameters
@@ -129,8 +144,10 @@ class LearningService:
 
         Returns
         -------
-        list[dict[str, Any]]
-            Version items in descending version order.
+        list[ArticleVersionInfo]
+            Version descriptors in descending version order. A version
+            stored in an outdated shape is left out (and logged) rather
+            than failing the whole history.
 
         Raises
         ------
@@ -140,7 +157,9 @@ class LearningService:
         versions = self._table.list_versions(slug)
         if not versions:
             raise NotFoundError(f"Article '{slug}' not found.")
-        return versions
+        return parse_items(
+            ArticleVersionInfo, versions, key="version", event=_INVALID_VERSION_EVENT
+        )
 
     def create_article(self, payload: ArticleCreate) -> dict[str, Any]:
         """Create an article as version 1.
@@ -158,17 +177,23 @@ class LearningService:
         Raises
         ------
         ConflictError
-            When the derived slug already exists.
+            When the derived slug already exists (at any version).
         InvalidInputError
             When the English title yields an empty slug.
         """
         slug = slugify(payload.title.en)
         if not slug:
             raise InvalidInputError(_EMPTY_SLUG_MESSAGE)
+        # Version 1 alone is not enough to tell: it may be gone while later
+        # versions (or a delete in progress) still hold the slug.
+        if self._table.get_latest(slug, consistent=True) is not None:
+            raise ConflictError(f"Article '{slug}' already exists.")
         now = utc_now_iso()
-        item = payload.model_dump(mode="json") | {
+        content = payload.model_dump(mode="json")
+        item = content | {
             "slug": slug,
             "version": _FIRST_VERSION,
+            "excerpt": _excerpts(content["content_markdown"]),
             "created_at": now,
             "updated_at": now,
         }
@@ -198,18 +223,21 @@ class LearningService:
         ConflictError
             When concurrent writers keep claiming the next version.
         """
-        for _ in range(_MAX_WRITE_RETRIES):
-            latest = self._table.get_latest(slug)
+        for attempt in range(_MAX_WRITE_RETRIES):
+            self._pause_before(attempt)
+            latest = self._table.get_latest(slug, consistent=True)
             if latest is None:
                 raise NotFoundError(f"Article '{slug}' not found.")
             now = utc_now_iso()
-            item = payload.model_dump(mode="json") | {
+            content = payload.model_dump(mode="json")
+            item = content | {
                 "slug": slug,
                 "version": latest["version"] + 1,
+                "excerpt": _excerpts(content["content_markdown"]),
                 "created_at": latest.get("created_at") or now,
                 "updated_at": now,
             }
-            if self._table.put_version_if_absent(item):
+            if self._table.append_version(item, previous=latest["version"]):
                 return item
         raise ConflictError(f"Article '{slug}' is being updated concurrently.")
 
@@ -238,7 +266,7 @@ class LearningService:
         ConflictError
             When concurrent writers keep claiming the next version.
         """
-        target = self._table.get_version(slug, version)
+        target = self._table.get_version(slug, version, consistent=True)
         if target is None:
             raise NotFoundError(f"Version {version} of article '{slug}' not found.")
         if (
@@ -249,15 +277,18 @@ class LearningService:
                 f"Version {version} of article '{slug}' no longer matches the "
                 "article schema and cannot be restored."
             )
-        for _ in range(_MAX_WRITE_RETRIES):
-            latest = self._table.get_latest(slug)
+        for attempt in range(_MAX_WRITE_RETRIES):
+            self._pause_before(attempt)
+            latest = self._table.get_latest(slug, consistent=True)
             if latest is None:
                 raise NotFoundError(f"Article '{slug}' not found.")
             item = dict(target) | {
                 "version": latest["version"] + 1,
+                # Recomputed: the restored version may predate excerpts.
+                "excerpt": _excerpts(target["content_markdown"]),
                 "updated_at": utc_now_iso(),
             }
-            if self._table.put_version_if_absent(item):
+            if self._table.append_version(item, previous=latest["version"]):
                 return item
         raise ConflictError(f"Article '{slug}' is being updated concurrently.")
 
@@ -273,10 +304,47 @@ class LearningService:
         ------
         NotFoundError
             When the article does not exist.
+        ConflictError
+            When concurrent updates keep appending versions.
         """
-        deleted = self._table.delete_all_versions(slug)
-        if deleted == 0:
-            raise NotFoundError(f"Article '{slug}' not found.")
+        for attempt in range(_MAX_WRITE_RETRIES):
+            self._pause_before(attempt)
+            deleted = self._table.delete_all_versions(slug)
+            # Nothing left on a retry: a concurrent delete finished the job.
+            if deleted == 0 and attempt == 0:
+                raise NotFoundError(f"Article '{slug}' not found.")
+            if deleted is not None:
+                return
+        raise ConflictError(f"Article '{slug}' is being updated concurrently.")
+
+    def _with_stored_excerpt(self, summary: dict[str, Any]) -> dict[str, Any]:
+        """Fill in the excerpt of a version written before excerpts existed.
+
+        Such a version is read in full once per list; saving the article
+        again stores its excerpt.
+        """
+        if "excerpt" in summary:
+            return summary
+        full = self._table.get_version(summary["slug"], summary["version"]) or {}
+        return summary | {"excerpt": _excerpts(full.get("content_markdown"))}
+
+    def _pause_before(self, attempt: int) -> None:
+        """Back off before every retry (not before the first attempt)."""
+        if attempt:
+            self._sleep(backoff_delay(attempt))
+
+
+def _excerpts(content: Any) -> dict[str, str] | None:
+    """Excerpt each language of a ``content_markdown`` value.
+
+    Returns ``None`` for a value that is not a language mapping, so the
+    summary fails validation and is left out like any outdated item.
+    """
+    if not isinstance(content, dict):
+        return None
+    return {
+        lang: excerpt(text) for lang, text in content.items() if isinstance(text, str)
+    }
 
 
 @lru_cache

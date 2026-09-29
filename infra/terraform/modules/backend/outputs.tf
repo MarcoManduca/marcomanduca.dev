@@ -23,3 +23,8 @@ output "api_id" {
   description = "API Gateway HTTP API id (CloudWatch alarm dimension)."
   value       = aws_apigatewayv2_api.backend.id
 }
+
+output "ecr_repository_name" {
+  description = "ECR repository name (scan-finding alerts)."
+  value       = aws_ecr_repository.backend.name
+}

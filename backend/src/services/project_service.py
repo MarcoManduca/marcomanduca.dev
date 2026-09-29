@@ -56,7 +56,7 @@ class ProjectService:
         context : ProjectContext, optional
             Exact context filter.
         technology : str, optional
-            Technology id that must appear in ``technologies``.
+            Technology name that must appear in ``technologies``.
         search : str, optional
             Case-insensitive substring matched against title, description
             and topics in both languages.
@@ -185,7 +185,7 @@ class ProjectService:
         NotFoundError
             When the project does not exist.
         """
-        existing = self._table.get(slug)
+        existing = self._table.get(slug, consistent=True)
         if existing is None:
             raise NotFoundError(f"Project '{slug}' not found.")
         now = utc_now_iso()

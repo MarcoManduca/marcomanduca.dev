@@ -49,6 +49,21 @@ describe('Header', () => {
     expect(document.documentElement.dataset.theme).toBe('light')
   })
 
+  it('updates the desktop theme switch after a toggle in the mobile menu', async () => {
+    document.documentElement.dataset.theme = 'dark'
+    renderWithProviders(<Header />)
+    await openMenu()
+    const panel = within(document.getElementById('mobile-menu')!)
+
+    await userEvent.click(
+      panel.getByRole('button', { name: 'Switch to light theme' }),
+    )
+
+    expect(
+      screen.getAllByRole('button', { name: 'Switch to dark theme' }),
+    ).toHaveLength(2)
+  })
+
   it('moves focus to the first menu link when opened', async () => {
     renderWithProviders(<Header />)
 

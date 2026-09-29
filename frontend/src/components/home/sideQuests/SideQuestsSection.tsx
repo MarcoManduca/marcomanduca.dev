@@ -9,6 +9,7 @@ import { useLanguage } from '@/hooks/useLanguage'
 import { useSideQuests } from '@/hooks/useSideQuests'
 import { twoDigits } from '@/utils/twoDigits'
 
+import { DeckHint } from './DeckHint'
 import { NextSideQuestCard } from './NextSideQuestCard'
 import { SideQuestCard } from './SideQuestCard'
 import { DECK_HEIGHT, SideQuestDeck, type DeckItem } from './SideQuestDeck'
@@ -82,27 +83,7 @@ export const SideQuestsSection = () => {
           describedBy={flippable ? hintId : undefined}
         />
       )}
-      {!isLoading && flippable && (
-        <p
-          id={hintId}
-          className="flex items-center justify-center gap-2 text-[13px] text-muted"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-            className="h-[18px] w-[18px]"
-          >
-            <path d="M8 7l-5 5 5 5M16 7l5 5-5 5M3 12h18" />
-          </svg>
-          {t('home.sideQuests.hint')}
-          <span className="sr-only">{t('home.sideQuests.hintKeys')}</span>
-        </p>
-      )}
+      {!isLoading && flippable && <DeckHint id={hintId} />}
     </section>
   )
 }

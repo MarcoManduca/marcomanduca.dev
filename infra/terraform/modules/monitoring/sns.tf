@@ -1,4 +1,5 @@
-# Alarm notifications: one SNS topic, one email subscription.
+# Alarm notifications (CloudWatch alarms, ECR scan findings): one SNS topic,
+# one email subscription.
 #
 # The subscription stays "PendingConfirmation" until the recipient clicks the
 # link in the confirmation email AWS sends after apply — no alarm email is

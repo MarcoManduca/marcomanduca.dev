@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, status
 from src.schemas.learning import (
     ArticleCreate,
     ArticleResponse,
+    ArticleSummary,
     ArticleUpdate,
     ArticleVersionInfo,
     LearningCategory,
@@ -18,14 +19,14 @@ from src.utils.auth import optional_admin, require_admin
 router = APIRouter(prefix="/learning", tags=["learning"])
 
 
-@router.get("", response_model=list[ArticleResponse])
+@router.get("", response_model=list[ArticleSummary])
 def list_articles(
     category: LearningCategory | None = None,
     tag: str | None = None,
     admin: dict[str, Any] | None = Depends(optional_admin),
     service: LearningService = Depends(get_learning_service),
-) -> list[ArticleResponse]:
-    """List the latest version of each article.
+) -> list[ArticleSummary]:
+    """List the latest version of each article, with an excerpt, no body.
 
     Parameters
     ----------
@@ -40,8 +41,9 @@ def list_articles(
 
     Returns
     -------
-    list[ArticleResponse]
-        Matching latest article versions.
+    list[ArticleSummary]
+        Matching latest article versions; ``GET /learning/{slug}`` has the
+        full body.
     """
     return service.list_articles(
         category=category,
@@ -83,7 +85,7 @@ def get_article(
 def list_article_versions(
     slug: str,
     service: LearningService = Depends(get_learning_service),
-) -> list[dict[str, Any]]:
+) -> list[ArticleVersionInfo]:
     """List all stored versions of an article (admin only).
 
     Parameters
@@ -95,7 +97,7 @@ def list_article_versions(
 
     Returns
     -------
-    list[dict[str, Any]]
+    list[ArticleVersionInfo]
         Version descriptors, newest first.
     """
     return service.list_versions(slug)

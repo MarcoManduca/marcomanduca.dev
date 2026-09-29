@@ -204,3 +204,46 @@ async def test_list_articles_still_answers_with_an_article_in_an_older_shape(
     # Assert
     assert response.status_code == 200
     assert [article["slug"] for article in response.json()] == ["demo-article"]
+
+
+async def test_list_articles_returns_summaries_without_bodies(
+    admin_client: AsyncClient,
+    public_client: AsyncClient,
+    article_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange
+    await admin_client.post("/api/v1/learning", json=article_payload_factory())
+
+    # Act
+    response = await public_client.get("/api/v1/learning")
+
+    # Assert
+    (article,) = response.json()
+    assert set(article) == {
+        "slug",
+        "version",
+        "title",
+        "excerpt",
+        "category",
+        "tags",
+        "status",
+        "created_at",
+        "updated_at",
+    }
+    assert article["excerpt"] == {"it": "Nota", "en": "Note"}
+
+
+async def test_get_article_still_returns_the_full_body(
+    admin_client: AsyncClient,
+    public_client: AsyncClient,
+    article_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange
+    await admin_client.post("/api/v1/learning", json=article_payload_factory())
+
+    # Act
+    response = await public_client.get("/api/v1/learning/demo-article")
+
+    # Assert
+    assert response.json()["content_markdown"] == {"it": "# Nota", "en": "# Note"}
+    assert "excerpt" not in response.json()

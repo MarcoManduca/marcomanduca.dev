@@ -24,7 +24,9 @@ const authState = (overrides: Partial<AuthState>): AuthState => ({
   ...overrides,
 })
 
-const protectedRoutes = (
+// A function, not a constant element: rerendering the very same element
+// object would let React skip the re-render these tests rely on.
+const protectedRoutes = () => (
   <Routes>
     <Route element={<ProtectedRoute />}>
       <Route path="/admin" element={<div>Admin content</div>} />
@@ -34,7 +36,7 @@ const protectedRoutes = (
 )
 
 const renderProtected = (route = '/admin') =>
-  renderWithProviders(protectedRoutes, { route })
+  renderWithProviders(protectedRoutes(), { route })
 
 describe('ProtectedRoute', () => {
   it('redirects unauthenticated visitors to the Cognito login', () => {
@@ -93,7 +95,7 @@ describe('ProtectedRoute', () => {
     const { rerender } = renderProtected()
 
     mockUseAuth.mockReturnValue(authState({ signIn: secondSignIn }))
-    rerender(protectedRoutes)
+    rerender(protectedRoutes())
 
     expect(firstSignIn).toHaveBeenCalledOnce()
     expect(secondSignIn).not.toHaveBeenCalled()
@@ -112,6 +114,27 @@ describe('ProtectedRoute', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Try again' }))
 
     expect(signIn).toHaveBeenCalledOnce()
+    expect(signIn).toHaveBeenCalledWith('/admin/projects')
+  })
+
+  it('keeps the page under a banner when the session ends, without redirecting', async () => {
+    const signIn = vi.fn()
+    mockUseAuth.mockReturnValue(
+      authState({ isAuthenticated: true, isAdmin: true, signIn }),
+    )
+    const { rerender } = renderProtected('/admin/projects')
+
+    mockUseAuth.mockReturnValue(authState({ signIn }))
+    rerender(protectedRoutes())
+
+    expect(screen.getByText('Projects content')).toBeInTheDocument()
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Your session has expired.',
+    )
+    expect(signIn).not.toHaveBeenCalled()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Sign in again' }))
+
     expect(signIn).toHaveBeenCalledWith('/admin/projects')
   })
 })

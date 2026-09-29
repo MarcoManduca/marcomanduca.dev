@@ -32,6 +32,17 @@ export interface LearningArticle {
   updated_at: string
 }
 
+/**
+ * An article as the list endpoint returns it (`ArticleSummary`): the latest
+ * version with a plain-text excerpt of each language instead of the body.
+ */
+export interface LearningArticleSummary extends Omit<
+  LearningArticle,
+  'content_markdown'
+> {
+  excerpt: LocalizedText
+}
+
 /** Payload to create or update an article (`ArticleCreate`/`ArticleUpdate`). */
 export type LearningArticleInput = Omit<
   LearningArticle,

@@ -7,13 +7,14 @@ import { BilingualFields } from '@/components/admin/BilingualFields'
 import { FormActions } from '@/components/admin/FormActions'
 import { FormSection } from '@/components/admin/FormSection'
 import { JsonField } from '@/components/admin/JsonField'
+import { SlugField } from '@/components/admin/SlugField'
 import { StatusSelect } from '@/components/admin/StatusSelect'
 import { TechnologyPicker } from '@/components/projects/TechnologyPicker'
-import { Input } from '@/components/ui/Input'
 import type { Project, ProjectInput } from '@/types'
 
 import { ProjectClassificationFields } from './ProjectClassificationFields'
 import { ProjectCoverFields } from './ProjectCoverFields'
+import { ProjectLabFields } from './ProjectLabFields'
 import { InvalidJsonError, toProjectInput } from './projectFormInput'
 import { ProjectPageFields } from './ProjectPageFields'
 
@@ -22,6 +23,8 @@ export interface ProjectFormProps {
   isSaving: boolean
   onSubmit: (input: ProjectInput) => void
   onCancel: () => void
+  /** Called on every edit, to guard unsaved changes. */
+  onDirty?: () => void
 }
 
 /** Create / edit form of a project: its card, its page and its lab. */
@@ -30,6 +33,7 @@ export const ProjectForm = ({
   isSaving,
   onSubmit,
   onCancel,
+  onDirty,
 }: ProjectFormProps) => {
   const { t } = useTranslation()
   const [technologies, setTechnologies] = useState(initial?.technologies ?? [])
@@ -53,16 +57,11 @@ export const ProjectForm = ({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-6">
+    <form onSubmit={handleSubmit} onInput={onDirty} className="grid gap-6">
       <FormSection legend={t('admin.form.cardSection')}>
         {initial && (
           <div className="sm:col-span-2">
-            <Input
-              label={t('admin.form.slug')}
-              name="slug"
-              defaultValue={initial.slug}
-              disabled
-            />
+            <SlugField slug={initial.slug} />
           </div>
         )}
         <ProjectClassificationFields initial={initial} />
@@ -78,17 +77,16 @@ export const ProjectForm = ({
           value={initial?.metrics ?? []}
           hint={listHint}
         />
-        <TechnologyPicker value={technologies} onChange={setTechnologies} />
-      </FormSection>
-      <ProjectPageFields initial={initial} />
-      <FormSection legend={t('admin.form.labSection')}>
-        <JsonField
-          name="lab"
-          value={initial?.lab ?? null}
-          hint={t('admin.form.labHint')}
-          rows={6}
+        <TechnologyPicker
+          value={technologies}
+          onChange={(next) => {
+            setTechnologies(next)
+            onDirty?.()
+          }}
         />
       </FormSection>
+      <ProjectPageFields initial={initial} />
+      <ProjectLabFields lab={initial?.lab ?? null} />
       <StatusSelect defaultValue={initial?.status} />
       {jsonError && (
         <p role="alert" className="text-sm text-danger">

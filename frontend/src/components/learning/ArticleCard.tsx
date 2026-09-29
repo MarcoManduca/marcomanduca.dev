@@ -5,12 +5,11 @@ import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { useLanguage } from '@/hooks/useLanguage'
-import type { LearningArticle } from '@/types'
-import { excerpt } from '@/utils/excerpt'
+import type { LearningArticleSummary } from '@/types'
 import { formatDate } from '@/utils/formatDate'
 
 interface ArticleCardProps {
-  article: LearningArticle
+  article: LearningArticleSummary
 }
 
 export const ArticleCard = ({ article }: ArticleCardProps) => {
@@ -20,14 +19,14 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
   return (
     <Card className="flex h-full flex-col gap-3">
       <div className="flex items-start justify-between gap-2">
-        <h3 className="text-lg font-semibold text-heading">
+        <h2 className="text-lg font-semibold text-heading">
           <Link
             to={`/learning/${article.slug}`}
             className="hover:text-accent-hover"
           >
             {localize(article.title)}
           </Link>
-        </h3>
+        </h2>
         <Badge tone="green">
           {t(`learningCategories.${article.category}`)}
         </Badge>
@@ -36,9 +35,7 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
       {article.status !== 'published' && (
         <StatusBadge status={article.status} className="self-start" />
       )}
-      <p className="flex-1 text-sm text-body">
-        {excerpt(localize(article.content_markdown))}
-      </p>
+      <p className="flex-1 text-sm text-body">{localize(article.excerpt)}</p>
       <p className="text-xs text-muted">
         {t('learning.updatedOn')} {formatDate(article.updated_at, language)}
       </p>

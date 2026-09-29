@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 
@@ -38,7 +38,7 @@ describe('Projects', () => {
   it('shows every area of a project on its card', async () => {
     renderWithProviders(<Projects />)
     const title = await screen.findByRole('link', { name: 'Data pipeline' })
-    const card = title.closest('h3')!.parentElement!
+    const card = title.closest('h2')!.parentElement!
 
     const areas = within(card).getByRole('list')
     expect(within(areas).getByText('Data & Analytics')).toBeInTheDocument()
@@ -118,5 +118,23 @@ describe('Projects', () => {
     expect(
       screen.getByText('No projects match the current filters.'),
     ).toBeInTheDocument()
+  })
+
+  it('titles each card one level below the page heading', async () => {
+    renderWithProviders(<Projects />)
+
+    expect(
+      await screen.findByRole('heading', { level: 2, name: 'Data pipeline' }),
+    ).toBeInTheDocument()
+  })
+})
+
+describe('Projects title', () => {
+  it('names the page in the document title', async () => {
+    renderWithProviders(<Projects />)
+
+    await waitFor(() =>
+      expect(document.title).toBe('Projects — marcomanduca.dev'),
+    )
   })
 })

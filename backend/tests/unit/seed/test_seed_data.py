@@ -23,3 +23,21 @@ def test_demo_copies_mirror_every_real_project() -> None:
         "demo-deep-layers",
         "demo-marcomanduca-dev",
     ]
+
+
+def test_every_project_technology_is_a_registered_technology() -> None:
+    # Arrange
+    registered = {
+        technology["name"]
+        for technology in seeder._load_json(seeder.DATA_DIR / "technologies.json")
+    }
+
+    # Act
+    used = {
+        name
+        for project in seeder._project_payloads(demo=False)
+        for name in project.technologies
+    }
+
+    # Assert: the filter and the stack chips match by name.
+    assert used - registered == set()

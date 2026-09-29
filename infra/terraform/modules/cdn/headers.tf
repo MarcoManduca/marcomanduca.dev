@@ -7,16 +7,17 @@
 
 locals {
   # External origins the SPA really talks to (checked in frontend/src):
-  #   - presigned S3 URLs: image downloads (img-src) and admin uploads (PUT)
+  #   - presigned S3 URLs: admin uploads (PUT); uploaded images are served
+  #     same-origin under /media/images/*
   #   - Cognito: OIDC discovery/JWKS (cognito-idp) and the token endpoint
   #     on the hosted UI domain (fetch -> connect-src)
   media_origins = [for d in var.media_bucket_domains : "https://${d}"]
 
   site_csp = join("; ", [
     "default-src 'self'",
-    # Project/article images are admin-authored URLs, often hosted elsewhere
-    # (the media bucket is private), so any https image is allowed. Images
-    # can't execute code; script-src stays locked to 'self'.
+    # Project/article images are admin-authored URLs: uploads come from
+    # /media/images/* ('self'), but external https images are allowed too.
+    # Images can't execute code; script-src stays locked to 'self'.
     "img-src 'self' data: blob: https:",
     "font-src 'self' data:",
     # Inline styles are needed by KaTeX; scripts are hashed Vite bundles.

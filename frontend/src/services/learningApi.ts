@@ -2,6 +2,7 @@ import type {
   ArticleVersion,
   LearningArticle,
   LearningArticleInput,
+  LearningArticleSummary,
   LearningQuery,
 } from '@/types'
 
@@ -9,7 +10,7 @@ import { api } from './api'
 
 export const learningApi = api.injectEndpoints({
   endpoints: (build) => ({
-    getArticles: build.query<LearningArticle[], LearningQuery | void>({
+    getArticles: build.query<LearningArticleSummary[], LearningQuery | void>({
       query: (params) => ({ url: '/learning', params: params ?? undefined }),
       providesTags: ['Article'],
     }),

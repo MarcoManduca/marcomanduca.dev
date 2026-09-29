@@ -4,7 +4,9 @@ Without a configured handler, Python's last-resort handler printed only the
 message text of warnings and errors, so the context passed through
 ``extra=`` (error codes, slugs) never reached CloudWatch, and info records
 were dropped. Each record is now one JSON line on stdout, which CloudWatch
-Logs Insights parses into fields.
+Logs Insights parses into fields. Uvicorn's own loggers get the same
+handler, so a traceback from ``uvicorn.error`` stays one event instead of
+one CloudWatch event per line.
 
 Callers pass only non-sensitive context in ``extra`` (ids, error classes,
 counts), never PII or payloads.
@@ -17,9 +19,13 @@ from datetime import UTC, datetime
 from typing import Any
 
 # Attributes every LogRecord carries; anything else came from ``extra=``.
+# ``color_message`` is uvicorn's ANSI-coloured copy of the message: noise.
 _RECORD_ATTRIBUTES = frozenset(
-    set(vars(logging.LogRecord("", 0, "", 0, "", None, None))) | {"message", "asctime"}
+    set(vars(logging.LogRecord("", 0, "", 0, "", None, None)))
+    | {"message", "asctime", "color_message"}
 )
+# Configured by uvicorn (plain text) before it imports the app.
+_SERVER_LOGGERS = ("uvicorn", "uvicorn.error", "uvicorn.access")
 
 
 class JsonFormatter(logging.Formatter):
@@ -59,10 +65,12 @@ class JsonFormatter(logging.Formatter):
 
 
 def configure_logging(level: str = "INFO") -> None:
-    """Send the ``src`` loggers to stdout as JSON lines.
+    """Send the ``src`` and uvicorn loggers to stdout as JSON lines.
 
     Idempotent: calling it again (e.g. one app per test) replaces the
-    handler instead of stacking duplicates.
+    handlers instead of stacking duplicates. Uvicorn's loggers keep the
+    levels uvicorn gave them and stop propagating, so no record is
+    written twice.
 
     Parameters
     ----------
@@ -74,3 +82,7 @@ def configure_logging(level: str = "INFO") -> None:
     app_logger = logging.getLogger("src")
     app_logger.handlers = [handler]
     app_logger.setLevel(level)
+    for name in _SERVER_LOGGERS:
+        server_logger = logging.getLogger(name)
+        server_logger.handlers = [handler]
+        server_logger.propagate = False

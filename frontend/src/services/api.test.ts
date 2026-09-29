@@ -1,5 +1,5 @@
 import { HttpResponse, http, type JsonBodyType } from 'msw'
-import type { User } from 'oidc-client-ts'
+import { ErrorResponse, type User } from 'oidc-client-ts'
 
 import { makeStore } from '@/store'
 import { projectsFixture, technologiesFixture } from '@/test/mocks/fixtures'
@@ -14,10 +14,18 @@ import { userManager } from './userManager'
 const STORAGE_KEY = `oidc.user:${COGNITO_AUTHORITY}:${COGNITO_CLIENT_ID}`
 const nowSeconds = () => Math.floor(Date.now() / 1000)
 
-const storeUser = (token: string, expiresAt: number) =>
+const storeUser = (
+  token: string,
+  expiresAt: number,
+  refreshToken: string | null = 'refresh',
+) =>
   sessionStorage.setItem(
     STORAGE_KEY,
-    JSON.stringify({ access_token: token, expires_at: expiresAt }),
+    JSON.stringify({
+      access_token: token,
+      refresh_token: refreshToken,
+      expires_at: expiresAt,
+    }),
   )
 
 /**
@@ -45,10 +53,9 @@ const refreshTo = (token: string) =>
     return { access_token: token } as User
   })
 
-const failRefresh = () =>
-  vi
-    .spyOn(userManager, 'signinSilent')
-    .mockRejectedValue(new Error('refresh token expired'))
+const failRefresh = (
+  error: Error = new ErrorResponse({ error: 'invalid_grant' }),
+) => vi.spyOn(userManager, 'signinSilent').mockRejectedValue(error)
 
 const getProjects = () =>
   makeStore().dispatch(projectsApi.endpoints.getProjects.initiate())
@@ -70,12 +77,46 @@ describe('api base query', () => {
 
   it('never sends an expired token', async () => {
     const seen = recordAuth('/projects', projectsFixture, ['Bearer stale'])
-    storeUser('stale', nowSeconds() - 60)
+    storeUser('stale', nowSeconds() - 60, null)
 
     const result = await getProjects()
 
     expect(result.status).toBe('fulfilled')
     expect(seen).toEqual([null])
+  })
+
+  it('renews an expired stored token before sending', async () => {
+    const seen = recordAuth('/projects', projectsFixture, ['Bearer stale'])
+    storeUser('stale', nowSeconds() - 60)
+    refreshTo('fresh')
+
+    await getProjects()
+
+    expect(seen).toEqual(['Bearer fresh'])
+  })
+
+  it('ends a session whose expired token cannot be renewed', async () => {
+    const seen = recordAuth('/projects', projectsFixture, [])
+    storeUser('stale', nowSeconds() - 60)
+    failRefresh()
+
+    await getProjects()
+
+    expect(seen).toEqual([null])
+    expect(sessionStorage.getItem(STORAGE_KEY)).toBeNull()
+  })
+
+  it('keeps the session when the refresh fails for a network error', async () => {
+    recordAuth('/projects', projectsFixture, ['Bearer revoked'])
+    storeUser('revoked', nowSeconds() + 3600)
+    failRefresh(new TypeError('Failed to fetch'))
+    const removeUser = vi.spyOn(userManager, 'removeUser')
+
+    const result = await getProjects()
+
+    expect(result.error).toMatchObject({ status: 401 })
+    expect(removeUser).not.toHaveBeenCalled()
+    expect(sessionStorage.getItem(STORAGE_KEY)).not.toBeNull()
   })
 
   it('refreshes a rejected token and retries with the new one', async () => {

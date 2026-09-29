@@ -1,8 +1,8 @@
 # IAM role for the backend Lambda.
 #
 # One execution role, used by both the Lambda service (to ship logs) and the
-# application code. Strictly scoped to the DynamoDB tables, the media bucket
-# and SES sending. Container images are pulled by the Lambda service itself,
+# application code. Scoped per DynamoDB table to the calls the code makes,
+# to the media bucket objects and to SES sending as the site address. Container images are pulled by the Lambda service itself,
 # so no ECR permissions are needed here.
 
 data "aws_iam_policy_document" "lambda_assume" {
@@ -44,28 +44,57 @@ resource "aws_iam_role_policy" "logs" {
 # --- Application permissions ----------------------------------------------
 
 data "aws_iam_policy_document" "backend" {
+  # One statement per table, with only the calls its code makes.
   statement {
-    sid = "DynamoDBCrud"
+    sid = "ProjectsTable"
     actions = [
-      "dynamodb:GetItem",
+      "dynamodb:GetItem", # strongly consistent read before an update
       "dynamodb:PutItem",
-      "dynamodb:UpdateItem",
       "dynamodb:DeleteItem",
-      "dynamodb:Query",
-      "dynamodb:Scan",           # scan_all() in the list services
-      "dynamodb:BatchWriteItem", # learning delete_all_versions() batch_writer
+      "dynamodb:Scan", # list
     ]
-    # Includes the rate-limit table (passed in dynamodb_table_arns), which
-    # needs UpdateItem for its atomic counters.
-    resources = var.dynamodb_table_arns
+    resources = [var.dynamodb_table_arns.projects]
   }
 
+  statement {
+    sid = "TechnologiesTable"
+    actions = [
+      "dynamodb:PutItem",
+      "dynamodb:DeleteItem",
+      "dynamodb:Scan", # list
+    ]
+    resources = [var.dynamodb_table_arns.technologies]
+  }
+
+  statement {
+    sid = "LearningTable"
+    actions = [
+      "dynamodb:GetItem",
+      "dynamodb:Query", # versions of one article
+      "dynamodb:PutItem",
+      "dynamodb:DeleteItem",
+      "dynamodb:Scan",               # list (latest version of each article)
+      "dynamodb:BatchWriteItem",     # delete_all_versions() batch_writer
+      "dynamodb:ConditionCheckItem", # version guards in TransactWriteItems
+    ]
+    resources = [var.dynamodb_table_arns.learning]
+  }
+
+  statement {
+    sid       = "RateLimitTable"
+    actions   = ["dynamodb:UpdateItem"] # atomic ADD counters
+    resources = [var.dynamodb_table_arns.ratelimit]
+  }
+
+  # Presigned URLs are signed with the role's credentials, so the role needs
+  # the actions they grant: GET (CV download) and PUT (admin uploads). Nothing
+  # lists or deletes objects; without ListBucket a presigned GET for a missing
+  # key returns 403 instead of 404.
   statement {
     sid = "MediaBucketObjects"
     actions = [
       "s3:GetObject",
       "s3:PutObject",
-      "s3:DeleteObject",
     ]
     # Object-level wildcard is required to address keys inside the bucket;
     # the bucket itself is fixed, so the scope stays a single bucket.
@@ -73,17 +102,8 @@ data "aws_iam_policy_document" "backend" {
   }
 
   statement {
-    sid       = "MediaBucketList"
-    actions   = ["s3:ListBucket"]
-    resources = [var.media_bucket_arn]
-  }
-
-  statement {
-    sid = "SesSend"
-    actions = [
-      "ses:SendEmail",
-      "ses:SendRawEmail",
-    ]
+    sid     = "SesSend"
+    actions = ["ses:SendEmail"]
     # In the SES sandbox, SendEmail authorizes against BOTH the sender (the
     # verified domain) AND the verified recipient identity, so scoping to a
     # single identity ARN is insufficient. Limited to identity/* in this

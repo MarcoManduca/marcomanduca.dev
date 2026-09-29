@@ -6,9 +6,9 @@ import { useTranslation } from 'react-i18next'
 import { BilingualFields } from '@/components/admin/BilingualFields'
 import { FormActions } from '@/components/admin/FormActions'
 import { readBilingual } from '@/components/admin/readBilingual'
+import { SlugField } from '@/components/admin/SlugField'
 import { StatusSelect } from '@/components/admin/StatusSelect'
 import { TagPicker } from '@/components/learning/TagPicker'
-import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import type {
   ArticleStatus,
@@ -18,11 +18,13 @@ import type {
 } from '@/types'
 import { LEARNING_CATEGORIES } from '@/types'
 
-interface LearningFormProps {
+export interface LearningFormProps {
   initial: LearningArticle | null
   isSaving: boolean
   onSubmit: (input: LearningArticleInput) => void
   onCancel: () => void
+  /** Called on every edit, to guard unsaved changes. */
+  onDirty?: () => void
 }
 
 const toInput = (data: FormData, tags: string[]): LearningArticleInput => ({
@@ -38,6 +40,7 @@ export const LearningForm = ({
   isSaving,
   onSubmit,
   onCancel,
+  onDirty,
 }: LearningFormProps) => {
   const { t } = useTranslation()
   const [tags, setTags] = useState<string[]>(initial?.tags ?? [])
@@ -48,15 +51,12 @@ export const LearningForm = ({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
-      {initial && (
-        <Input
-          label={t('admin.form.slug')}
-          name="slug"
-          defaultValue={initial.slug}
-          disabled
-        />
-      )}
+    <form
+      onSubmit={handleSubmit}
+      onInput={onDirty}
+      className="grid gap-4 sm:grid-cols-2"
+    >
+      {initial && <SlugField slug={initial.slug} />}
       <Select
         label={t('admin.form.category')}
         name="category"
@@ -72,7 +72,13 @@ export const LearningForm = ({
         rows={10}
         defaultValue={initial?.content_markdown}
       />
-      <TagPicker value={tags} onChange={setTags} />
+      <TagPicker
+        value={tags}
+        onChange={(next) => {
+          setTags(next)
+          onDirty?.()
+        }}
+      />
       <StatusSelect defaultValue={initial?.status} />
       <FormActions isSaving={isSaving} onCancel={onCancel} />
     </form>

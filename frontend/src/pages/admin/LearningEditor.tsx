@@ -1,27 +1,28 @@
 import { useTranslation } from 'react-i18next'
 
 import { EditorPanel } from '@/components/admin/EditorPanel'
-import type { LearningArticle, LearningArticleInput } from '@/types'
+import type { LearningArticleInput, LearningArticleSummary } from '@/types'
 
 import { LearningForm } from './LearningForm'
+import { LearningFormLoader } from './LearningFormLoader'
 import type { Editing } from './useAdminEditor'
 
 interface LearningEditorProps {
-  editing: Editing<LearningArticle>
+  editing: Editing<LearningArticleSummary>
   /** The live article list, so the form sees changes made while it is open. */
-  articles: LearningArticle[] | undefined
+  articles: LearningArticleSummary[] | undefined
   error: unknown
   isSaving: boolean
   onSubmit: (input: LearningArticleInput) => void
   onCancel: () => void
+  onDirty: () => void
 }
 
 /**
- * Editor panel for a new or an existing article. An existing article is read
- * from the live list rather than the snapshot taken when editing started, and
- * the form is keyed by its version: a rollback from the versions panel
- * reloads the form with the restored content, so a later save cannot
- * silently overwrite the rollback with the old text.
+ * Editor panel for a new or an existing article. An existing article is
+ * looked up in the live list rather than the snapshot taken when editing
+ * started, and its full content is loaded by LearningFormLoader (the list
+ * only carries excerpts), which also reloads the form after a rollback.
  */
 export const LearningEditor = ({
   editing,
@@ -30,9 +31,11 @@ export const LearningEditor = ({
   isSaving,
   onSubmit,
   onCancel,
+  onDirty,
 }: LearningEditorProps) => {
   const { t } = useTranslation()
   if (!editing) return null
+  const formProps = { isSaving, onSubmit, onCancel, onDirty }
 
   const article =
     editing.mode === 'edit'
@@ -47,13 +50,15 @@ export const LearningEditor = ({
       )}
       error={error}
     >
-      <LearningForm
-        key={article ? `${article.slug}:${article.version}` : 'new'}
-        initial={article}
-        isSaving={isSaving}
-        onSubmit={onSubmit}
-        onCancel={onCancel}
-      />
+      {article ? (
+        <LearningFormLoader
+          key={article.slug}
+          slug={article.slug}
+          {...formProps}
+        />
+      ) : (
+        <LearningForm key="new" initial={null} {...formProps} />
+      )}
     </EditorPanel>
   )
 }

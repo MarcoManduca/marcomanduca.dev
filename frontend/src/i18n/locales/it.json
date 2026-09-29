@@ -8,7 +8,9 @@
     "admin": "Admin",
     "openMenu": "Apri menu",
     "closeMenu": "Chiudi menu",
-    "skipToContent": "Vai al contenuto"
+    "skipToContent": "Vai al contenuto",
+    "mainLabel": "Principale",
+    "mobileLabel": "Menu mobile"
   },
   "common": {
     "loading": "Caricamento…",
@@ -487,7 +489,11 @@
     "submit": "Invia messaggio",
     "sending": "Invio in corso…",
     "success": "Grazie! Il tuo messaggio è stato inviato.",
-    "error": "Impossibile inviare il messaggio. Riprova più tardi.",
+    "errors": {
+      "generic": "Impossibile inviare il messaggio. Riprova più tardi.",
+      "validation": "Controlla i campi: l'indirizzo email non sembra valido o un campo è troppo lungo.",
+      "rateLimited": "Troppi messaggi in poco tempo. Riprova tra qualche minuto."
+    },
     "consent": "Ho letto e accetto la <privacy>Privacy Policy</privacy> e acconsento al trattamento dei miei dati per ricevere una risposta."
   },
   "privacy": {
@@ -550,7 +556,9 @@
     "signOut": "Esci",
     "errorTitle": "Accesso non riuscito",
     "errorMessage": "Si è verificato un problema durante l'accesso. Riprova.",
-    "retry": "Riprova"
+    "retry": "Riprova",
+    "sessionExpired": "La sessione è scaduta. Accedere di nuovo ricarica la pagina: copia prima le modifiche non salvate.",
+    "signInAgain": "Accedi di nuovo"
   },
   "statuses": {
     "draft": "Bozza",
@@ -564,7 +572,8 @@
       "dashboard": "Dashboard",
       "projects": "Progetti",
       "learning": "Learning",
-      "media": "Media"
+      "media": "Media",
+      "label": "Amministrazione"
     },
     "dashboard": {
       "title": "Dashboard",
@@ -663,7 +672,11 @@
       "uploading": "Caricamento…",
       "success": "File caricato con successo.",
       "error": "Caricamento fallito. Riprova.",
-      "objectKey": "Chiave oggetto"
+      "objectKey": "Chiave oggetto",
+      "publicPath": "Percorso pubblico",
+      "publicPathHint": "Usalo come sorgente dell'immagine in progetti e articoli, ad es. ![testo alternativo](percorso).",
+      "copy": "Copia",
+      "copied": "Copiato"
     },
     "confirm": {
       "deleteTitle": "Eliminare “{{title}}”?",

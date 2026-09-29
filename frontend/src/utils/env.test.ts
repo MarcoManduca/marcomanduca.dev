@@ -12,7 +12,9 @@ describe('env', () => {
     const env = await import('./env')
 
     expect(env.API_BASE_URL).toBe('/api/v1')
-    expect(env.COGNITO_REDIRECT_URI).toBe(window.location.origin)
+    expect(env.COGNITO_REDIRECT_URI).toBe(
+      `${window.location.origin}/admin/callback`,
+    )
   })
 
   it('uses the configured values when they are set', async () => {

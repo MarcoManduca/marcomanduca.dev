@@ -59,19 +59,60 @@ def test_create_article_raises_invalid_input_on_empty_slug(
         service.create_article(payload)
 
 
-def test_update_article_raises_conflict_when_version_is_contended(
-    article_payload_factory: Callable[..., dict[str, Any]],
-) -> None:
-    # Arrange: a table whose conditional write always loses the race.
+@pytest.fixture
+def contended_table() -> MagicMock:
+    """A table whose conditional write always loses the race."""
     table = MagicMock()
     table.get_latest.return_value = {"version": 1, "created_at": "t"}
-    table.put_version_if_absent.return_value = False
-    service = LearningService(table)
+    table.append_version.return_value = False
+    return table
+
+
+def test_update_article_raises_conflict_when_version_is_contended(
+    contended_table: MagicMock,
+    article_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange
+    service = LearningService(contended_table, sleep=MagicMock())
     update = ArticleUpdate(**article_payload_factory())
 
     # Act / Assert
     with pytest.raises(ConflictError):
         service.update_article("demo-article", update)
+
+
+def test_update_article_backs_off_between_retries(
+    contended_table: MagicMock,
+    article_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange
+    sleep = MagicMock()
+    service = LearningService(contended_table, sleep=sleep)
+    update = ArticleUpdate(**article_payload_factory())
+
+    # Act
+    with pytest.raises(ConflictError):
+        service.update_article("demo-article", update)
+
+    # Assert: five attempts, a pause before each of the four retries.
+    assert contended_table.get_latest.call_count == 5
+    assert sleep.call_count == 4
+
+
+def test_update_article_reads_the_latest_version_consistently(
+    contended_table: MagicMock,
+    article_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange
+    service = LearningService(contended_table, sleep=MagicMock())
+    update = ArticleUpdate(**article_payload_factory())
+
+    # Act
+    with pytest.raises(ConflictError):
+        service.update_article("demo-article", update)
+
+    # Assert
+    contended_table.get_latest.assert_called_with("demo-article", consistent=True)
 
 
 def test_update_article_writes_a_new_version(
@@ -88,6 +129,81 @@ def test_update_article_writes_a_new_version(
     # Assert
     assert item["version"] == 2
     assert item["tags"] == ["python", "aws"]
+
+
+def test_update_article_refuses_to_resurrect_a_deleted_article(
+    service: LearningService,
+    article_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange: the update read version 1, then a delete removed it.
+    service.create_article(ArticleCreate(**article_payload_factory()))
+    item = article_payload_factory() | {"slug": "demo-article", "version": 2}
+    service._table.delete_all_versions("demo-article")
+
+    # Act
+    written = service._table.append_version(item, previous=1)
+
+    # Assert
+    assert written is False
+    assert service._table.get_latest("demo-article", consistent=True) is None
+
+
+def test_append_version_refuses_a_version_already_claimed(
+    service: LearningService,
+    article_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange
+    service.create_article(ArticleCreate(**article_payload_factory()))
+    service.update_article("demo-article", ArticleUpdate(**article_payload_factory()))
+    item = article_payload_factory() | {"slug": "demo-article", "version": 2}
+
+    # Act
+    written = service._table.append_version(item, previous=1)
+
+    # Assert
+    assert written is False
+
+
+def test_create_article_raises_conflict_when_only_a_later_version_exists(
+    service: LearningService,
+    article_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange: version 1 is gone, version 2 still holds the slug.
+    _store_raw_version(article_payload_factory, slug="demo-article", version=2)
+
+    # Act / Assert
+    with pytest.raises(ConflictError):
+        service.create_article(ArticleCreate(**article_payload_factory()))
+
+
+@pytest.mark.parametrize(
+    ("outcomes", "expected_calls"),
+    [([None, 2], 2), ([None, 0], 2), ([3], 1)],
+)
+def test_delete_article_retries_until_the_newest_version_is_deleted(
+    outcomes: list[int | None], expected_calls: int
+) -> None:
+    # Arrange: None = a concurrent update appended a version meanwhile.
+    table = MagicMock()
+    table.delete_all_versions.side_effect = outcomes
+    service = LearningService(table, sleep=MagicMock())
+
+    # Act
+    service.delete_article("demo-article")
+
+    # Assert
+    assert table.delete_all_versions.call_count == expected_calls
+
+
+def test_delete_article_raises_conflict_while_updates_keep_racing() -> None:
+    # Arrange
+    table = MagicMock()
+    table.delete_all_versions.return_value = None
+    service = LearningService(table, sleep=MagicMock())
+
+    # Act / Assert
+    with pytest.raises(ConflictError):
+        service.delete_article("demo-article")
 
 
 def test_get_article_returns_latest_version(
@@ -139,7 +255,7 @@ def test_list_versions_returns_versions_newest_first(
     versions = service.list_versions("demo-article")
 
     # Assert
-    assert [item["version"] for item in versions] == [2, 1]
+    assert [item.version for item in versions] == [2, 1]
 
 
 def test_list_versions_raises_not_found_on_missing_slug(
@@ -337,3 +453,87 @@ def test_update_article_sets_created_at_when_the_stored_item_has_none(
 
     # Assert
     assert item["created_at"] == item["updated_at"]
+
+
+def test_create_article_stores_an_excerpt_of_each_language(
+    service: LearningService,
+    article_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange
+    payload = ArticleCreate(
+        **article_payload_factory(
+            content_markdown={"it": "# Titolo\n\n**Ciao** mondo", "en": "# Title"}
+        )
+    )
+
+    # Act
+    service.create_article(payload)
+
+    # Assert
+    stored = service._table.get_version("demo-article", 1)
+    assert stored["excerpt"] == {"it": "Titolo Ciao mondo", "en": "Title"}
+
+
+def test_list_articles_returns_excerpts_instead_of_bodies(
+    service: LearningService,
+    article_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange
+    service.create_article(ArticleCreate(**article_payload_factory()))
+
+    # Act
+    (summary,) = service.list_articles(include_unpublished=True)
+
+    # Assert
+    assert summary.excerpt.model_dump() == {"it": "Nota", "en": "Note"}
+    assert "content_markdown" not in summary.model_dump()
+
+
+def test_list_articles_computes_the_excerpt_of_a_version_stored_without_one(
+    service: LearningService,
+    article_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange: written by a release that did not store excerpts.
+    _store_raw_version(article_payload_factory)
+
+    # Act
+    (summary,) = service.list_articles(include_unpublished=True)
+
+    # Assert
+    assert summary.slug == "legacy-note"
+    assert summary.excerpt.en == "Note"
+
+
+def test_rollback_article_recomputes_the_excerpt_of_the_restored_version(
+    service: LearningService,
+    article_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange: v1 predates excerpts, v2 is current.
+    _store_raw_version(article_payload_factory)
+    service.update_article(
+        "legacy-note",
+        ArticleUpdate(
+            **article_payload_factory(content_markdown={"it": "Due", "en": "Two"})
+        ),
+    )
+
+    # Act
+    restored = service.rollback_article("legacy-note", 1)
+
+    # Assert
+    assert restored["excerpt"] == {"it": "Nota", "en": "Note"}
+
+
+def test_list_versions_skips_a_version_with_an_unknown_status(
+    service: LearningService,
+    article_payload_factory: Callable[..., dict[str, Any]],
+) -> None:
+    # Arrange: v1 has a status the current enum no longer knows.
+    _store_raw_version(article_payload_factory, status="retired")
+    _store_raw_version(article_payload_factory, version=2)
+
+    # Act
+    versions = service.list_versions("legacy-note")
+
+    # Assert
+    assert [item.version for item in versions] == [2]

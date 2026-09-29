@@ -14,6 +14,7 @@ from src.utils.sanitize import strip_control_chars, truncate
 logger = logging.getLogger(__name__)
 
 _SUBJECT_MAX_LENGTH = 150
+_CHARSET = "UTF-8"
 
 
 class ContactService:
@@ -31,7 +32,9 @@ class ContactService:
         The visitor address is set as ``Reply-To`` so the owner can
         answer directly; the SES ``Source`` stays a verified identity.
         Control characters (CR, LF, ...) are stripped from the sender name
-        and the subject is capped at 150 characters.
+        and the subject is capped at 150 characters. Subject and body are
+        sent as UTF-8: without a charset SES expects 7-bit ASCII, which
+        would garble accented Italian text.
 
         Parameters
         ----------
@@ -57,8 +60,8 @@ class ContactService:
                 Destination={"ToAddresses": [self._recipient]},
                 ReplyToAddresses=[payload.email],
                 Message={
-                    "Subject": {"Data": subject},
-                    "Body": {"Text": {"Data": body}},
+                    "Subject": {"Data": subject, "Charset": _CHARSET},
+                    "Body": {"Text": {"Data": body, "Charset": _CHARSET}},
                 },
             )
         except (ClientError, BotoCoreError) as exc:

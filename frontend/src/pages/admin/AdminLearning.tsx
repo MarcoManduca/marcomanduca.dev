@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { AdminErrorAlert } from '@/components/admin/AdminErrorAlert'
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader'
 import { AdminTable } from '@/components/admin/AdminTable'
+import { ErrorState } from '@/components/ui/ErrorState'
 import { Spinner } from '@/components/ui/Spinner'
 import { useLanguage } from '@/hooks/useLanguage'
 import {
@@ -13,7 +14,7 @@ import {
   useGetArticlesQuery,
   useUpdateArticleMutation,
 } from '@/services/learningApi'
-import type { LearningArticle, LearningArticleInput } from '@/types'
+import type { LearningArticleInput, LearningArticleSummary } from '@/types'
 
 import { ArticleRow } from './ArticleRow'
 import { DeleteConfirm } from './DeleteConfirm'
@@ -24,11 +25,11 @@ import { useAdminEditor } from './useAdminEditor'
 export const AdminLearning = () => {
   const { t } = useTranslation()
   const { localize } = useLanguage()
-  const { data, isLoading } = useGetArticlesQuery()
+  const { data, isLoading, isError, refetch } = useGetArticlesQuery()
   const [createArticle, { isLoading: isCreating }] = useCreateArticleMutation()
   const [updateArticle, { isLoading: isUpdating }] = useUpdateArticleMutation()
   const [deleteArticle, { isLoading: isDeleting }] = useDeleteArticleMutation()
-  const editor = useAdminEditor<LearningArticle, LearningArticleInput>({
+  const editor = useAdminEditor<LearningArticleSummary, LearningArticleInput>({
     create: (body) => createArticle(body).unwrap(),
     update: (slug, body) => updateArticle({ slug, body }).unwrap(),
     remove: (slug) => deleteArticle(slug).unwrap(),
@@ -40,6 +41,8 @@ export const AdminLearning = () => {
   const versionsArticle = data?.find(({ slug }) => slug === versionsSlug)
 
   if (isLoading) return <Spinner />
+  // Only without data: a failed refetch after a save keeps the open editor.
+  if (isError && !data) return <ErrorState onRetry={() => void refetch()} />
 
   return (
     <>
@@ -55,6 +58,7 @@ export const AdminLearning = () => {
         isSaving={isCreating || isUpdating}
         onSubmit={editor.save}
         onCancel={editor.cancel}
+        onDirty={editor.markDirty}
       />
       <AdminErrorAlert
         title={t('admin.errors.deleteFailed')}

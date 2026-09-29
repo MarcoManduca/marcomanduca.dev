@@ -220,4 +220,36 @@ describe('AdminProjects', () => {
     )
     expect(screen.getByText('Data pipeline')).toBeInTheDocument()
   })
+
+  it('asks to confirm leaving the page while the form has unsaved changes', async () => {
+    const leavePage = () => {
+      const event = new Event('beforeunload', { cancelable: true })
+      window.dispatchEvent(event)
+      return event.defaultPrevented
+    }
+    await renderPage()
+    await clickButton('New project')
+
+    expect(leavePage()).toBe(false)
+    await userEvent.type(screen.getByLabelText('Title (EN)'), 'Draft')
+    expect(leavePage()).toBe(true)
+
+    await clickButton('Cancel')
+    expect(leavePage()).toBe(false)
+  })
+
+  it('offers a retry when the list fails to load', async () => {
+    server.use(
+      http.get(
+        `${API_URL}/projects`,
+        () => HttpResponse.json({ detail: 'boom' }, { status: 500 }),
+        { once: true },
+      ),
+    )
+    renderWithProviders(<AdminProjects />)
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Retry' }))
+
+    expect(await screen.findByText('Data pipeline')).toBeInTheDocument()
+  })
 })

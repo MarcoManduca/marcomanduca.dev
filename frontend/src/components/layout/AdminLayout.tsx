@@ -24,7 +24,10 @@ export const AdminLayout = () => {
           <span className="font-mono text-sm font-semibold text-heading">
             {t('admin.title')}
           </span>
-          <nav aria-label="Admin" className="flex flex-wrap gap-1">
+          <nav
+            aria-label={t('admin.nav.label')}
+            className="flex flex-wrap gap-1"
+          >
             {ADMIN_NAV.map(({ to, key, end }) => (
               <NavLink
                 key={to}
