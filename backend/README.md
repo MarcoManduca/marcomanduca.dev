@@ -183,7 +183,7 @@ docker build -t marcomanduca-backend .
 docker run --rm -p 8000:8000 --env-file .env marcomanduca-backend
 ```
 
-Multi-stage build on `python:3.12.14-slim` pinned by digest, runs as a
+Multi-stage build on `python:3.12.15-slim` pinned by digest, runs as a
 non-root user, no secrets baked into the image. Dependencies are installed
 from `requirements.lock` with `--require-hashes`.
 
