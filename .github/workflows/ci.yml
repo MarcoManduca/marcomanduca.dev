@@ -24,17 +24,18 @@ on:
   push:
     branches: [main]
   pull_request:
-  # Weekly run on main: new advisories surface in pip-audit, npm audit and the
-  # Trivy image scan even when the code does not change.
+  # Monthly run on main (1st of the month, 06:00 UTC, alongside the monthly
+  # Dependabot updates): new advisories surface in pip-audit, npm audit and
+  # the Trivy image scan even when the code does not change.
   schedule:
-    - cron: "0 6 * * 1"
+    - cron: "0 6 1 * *"
 
 # Least-privilege default token; jobs only need to read the repo.
 permissions:
   contents: read
 
 # Cancel superseded runs of a pull request (e.g. rapid pushes). Pushes to main
-# and the weekly schedule get their own groups and are never cancelled, so
+# and the monthly schedule get their own groups and are never cancelled, so
 # every main commit keeps a CI result and the audit run always completes.
 concurrency:
   group: ci-${{ github.event_name }}-${{ github.ref }}
