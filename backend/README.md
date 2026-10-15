@@ -211,7 +211,7 @@ uv pip compile pyproject.toml --extra dev -c requirements.lock --universal \
 uv pip install --require-hashes -r requirements-dev.lock && uv pip install --no-deps -e .
 ```
 
-Dependabot does not regenerate these files; the weekly CI run audits them
+Dependabot does not regenerate these files; the monthly CI run audits them
 (`pip-audit -r requirements.lock -r requirements-dev.lock --disable-pip`),
 so a new advisory on a pinned version fails CI even without a push.
 
