@@ -2,7 +2,7 @@
 # the backend, so rebuilds are reproducible; Dependabot bumps both together.
 
 # --- Build stage ---
-FROM node:24.21.0-slim@sha256:d6aa754f16b3197301076f047b5def2f02ea1dbbc2ca920407d46d7ec7f87b20 AS build
+FROM node:24.22.2-slim@sha256:c86ecead9e55a5210ac1727de38a4ca840bf03dcaf34dc9749addbf383b1920c AS build
 
 WORKDIR /app
 
@@ -28,7 +28,7 @@ COPY . .
 RUN npm run build
 
 # --- Serve stage (non-root nginx on the stable branch, listens on 8080) ---
-FROM nginxinc/nginx-unprivileged:1.30.5-alpine@sha256:56b8272e43a0525f67aed68d1e0794a712d10e3e45a563e118e9a77c817e6f86
+FROM nginxinc/nginx-unprivileged:1.30.6-alpine@sha256:f5116ed4606f3eb015dd4a8e28cb9b351476dc0ad4bc6e9f93b19cec130cdf03
 
 # Backend upstream for the /api proxy, templated at container start
 ENV BACKEND_UPSTREAM=http://backend:8000
