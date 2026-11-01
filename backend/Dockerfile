@@ -3,7 +3,7 @@
 # inspect python:<tag>).
 
 # --- Build stage: install locked dependencies into an isolated prefix --------
-FROM python:3.12.15-slim@sha256:a6e34c598f2467ed0e9a8d349809fcd8b5c603269512df273a0bb1784edc11b1 AS builder
+FROM python:3.12.16-slim@sha256:8523d6abeb48ceae0b7240d30c5808fc26cb79c1a635bacdf19cf3baecfbec07 AS builder
 
 WORKDIR /build
 
@@ -14,7 +14,7 @@ COPY requirements.lock ./
 RUN pip install --no-cache-dir --require-hashes --prefix=/install -r requirements.lock
 
 # --- Runtime stage: slim image, non-root user, no build tooling --------------
-FROM python:3.12.15-slim@sha256:a6e34c598f2467ed0e9a8d349809fcd8b5c603269512df273a0bb1784edc11b1 AS runtime
+FROM python:3.12.16-slim@sha256:8523d6abeb48ceae0b7240d30c5808fc26cb79c1a635bacdf19cf3baecfbec07 AS runtime
 
 # AWS Lambda Web Adapter: lets the unmodified Uvicorn server run on Lambda
 # behind API Gateway (HTTP API) and CloudFront: it translates the Lambda event
