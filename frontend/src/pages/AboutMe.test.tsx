@@ -136,13 +136,13 @@ describe('AboutMe', () => {
       .map((heading) => heading.textContent)
     expect(groups).toEqual([
       'Programming',
+      'Statistics & ML',
       'Data Engineering',
       'Data Visualization',
-      'Version Control',
       'CRM & Storage',
       'AI & Agents',
     ])
-    expect(screen.getByText('Claude Code')).toBeInTheDocument()
+    expect(screen.getByText('RAG & vector DBs')).toBeInTheDocument()
   })
 
   it('gives every timeline entry an anchor for the home quests', () => {
@@ -208,8 +208,6 @@ describe('AboutMe title', () => {
   it('names the page in the document title', async () => {
     renderWithProviders(<AboutMe />)
 
-    await waitFor(() =>
-      expect(document.title).toBe('About me — marcomanduca.dev'),
-    )
+    await waitFor(() => expect(document.title).toBe('About me — Marco Manduca'))
   })
 })

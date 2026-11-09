@@ -1,6 +1,7 @@
 import { Helmet } from 'react-helmet-async'
 import { useLocation } from 'react-router'
 
+import profile from '@/data/profile.json'
 import { useLanguage } from '@/hooks/useLanguage'
 import type { Language } from '@/types'
 import { SITE_URL } from '@/utils/env'
@@ -14,7 +15,10 @@ interface SeoProps {
   noindex?: boolean
 }
 
-const SITE_NAME = 'marcomanduca.dev'
+const SITE_NAME = profile.siteName
+
+/** Home title; other pages read `<title> — <name>` (see prerender/html.mjs). */
+const HOME_TITLE = `${profile.name} — ${profile.role}`
 
 /** Default 1200x630 share image, shipped from `public/`. */
 const DEFAULT_IMAGE = `${SITE_URL}/og-image.png`
@@ -36,7 +40,7 @@ export const Seo = ({
   const { pathname } = useLocation()
   const { language } = useLanguage()
 
-  const fullTitle = title ? `${title} — ${SITE_NAME}` : SITE_NAME
+  const fullTitle = title ? `${title} — ${profile.name}` : HOME_TITLE
   const canonical = `${SITE_URL}${pathname}`
   const alternateLanguage: Language = language === 'it' ? 'en' : 'it'
   // Images shipped with the site come as paths; OpenGraph needs a full URL.

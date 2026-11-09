@@ -9,6 +9,13 @@ import { renderWithProviders } from '@/test/utils'
 
 import { Projects } from './Projects'
 
+/** Extra published projects, so the page offers search and filters. */
+const PADDING = Array.from({ length: 4 }, (_, index) => ({
+  ...projectSummariesFixture[1],
+  slug: `extra-${index}`,
+  title: { en: `Extra ${index}`, it: `Extra ${index}` },
+}))
+
 describe('Projects', () => {
   it('lists published projects', async () => {
     renderWithProviders(<Projects />)
@@ -45,79 +52,120 @@ describe('Projects', () => {
     expect(within(areas).getByText('Cloud & DevOps')).toBeInTheDocument()
   })
 
-  it('offers no filter by kind', async () => {
+  it('hides search and filters while there are only a few projects', async () => {
     renderWithProviders(<Projects />)
     await screen.findByRole('link', { name: 'Data pipeline' })
 
-    expect(screen.queryByLabelText('Kind')).not.toBeInTheDocument()
-    expect(screen.getAllByRole('combobox')).toHaveLength(3)
+    expect(screen.queryByLabelText('Search projects')).not.toBeInTheDocument()
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
   })
 
-  it('filters projects by text search', async () => {
+  it('shows the cover on the card, or the area art without one', async () => {
     renderWithProviders(<Projects />)
-    await screen.findByRole('link', { name: 'Data pipeline' })
 
-    await userEvent.type(screen.getByLabelText('Search projects'), 'serverless')
-
+    const withCover = (
+      await screen.findByRole('link', { name: 'Data pipeline' })
+    ).closest('h2')!.parentElement!
+    const withoutCover = screen
+      .getByRole('link', { name: 'Portfolio site' })
+      .closest('h2')!.parentElement!
     expect(
-      screen.getByRole('link', { name: 'Data pipeline' }),
-    ).toBeInTheDocument()
-    expect(
-      screen.queryByRole('link', { name: 'Portfolio site' }),
-    ).not.toBeInTheDocument()
+      within(withCover).getByRole('img', { name: 'Pipeline diagram' }),
+    ).toHaveAttribute('loading', 'lazy')
+    expect(within(withoutCover).queryByRole('img')).not.toBeInTheDocument()
   })
 
-  it('filters projects by area', async () => {
-    renderWithProviders(<Projects />)
-    await screen.findByRole('link', { name: 'Data pipeline' })
+  describe('with enough projects to filter', () => {
+    beforeEach(() => {
+      server.use(
+        http.get(`${API_URL}/projects`, () =>
+          HttpResponse.json([...projectSummariesFixture, ...PADDING]),
+        ),
+      )
+    })
 
-    await userEvent.selectOptions(screen.getByLabelText('Area'), 'frontend')
+    it('offers no filter by kind', async () => {
+      renderWithProviders(<Projects />)
+      await screen.findByRole('link', { name: 'Data pipeline' })
 
-    expect(
-      screen.getByRole('link', { name: 'Portfolio site' }),
-    ).toBeInTheDocument()
-    expect(
-      screen.queryByRole('link', { name: 'Data pipeline' }),
-    ).not.toBeInTheDocument()
-  })
+      expect(screen.queryByLabelText('Kind')).not.toBeInTheDocument()
+      expect(screen.getAllByRole('combobox')).toHaveLength(3)
+    })
 
-  it('filters projects by context', async () => {
-    renderWithProviders(<Projects />)
-    await screen.findByRole('link', { name: 'Data pipeline' })
+    it('filters projects by text search', async () => {
+      renderWithProviders(<Projects />)
+      await screen.findByRole('link', { name: 'Data pipeline' })
 
-    await userEvent.selectOptions(screen.getByLabelText('Context'), 'work')
+      await userEvent.type(
+        screen.getByLabelText('Search projects'),
+        'serverless',
+      )
 
-    expect(
-      screen.getByRole('link', { name: 'Data pipeline' }),
-    ).toBeInTheDocument()
-    expect(
-      screen.queryByRole('link', { name: 'Portfolio site' }),
-    ).not.toBeInTheDocument()
-  })
+      expect(
+        screen.getByRole('link', { name: 'Data pipeline' }),
+      ).toBeInTheDocument()
+      expect(
+        screen.queryByRole('link', { name: 'Portfolio site' }),
+      ).not.toBeInTheDocument()
+    })
 
-  it('filters projects by technology', async () => {
-    renderWithProviders(<Projects />)
-    await screen.findByRole('link', { name: 'Data pipeline' })
+    it('filters projects by area', async () => {
+      renderWithProviders(<Projects />)
+      await screen.findByRole('link', { name: 'Data pipeline' })
 
-    await userEvent.selectOptions(screen.getByLabelText('Technology'), 'React')
+      await userEvent.selectOptions(screen.getByLabelText('Area'), 'frontend')
 
-    expect(
-      screen.queryByRole('link', { name: 'Data pipeline' }),
-    ).not.toBeInTheDocument()
-    expect(
-      screen.getByRole('link', { name: 'Portfolio site' }),
-    ).toBeInTheDocument()
-  })
+      expect(
+        screen.getByRole('link', { name: 'Portfolio site' }),
+      ).toBeInTheDocument()
+      expect(
+        screen.queryByRole('link', { name: 'Data pipeline' }),
+      ).not.toBeInTheDocument()
+    })
 
-  it('shows an empty state when no project matches', async () => {
-    renderWithProviders(<Projects />)
-    await screen.findByRole('link', { name: 'Data pipeline' })
+    it('filters projects by context', async () => {
+      renderWithProviders(<Projects />)
+      await screen.findByRole('link', { name: 'Data pipeline' })
 
-    await userEvent.type(screen.getByLabelText('Search projects'), 'zzz-none')
+      await userEvent.selectOptions(screen.getByLabelText('Context'), 'work')
 
-    expect(
-      screen.getByText('No projects match the current filters.'),
-    ).toBeInTheDocument()
+      expect(
+        screen.getByRole('link', { name: 'Data pipeline' }),
+      ).toBeInTheDocument()
+      expect(
+        screen.queryByRole('link', { name: 'Portfolio site' }),
+      ).not.toBeInTheDocument()
+    })
+
+    it('filters projects by technology', async () => {
+      renderWithProviders(<Projects />)
+      await screen.findByRole('link', { name: 'Data pipeline' })
+
+      // Technologies load once the page knows it will show the filters.
+      await screen.findByRole('option', { name: 'React' })
+      await userEvent.selectOptions(
+        screen.getByLabelText('Technology'),
+        'React',
+      )
+
+      expect(
+        screen.queryByRole('link', { name: 'Data pipeline' }),
+      ).not.toBeInTheDocument()
+      expect(
+        screen.getByRole('link', { name: 'Portfolio site' }),
+      ).toBeInTheDocument()
+    })
+
+    it('shows an empty state when no project matches', async () => {
+      renderWithProviders(<Projects />)
+      await screen.findByRole('link', { name: 'Data pipeline' })
+
+      await userEvent.type(screen.getByLabelText('Search projects'), 'zzz-none')
+
+      expect(
+        screen.getByText('No projects match the current filters.'),
+      ).toBeInTheDocument()
+    })
   })
 
   it('titles each card one level below the page heading', async () => {
@@ -133,8 +181,6 @@ describe('Projects title', () => {
   it('names the page in the document title', async () => {
     renderWithProviders(<Projects />)
 
-    await waitFor(() =>
-      expect(document.title).toBe('Projects — marcomanduca.dev'),
-    )
+    await waitFor(() => expect(document.title).toBe('Projects — Marco Manduca'))
   })
 })

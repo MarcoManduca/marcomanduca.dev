@@ -10,8 +10,8 @@ interface StatLevelListProps {
 }
 
 /**
- * Level of each stat as a row of pips, beside the radar from `lg` (phones
- * keep only the chart). Hovering a row lights its point on the radar, whose
+ * Level of each stat as a row of pips, with no score in numbers, beside the
+ * radar from `lg` (phones keep only the chart). Hovering a row lights its point on the radar, whose
  * tooltip lists the group's tools.
  */
 export const StatLevelList = ({
@@ -35,16 +35,8 @@ export const StatLevelList = ({
           active === index ? 'bg-raised' : 'bg-background/55',
         )}
       >
-        <span className="flex items-baseline justify-between gap-2">
-          <span className="truncate font-display text-[17px] font-bold uppercase text-heading">
-            {stat.name}
-          </span>
-          <span className="font-display text-[17px] font-extrabold text-heading">
-            {stat.level}
-            <span className="text-[13px] font-bold text-muted">
-              /{MAX_STAT_LEVEL}
-            </span>
-          </span>
+        <span className="truncate font-display text-[17px] font-bold uppercase text-heading">
+          {stat.name}
         </span>
         <span aria-hidden="true" className="flex gap-[3px]">
           {Array.from({ length: MAX_STAT_LEVEL }, (_, pip) => (
