@@ -30,6 +30,9 @@ coverage/
 # Local-only design assets (logo versions, not built/deployed)
 frontend/design/
 
+# Local-only plans for ideas evaluated but not scheduled
+docs/future-development/
+
 # Terraform (patterns apply to every root, including infra/terraform/bootstrap)
 .terraform/
 *.tfstate
