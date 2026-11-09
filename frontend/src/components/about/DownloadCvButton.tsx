@@ -17,7 +17,7 @@ const CV_KEY = 'cv/cv.pdf'
  * the `noopener` feature would make `window.open` return null). If the tab
  * is blocked anyway, the CV opens in the current tab instead.
  */
-export const DownloadCvButton = () => {
+export const DownloadCvButton = ({ className }: { className?: string }) => {
   const { t } = useTranslation()
   const [getMediaUrl, { isFetching }] = useLazyGetMediaUrlQuery()
   const [failed, setFailed] = useState(false)
@@ -39,7 +39,12 @@ export const DownloadCvButton = () => {
 
   return (
     <div className="flex flex-col items-start gap-3">
-      <Button type="button" onClick={handleDownload} disabled={isFetching}>
+      <Button
+        type="button"
+        onClick={handleDownload}
+        disabled={isFetching}
+        className={className}
+      >
         {t('about.downloadCv')}
       </Button>
       {failed && (

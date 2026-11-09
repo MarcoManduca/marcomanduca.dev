@@ -192,6 +192,49 @@ def test_optional_admin_returns_none_for_non_admin_token(
     assert result is None
 
 
+# Claims Cognito adds to its tokens over time (rollout from November 2026):
+# acr/amr for step-up authentication, aud on every token. Unknown claims must
+# pass through untouched, amr staying a JSON array.
+@pytest.mark.parametrize(
+    "extra",
+    [
+        {"acr": "urn:cognito:loa:1", "amr": ["pwd"]},
+        {"acr": "urn:cognito:loa:4", "amr": ["pwd", "otp", "mfa"]},
+        {"aud": "test-client-id"},
+    ],
+)
+def test_decode_token_accepts_additive_cognito_claims(
+    token_factory: Callable[..., str], extra: dict[str, Any]
+) -> None:
+    # Arrange
+    token = token_factory(**extra)
+
+    # Act
+    claims = decode_token(token)
+
+    # Assert
+    assert {name: claims[name] for name in extra} == extra
+
+
+def test_optional_admin_returns_claims_for_admin_token_with_step_up_claims(
+    token_factory: Callable[..., str],
+) -> None:
+    # Arrange
+    token = token_factory(
+        acr="urn:cognito:loa:4",
+        amr=["pwd", "otp", "mfa"],
+        **{"cognito:groups": ["Administrators"]},
+    )
+    credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
+
+    # Act
+    result = optional_admin(credentials)
+
+    # Assert
+    assert result is not None
+    assert result["amr"] == ["pwd", "otp", "mfa"]
+
+
 def _claims_without(*names: str) -> dict[str, Any]:
     """Valid access-token claims minus the given claim names."""
     now = int(time.time())

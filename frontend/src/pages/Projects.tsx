@@ -11,11 +11,17 @@ import { useGetProjectsQuery } from '@/services/projectsApi'
 import { useGetTechnologiesQuery } from '@/services/technologiesApi'
 import { EMPTY_PROJECT_FILTERS, filterProjects } from '@/utils/filterProjects'
 
+/** Below this many projects, search and filters are more chrome than help. */
+const MIN_PROJECTS_FOR_FILTERS = 6
+
 export const Projects = () => {
   const { t } = useTranslation()
   const { localize } = useLanguage()
   const { data, isLoading, isError } = useGetProjectsQuery()
-  const { data: technologies = [] } = useGetTechnologiesQuery()
+  const showFilters = (data?.length ?? 0) >= MIN_PROJECTS_FOR_FILTERS
+  const { data: technologies = [] } = useGetTechnologiesQuery(undefined, {
+    skip: !showFilters,
+  })
   const [filters, setFilters] = useState(EMPTY_PROJECT_FILTERS)
 
   const filtered = useMemo(
@@ -28,13 +34,15 @@ export const Projects = () => {
       <Seo title={t('projects.title')} description={t('projects.subtitle')} />
       <h1 className="text-3xl font-bold text-heading">{t('projects.title')}</h1>
       <p className="mt-2 text-muted">{t('projects.subtitle')}</p>
-      <div className="mt-8">
-        <ProjectFilters
-          value={filters}
-          technologies={technologies}
-          onChange={setFilters}
-        />
-      </div>
+      {showFilters && (
+        <div className="mt-8">
+          <ProjectFilters
+            value={filters}
+            technologies={technologies}
+            onChange={setFilters}
+          />
+        </div>
+      )}
       {isLoading && <Spinner />}
       {isError && <p className="mt-8 text-danger">{t('common.error')}</p>}
       {data && (
