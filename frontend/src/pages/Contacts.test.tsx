@@ -16,6 +16,22 @@ const fillForm = async () => {
 }
 
 describe('Contacts', () => {
+  it('offers GitHub and LinkedIn next to the form', () => {
+    renderWithProviders(<Contacts />)
+
+    expect(
+      screen.getByRole('heading', { name: 'Elsewhere' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /GitHub/ })).toHaveAttribute(
+      'href',
+      'https://github.com/MarcoManduca',
+    )
+    expect(screen.getByRole('link', { name: /LinkedIn/ })).toHaveAttribute(
+      'href',
+      'https://www.linkedin.com/in/marco-manduca/',
+    )
+  })
+
   it('keeps submit disabled until the privacy consent is given', async () => {
     renderWithProviders(<Contacts />)
 
@@ -110,8 +126,6 @@ describe('Contacts title', () => {
   it('names the page in the document title', async () => {
     renderWithProviders(<Contacts />)
 
-    await waitFor(() =>
-      expect(document.title).toBe('Contacts — marcomanduca.dev'),
-    )
+    await waitFor(() => expect(document.title).toBe('Contacts — Marco Manduca'))
   })
 })

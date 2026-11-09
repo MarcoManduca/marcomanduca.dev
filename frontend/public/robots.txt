@@ -1,15 +1,14 @@
-# AI crawlers, scrapers and on-demand fetchers — opt out of training and scraping.
+# AI training crawlers and scrapers — opt out of training and bulk scraping.
+# AI search and on-demand fetchers (OAI-SearchBot, ChatGPT-User,
+# Claude-SearchBot, Claude-User, PerplexityBot, Perplexity-User,
+# DuckAssistBot) are deliberately not listed: they fall under `*` below, so
+# the portfolio can be found and cited in AI search answers.
 User-agent: GPTBot
-User-agent: OAI-SearchBot
-User-agent: ChatGPT-User
 User-agent: ClaudeBot
 User-agent: anthropic-ai
-User-agent: Claude-User
 User-agent: Claude-Web
 User-agent: Google-Extended
 User-agent: CCBot
-User-agent: PerplexityBot
-User-agent: Perplexity-User
 User-agent: Bytespider
 User-agent: Amazonbot
 User-agent: Applebot-Extended
@@ -22,11 +21,11 @@ User-agent: YouBot
 User-agent: ImagesiftBot
 User-agent: PetalBot
 User-agent: Timpibot
-User-agent: DuckAssistBot
 Disallow: /
 
-# Everyone else (search engines) have full access except the admin area and
-# the internal copies of the pre-rendered pages (served under their routes).
+# Everyone else (search engines, AI search) has full access except the admin
+# area and the internal copies of the pre-rendered pages (served under their
+# routes).
 User-agent: *
 Allow: /
 Disallow: /admin

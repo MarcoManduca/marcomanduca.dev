@@ -17,12 +17,18 @@
     "error": "Qualcosa è andato storto. Riprova.",
     "retry": "Riprova",
     "viewAll": "Vedi tutti",
-    "readMore": "Leggi di più"
+    "readMore": "Leggi di più",
+    "enlargeImage": "Ingrandisci immagine",
+    "close": "Chiudi"
   },
   "home": {
     "heroName": "Marco Manduca",
-    "heroRole": "Data Engineer & Data Scientist",
+    "heroRole": "Data Scientist",
     "heroTagline": "Tra dati grezzi e decisioni strategiche c'è un percorso fatto di architetture, algoritmi e analisi. Il mio lavoro consiste nel progettare quel percorso e renderlo scalabile, efficiente e misurabile.",
+    "hero": {
+      "label": "Link rapidi",
+      "contact": "Contattami"
+    },
     "card": {
       "label": "Carta personaggio",
       "portraitAlt": "Ritratto di Marco Manduca",
@@ -51,15 +57,14 @@
       "title": "Statistiche",
       "axis": {
         "programming": "Programmazione",
+        "statisticsMl": "Statistica & ML",
         "dataEngineering": "Data Eng.",
         "dataViz": "Data Viz",
-        "versioning": "Versionamento",
         "crmStorage": "CRM & Storage",
         "ai": "AI & Agenti"
       },
-      "level": "Livello {{level}}/{{max}}",
       "point": "{{name}}: livello {{level}} su {{max}}",
-      "hint": "Tocca un punto per vedere livello e strumenti"
+      "hint": "Tocca un punto per vedere gli strumenti"
     },
     "sideQuests": {
       "title": "Quest secondarie",
@@ -142,10 +147,10 @@
   },
   "about": {
     "title": "Chi sono",
-    "subtitle": "Data professional con oltre 5 anni sull'intero ciclo di vita del dato.",
+    "subtitle": "Data Scientist con oltre 5 anni sull'intero ciclo di vita del dato.",
     "downloadCv": "Scarica il CV",
     "cvError": "Impossibile aprire il CV. Riprova più tardi.",
-    "bio": "Data professional con oltre cinque anni di esperienza sull'intero ciclo di vita del dato — dalla raccolta e validazione fino alle dashboard operative e agli insight strategici per team commerciali e C-level. Unisco solide basi statistiche (Laurea triennale in Statistica, Laurea magistrale in Data Science in corso) a un approccio pratico e orientato ai risultati. Lavoro principalmente con Python, SQL e strumenti cloud su AWS, con esperienza in automazione dei processi e algoritmi di Machine/Deep Learning. Appassionato di AI e tecnologie emergenti, mi piace tradurre dati complessi in strategie chiare e attuabili per interlocutori tecnici e non.",
+    "bio": "Data Scientist con oltre cinque anni di esperienza sull'intero ciclo di vita del dato — dalla raccolta e validazione fino alle dashboard operative e agli insight strategici per team commerciali e C-level. Unisco solide basi statistiche (Laurea triennale in Statistica, Laurea magistrale in Data Science in corso) a un approccio pratico e orientato ai risultati. Lavoro principalmente con Python, SQL e strumenti cloud su AWS, con esperienza in automazione dei processi e algoritmi di Machine/Deep Learning. Appassionato di AI e tecnologie emergenti, mi piace tradurre dati complessi in strategie chiare e attuabili per interlocutori tecnici e non.",
     "experienceTitle": "Esperienza",
     "educationTitle": "Formazione",
     "courseFacts": "Dati del corso",
@@ -159,9 +164,9 @@
     "skillsTitle": "Competenze",
     "skillGroups": {
       "programming": "Programmazione",
+      "statisticsMl": "Statistica & ML",
       "dataEngineering": "Data Engineering",
       "dataViz": "Data Visualization",
-      "versioning": "Versionamento",
       "crmStorage": "CRM & Storage",
       "ai": "AI & Agenti"
     },
@@ -365,7 +370,8 @@
       }
     ],
     "skills": {
-      "programming": ["Python", "R", "SAS Base", "SAS Macro", "SQL"],
+      "programming": ["Python", "R", "SAS Base", "SAS Macro", "SQL", "Git"],
+      "statisticsMl": ["R", "scikit-learn", "TensorFlow", "Keras", "SciPy"],
       "dataEngineering": [
         "AWS Athena",
         "AWS Glue",
@@ -374,7 +380,6 @@
         "SAS Data Management"
       ],
       "dataViz": ["Power BI", "Tableau", "SAS Viya", "Looker Studio"],
-      "versioning": ["GitHub", "Bitbucket"],
       "crmStorage": [
         "Salesforce",
         "AWS S3",
@@ -385,7 +390,12 @@
         "Oracle",
         "PostgreSQL"
       ],
-      "ai": ["Claude Code", "Claude", "ChatGPT", "Gemini"]
+      "ai": [
+        "API LLM",
+        "RAG & vector DB",
+        "Agenti & MCP",
+        "Prompt engineering & valutazione"
+      ]
     }
   },
   "projects": {
@@ -494,7 +504,11 @@
       "validation": "Controlla i campi: l'indirizzo email non sembra valido o un campo è troppo lungo.",
       "rateLimited": "Troppi messaggi in poco tempo. Riprova tra qualche minuto."
     },
-    "consent": "Ho letto e accetto la <privacy>Privacy Policy</privacy> e acconsento al trattamento dei miei dati per ricevere una risposta."
+    "consent": "Ho letto e accetto la <privacy>Privacy Policy</privacy> e acconsento al trattamento dei miei dati per ricevere una risposta.",
+    "channels": {
+      "title": "Altrove",
+      "text": "Preferisci un canale più diretto? Mi trovi anche qui."
+    }
   },
   "privacy": {
     "title": "Privacy Policy",
@@ -695,7 +709,8 @@
   },
   "footer": {
     "rights": "Tutti i diritti riservati.",
-    "privacy": "Privacy Policy"
+    "privacy": "Privacy Policy",
+    "linksLabel": "Link del sito e dei profili"
   },
   "language": {
     "label": "Lingua",

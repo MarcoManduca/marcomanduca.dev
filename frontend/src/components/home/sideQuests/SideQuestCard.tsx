@@ -1,12 +1,12 @@
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 
-import { AreaArt } from '@/components/projects/AreaArt'
 import { AreaChips } from '@/components/projects/AreaChips'
+import { ProjectCover } from '@/components/projects/ProjectCover'
 import { Tag } from '@/components/ui/Tag'
 import { useLanguage } from '@/hooks/useLanguage'
 import type { ProjectSummary } from '@/types'
-import { safeExternalUrl, safeMediaUrl } from '@/utils/safeUrl'
+import { safeExternalUrl } from '@/utils/safeUrl'
 
 import { SourceCodeLink } from './SourceCodeLink'
 
@@ -29,7 +29,6 @@ export const SideQuestCard = ({
 }: SideQuestCardProps) => {
   const { t } = useTranslation()
   const { localize } = useLanguage()
-  const cover = safeMediaUrl(project.cover?.src)
   const github = safeExternalUrl(project.repo_url)
   const tabIndex = interactive ? undefined : -1
 
@@ -45,18 +44,7 @@ export const SideQuestCard = ({
         {localize(project.title)}
       </h3>
       <div className="h-[120px] shrink-0 overflow-hidden rounded-xl border border-edge bg-background lg:h-[150px]">
-        {cover && project.cover ? (
-          <img
-            src={cover}
-            alt={localize(project.cover.alt)}
-            draggable={false}
-            loading="lazy"
-            decoding="async"
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <AreaArt area={project.areas[0]} />
-        )}
+        <ProjectCover project={project} lazy draggable={false} />
       </div>
       <p className="line-clamp-3 shrink-0 text-sm leading-relaxed text-body">
         {localize(project.description)}

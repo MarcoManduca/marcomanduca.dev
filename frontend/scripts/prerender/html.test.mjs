@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest'
 import {
   escapeHtml,
   injectSeo,
+  jsonLdScript,
+  personJsonLd,
   renderSeoTags,
   SEO_END,
   SEO_START,
@@ -19,6 +21,15 @@ describe('escapeHtml', () => {
   })
 })
 
+describe('jsonLdScript', () => {
+  it('escapes < so a value cannot close the script element', () => {
+    const script = jsonLdScript({ name: '</script><script>x</script>' })
+
+    expect(script.match(/<\/script>/g)).toHaveLength(1)
+    expect(script).toContain('\\u003c/script>')
+  })
+})
+
 describe('renderSeoTags', () => {
   it('renders the titled page tags like <Seo />', () => {
     const tags = renderSeoTags(
@@ -27,7 +38,7 @@ describe('renderSeoTags', () => {
       '/projects',
     )
 
-    expect(tags).toContain('<title>Projects — marcomanduca.dev</title>')
+    expect(tags).toContain('<title>Projects — Marco Manduca</title>')
     expect(tags).toContain(
       `<link data-rh="true" rel="canonical" href="${SITE}/projects" />`,
     )
@@ -37,14 +48,40 @@ describe('renderSeoTags', () => {
     )
   })
 
-  it('uses the site name alone when the page has no title', () => {
+  it('titles the home page with the name and role', () => {
     const tags = renderSeoTags(
       { description: 'Home', type: 'website' },
       SITE,
       '/',
     )
 
-    expect(tags).toContain('<title>marcomanduca.dev</title>')
+    expect(tags).toContain('<title>Marco Manduca — Data Scientist</title>')
+    expect(tags).toContain('property="og:site_name" content="marcomanduca.dev"')
+  })
+
+  it('describes the owner as a schema.org Person on the home page only', () => {
+    const home = renderSeoTags({ description: 'd', type: 'website' }, SITE, '/')
+    const page = renderSeoTags(
+      { title: 'Projects', description: 'd', type: 'website' },
+      SITE,
+      '/projects',
+    )
+
+    const json = home.match(
+      /<script type="application\/ld\+json">(.*)<\/script>/,
+    )?.[1]
+    expect(JSON.parse(json ?? 'null')).toEqual(personJsonLd(SITE))
+    expect(personJsonLd(SITE)).toMatchObject({
+      '@type': 'Person',
+      name: 'Marco Manduca',
+      jobTitle: 'Data Scientist',
+      url: `${SITE}/`,
+      sameAs: [
+        'https://github.com/MarcoManduca',
+        'https://www.linkedin.com/in/marco-manduca/',
+      ],
+    })
+    expect(page).not.toContain('application/ld+json')
   })
 
   it('sizes only the default share image', () => {
@@ -83,7 +120,7 @@ describe('renderSeoTags', () => {
     )
 
     expect(tags).toContain(
-      '<title>&lt;/title&gt;&lt;script&gt;x&lt;/script&gt; — marcomanduca.dev</title>',
+      '<title>&lt;/title&gt;&lt;script&gt;x&lt;/script&gt; — Marco Manduca</title>',
     )
     expect(tags).toContain('content="&quot;quoted&quot;"')
   })

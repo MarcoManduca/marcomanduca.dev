@@ -7,6 +7,7 @@ import { useLanguage } from '@/hooks/useLanguage'
 import type { ProjectSummary } from '@/types'
 
 import { AreaChips } from './AreaChips'
+import { ProjectCover } from './ProjectCover'
 
 interface ProjectCardProps {
   project: ProjectSummary
@@ -17,6 +18,9 @@ export const ProjectCard = ({ project }: ProjectCardProps) => {
 
   return (
     <Card className="flex h-full flex-col gap-3">
+      <div className="mb-1 h-40 overflow-hidden rounded-xl border border-edge bg-background">
+        <ProjectCover project={project} lazy />
+      </div>
       <AreaChips areas={project.areas} />
       {/* Only a signed-in admin is served unpublished projects: flag them. */}
       {project.status !== 'published' && (
