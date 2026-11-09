@@ -31,7 +31,7 @@
     },
     "card": {
       "label": "Carta personaggio",
-      "portraitAlt": "Ritratto di Marco Manduca",
+      "portraitAlt": "Illustrazione di Marco Manduca esploratore che legge una mappa",
       "level": "LV {{years}}",
       "levelLabel": "Livello: {{years}} anni di esperienza",
       "flip": "Gira la carta personaggio",
@@ -155,6 +155,7 @@
     "downloadCv": "Scarica il CV",
     "cvError": "Impossibile aprire il CV. Riprova più tardi.",
     "bio": "Data Scientist con oltre cinque anni di esperienza sull'intero ciclo di vita del dato — dalla raccolta e validazione fino alle dashboard operative e agli insight strategici per team commerciali e C-level. Unisco solide basi statistiche (Laurea triennale in Statistica, Laurea magistrale in Data Science in corso) a un approccio pratico e orientato ai risultati. Lavoro principalmente con Python, SQL e strumenti cloud su AWS, con esperienza in automazione dei processi e algoritmi di Machine/Deep Learning. Appassionato di AI e tecnologie emergenti, mi piace tradurre dati complessi in strategie chiare e attuabili per interlocutori tecnici e non.",
+    "portraitAlt": "Foto di Marco Manduca",
     "experienceTitle": "Esperienza",
     "educationTitle": "Formazione",
     "courseFacts": "Dati del corso",
