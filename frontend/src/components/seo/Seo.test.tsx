@@ -13,9 +13,7 @@ describe('Seo', () => {
       route: '/projects',
     })
 
-    await waitFor(() =>
-      expect(document.title).toBe('Projects — marcomanduca.dev'),
-    )
+    await waitFor(() => expect(document.title).toBe('Projects — Marco Manduca'))
     expect(
       document.head.querySelector('link[rel="canonical"]'),
     ).toHaveAttribute('href', 'https://marcomanduca.dev/projects')
@@ -26,6 +24,17 @@ describe('Seo', () => {
     )
     expect(metaContent('meta[name="twitter:card"]')).toBe('summary_large_image')
     expect(document.head.querySelector('meta[name="robots"]')).toBeNull()
+  })
+
+  it('titles the home page with the name and role', async () => {
+    renderWithProviders(<Seo description="Home" />)
+
+    await waitFor(() =>
+      expect(document.title).toBe('Marco Manduca — Data Scientist'),
+    )
+    expect(metaContent('meta[property="og:site_name"]')).toBe(
+      'marcomanduca.dev',
+    )
   })
 
   it('uses the page image and noindex when provided', async () => {

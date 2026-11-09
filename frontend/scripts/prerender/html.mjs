@@ -4,10 +4,16 @@
  * renderSeoTags() mirrors what src/components/seo/Seo.tsx renders at
  * runtime (same title format, canonical, OpenGraph and Twitter tags), and
  * marks every tag with data-rh so react-helmet-async takes them over once
- * the app runs. Keep the two in sync.
+ * the app runs. Keep the two in sync; both read src/data/profile.json.
+ *
+ * The home page also gets a schema.org Person (JSON-LD) for search engines.
+ * It carries no data-rh, so react-helmet-async leaves it alone.
  */
 
-export const SITE_NAME = 'marcomanduca.dev'
+import profile from '../../src/data/profile.json' with { type: 'json' }
+
+export const SITE_NAME = profile.siteName
+const HOME_TITLE = `${profile.name} — ${profile.role}`
 export const SEO_START = '<!-- seo:start -->'
 export const SEO_END = '<!-- seo:end -->'
 
@@ -27,6 +33,33 @@ const meta = (attribute, name, content) =>
   `<meta data-rh="true" ${attribute}="${name}" content="${escapeHtml(content)}" />`
 
 /**
+ * The schema.org Person describing the site owner.
+ *
+ * @param {string} siteUrl Public origin
+ * @returns {Record<string, unknown>}
+ */
+export const personJsonLd = (siteUrl) => ({
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: profile.name,
+  jobTitle: profile.role,
+  url: `${siteUrl}/`,
+  image: `${siteUrl}/og-image.png`,
+  sameAs: [profile.links.github, profile.links.linkedin],
+  alumniOf: { '@type': 'CollegeOrUniversity', name: profile.alumniOf },
+})
+
+/**
+ * Serialise JSON-LD for an inline <script>: `<` is escaped so no value can
+ * close the element early.
+ *
+ * @param {unknown} data
+ * @returns {string}
+ */
+export const jsonLdScript = (data) =>
+  `<script type="application/ld+json">${JSON.stringify(data).replace(/</g, '\\u003c')}</script>`
+
+/**
  * Render the head tags of one route.
  *
  * @param {{ title?: string, description: string, type: string, image?: string }} route
@@ -40,7 +73,7 @@ export const renderSeoTags = (
   siteUrl,
   path,
 ) => {
-  const fullTitle = title ? `${title} — ${SITE_NAME}` : SITE_NAME
+  const fullTitle = title ? `${title} — ${profile.name}` : HOME_TITLE
   const canonical = `${siteUrl}${path}`
   // Images shipped with the site come as paths; OpenGraph needs a full URL.
   const shareImage = image?.startsWith('/')
@@ -69,6 +102,7 @@ export const renderSeoTags = (
     meta('name', 'twitter:title', fullTitle),
     meta('name', 'twitter:description', description),
     meta('name', 'twitter:image', shareImage),
+    ...(path === '/' ? [jsonLdScript(personJsonLd(siteUrl))] : []),
   ].join('\n    ')
 }
 

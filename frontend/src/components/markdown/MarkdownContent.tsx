@@ -9,6 +9,10 @@ import 'highlight.js/styles/github-dark.css'
 import { REMARK_PLUGINS } from '@/utils/markdownPlugins'
 import { rehypeHighlight } from '@/utils/rehypeHighlight'
 
+import { MarkdownImage } from './MarkdownImage'
+
+const COMPONENTS = { img: MarkdownImage }
+
 interface MarkdownContentProps {
   content: string
 }
@@ -26,12 +30,14 @@ interface MarkdownContentProps {
  * `urlTransform` also strips dangerous link protocols (e.g. `javascript:`).
  * Second-level headings get an anchor id from their text
  * (`remarkHeadingIds`, shared with the table of contents), never from raw HTML.
+ * Images render as framed, zoomable figures (`MarkdownImage`).
  */
 const MarkdownContent = ({ content }: MarkdownContentProps) => (
   <ReactMarkdown
     skipHtml
     remarkPlugins={REMARK_PLUGINS}
     rehypePlugins={[rehypeHighlight, rehypeKatex]}
+    components={COMPONENTS}
   >
     {content}
   </ReactMarkdown>
