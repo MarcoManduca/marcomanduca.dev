@@ -21,8 +21,12 @@
   },
   "home": {
     "heroName": "Marco Manduca",
-    "heroRole": "Data Engineer & Data Scientist",
+    "heroRole": "Data Scientist",
     "heroTagline": "Between raw data and strategic decisions lies a path built of architectures, algorithms and analysis. My job is to design that path and make it scalable, efficient and measurable.",
+    "hero": {
+      "label": "Quick links",
+      "contact": "Contact me"
+    },
     "card": {
       "label": "Character card",
       "portraitAlt": "Portrait of Marco Manduca",
@@ -142,10 +146,10 @@
   },
   "about": {
     "title": "About me",
-    "subtitle": "Data professional with 5+ years across the full data lifecycle.",
+    "subtitle": "Data Scientist with 5+ years across the full data lifecycle.",
     "downloadCv": "Download CV",
     "cvError": "Could not open the CV. Please try again later.",
-    "bio": "Data professional with over five years of experience across the full data lifecycle — from data collection and validation to operational dashboards and strategic insights for commercial and C-level teams. I pair a strong statistical foundation (BSc in Statistics, MSc in Data Science in progress) with a practical, result-driven mindset. I work mainly with Python, SQL and cloud tooling on AWS, with experience in process automation and Machine/Deep Learning. Passionate about AI and emerging technologies, I enjoy turning complex data into clear, actionable strategies for both technical and non-technical stakeholders.",
+    "bio": "Data Scientist with over five years of experience across the full data lifecycle — from data collection and validation to operational dashboards and strategic insights for commercial and C-level teams. I pair a strong statistical foundation (BSc in Statistics, MSc in Data Science in progress) with a practical, result-driven mindset. I work mainly with Python, SQL and cloud tooling on AWS, with experience in process automation and Machine/Deep Learning. Passionate about AI and emerging technologies, I enjoy turning complex data into clear, actionable strategies for both technical and non-technical stakeholders.",
     "experienceTitle": "Experience",
     "educationTitle": "Education",
     "courseFacts": "Course facts",

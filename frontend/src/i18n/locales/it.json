@@ -21,8 +21,12 @@
   },
   "home": {
     "heroName": "Marco Manduca",
-    "heroRole": "Data Engineer & Data Scientist",
+    "heroRole": "Data Scientist",
     "heroTagline": "Tra dati grezzi e decisioni strategiche c'è un percorso fatto di architetture, algoritmi e analisi. Il mio lavoro consiste nel progettare quel percorso e renderlo scalabile, efficiente e misurabile.",
+    "hero": {
+      "label": "Link rapidi",
+      "contact": "Contattami"
+    },
     "card": {
       "label": "Carta personaggio",
       "portraitAlt": "Ritratto di Marco Manduca",
@@ -142,10 +146,10 @@
   },
   "about": {
     "title": "Chi sono",
-    "subtitle": "Data professional con oltre 5 anni sull'intero ciclo di vita del dato.",
+    "subtitle": "Data Scientist con oltre 5 anni sull'intero ciclo di vita del dato.",
     "downloadCv": "Scarica il CV",
     "cvError": "Impossibile aprire il CV. Riprova più tardi.",
-    "bio": "Data professional con oltre cinque anni di esperienza sull'intero ciclo di vita del dato — dalla raccolta e validazione fino alle dashboard operative e agli insight strategici per team commerciali e C-level. Unisco solide basi statistiche (Laurea triennale in Statistica, Laurea magistrale in Data Science in corso) a un approccio pratico e orientato ai risultati. Lavoro principalmente con Python, SQL e strumenti cloud su AWS, con esperienza in automazione dei processi e algoritmi di Machine/Deep Learning. Appassionato di AI e tecnologie emergenti, mi piace tradurre dati complessi in strategie chiare e attuabili per interlocutori tecnici e non.",
+    "bio": "Data Scientist con oltre cinque anni di esperienza sull'intero ciclo di vita del dato — dalla raccolta e validazione fino alle dashboard operative e agli insight strategici per team commerciali e C-level. Unisco solide basi statistiche (Laurea triennale in Statistica, Laurea magistrale in Data Science in corso) a un approccio pratico e orientato ai risultati. Lavoro principalmente con Python, SQL e strumenti cloud su AWS, con esperienza in automazione dei processi e algoritmi di Machine/Deep Learning. Appassionato di AI e tecnologie emergenti, mi piace tradurre dati complessi in strategie chiare e attuabili per interlocutori tecnici e non.",
     "experienceTitle": "Esperienza",
     "educationTitle": "Formazione",
     "courseFacts": "Dati del corso",
