@@ -208,8 +208,6 @@ describe('AboutMe title', () => {
   it('names the page in the document title', async () => {
     renderWithProviders(<AboutMe />)
 
-    await waitFor(() =>
-      expect(document.title).toBe('About me — marcomanduca.dev'),
-    )
+    await waitFor(() => expect(document.title).toBe('About me — Marco Manduca'))
   })
 })

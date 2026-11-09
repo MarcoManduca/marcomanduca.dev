@@ -134,7 +134,7 @@ describe('Projects title', () => {
     renderWithProviders(<Projects />)
 
     await waitFor(() =>
-      expect(document.title).toBe('Projects — marcomanduca.dev'),
+      expect(document.title).toBe('Projects — Marco Manduca'),
     )
   })
 })

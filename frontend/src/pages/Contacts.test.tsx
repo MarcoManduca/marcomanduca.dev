@@ -126,8 +126,6 @@ describe('Contacts title', () => {
   it('names the page in the document title', async () => {
     renderWithProviders(<Contacts />)
 
-    await waitFor(() =>
-      expect(document.title).toBe('Contacts — marcomanduca.dev'),
-    )
+    await waitFor(() => expect(document.title).toBe('Contacts — Marco Manduca'))
   })
 })
