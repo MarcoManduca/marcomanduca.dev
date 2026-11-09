@@ -24,8 +24,12 @@ export const HeroActions = () => {
       className="mx-auto flex w-full max-w-[420px] flex-col gap-5"
     >
       <p className="text-lg text-body">{t('home.card.description')}</p>
-      <div className="flex flex-wrap gap-3">
-        <DownloadCvButton className={ACTION} />
+      {/* CV first and full width, the two links side by side under it: one
+          layout that fits every column width and both languages. */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="col-span-2">
+          <DownloadCvButton className={cn(ACTION, 'w-full')} />
+        </div>
         <a
           href={profile.links.linkedin}
           target="_blank"
