@@ -17,7 +17,9 @@
     "error": "Something went wrong. Please try again.",
     "retry": "Retry",
     "viewAll": "View all",
-    "readMore": "Read more"
+    "readMore": "Read more",
+    "enlargeImage": "Enlarge image",
+    "close": "Close"
   },
   "home": {
     "heroName": "Marco Manduca",

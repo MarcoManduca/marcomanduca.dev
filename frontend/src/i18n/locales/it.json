@@ -17,7 +17,9 @@
     "error": "Qualcosa è andato storto. Riprova.",
     "retry": "Riprova",
     "viewAll": "Vedi tutti",
-    "readMore": "Leggi di più"
+    "readMore": "Leggi di più",
+    "enlargeImage": "Ingrandisci immagine",
+    "close": "Chiudi"
   },
   "home": {
     "heroName": "Marco Manduca",
