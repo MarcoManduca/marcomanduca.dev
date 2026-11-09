@@ -31,9 +31,7 @@ describe('CharacterCard', () => {
       name: 'Marco Manduca',
     })
     expect(faceOf(name)).toHaveAttribute('aria-hidden', 'false')
-    expect(
-      screen.getByText('Data Engineer & Data Scientist'),
-    ).toBeInTheDocument()
+    expect(screen.getByText('Data Scientist')).toBeInTheDocument()
     expect(screen.getByText(/^Level: \d+ years of experience$/)).toBeVisible()
     expect(
       screen.getByRole('img', { name: 'Portrait of Marco Manduca' }),

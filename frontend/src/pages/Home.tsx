@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 
 import { FigurineShelf } from '@/components/game/FigurineShelf'
 import { CharacterCard } from '@/components/home/CharacterCard'
+import { HeroActions } from '@/components/home/HeroActions'
 import { SideQuestsSection } from '@/components/home/sideQuests/SideQuestsSection'
 import { StatsSection } from '@/components/home/stats/StatsSection'
 import { QuestLog } from '@/components/quests/QuestLog'
@@ -15,7 +16,10 @@ export const Home = () => {
       <Seo description={t('home.heroTagline')} />
       {/* The card narrows on lg so quest names keep a single line. */}
       <div className="grid items-start gap-10 lg:grid-cols-[340px_minmax(0,1fr)] lg:gap-12 xl:grid-cols-[420px_minmax(0,1fr)]">
-        <CharacterCard />
+        <div className="flex flex-col gap-8">
+          <CharacterCard />
+          <HeroActions />
+        </div>
         <QuestLog />
       </div>
       {/* Side by side from lg, as tall as each other; stacked below. */}

@@ -81,8 +81,6 @@ describe('Learning title', () => {
   it('names the page in the document title', async () => {
     renderWithProviders(<Learning />)
 
-    await waitFor(() =>
-      expect(document.title).toBe('Learning — marcomanduca.dev'),
-    )
+    await waitFor(() => expect(document.title).toBe('Learning — Marco Manduca'))
   })
 })

@@ -126,7 +126,7 @@
     @apply bg-transparent p-0;
   }
   .markdown img {
-    @apply my-4 rounded-lg;
+    @apply rounded-md;
   }
   .markdown table {
     @apply my-4 w-full border-collapse text-sm;

@@ -4,9 +4,9 @@
  */
 export const SKILL_GROUPS = [
   'programming',
+  'statisticsMl',
   'dataEngineering',
   'dataViz',
-  'versioning',
   'crmStorage',
   'ai',
 ] as const

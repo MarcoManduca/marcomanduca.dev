@@ -26,14 +26,22 @@ describe('StatsSection', () => {
     ).toBeInTheDocument()
   })
 
-  it('lists the level of each group beside the chart, leaving tools to the tooltip', () => {
+  it('lists each group beside the chart, leaving tools to the tooltip', () => {
     renderWithProviders(<StatsSection />)
 
     const rows = screen.getAllByRole('listitem')
     expect(rows).toHaveLength(6)
-    expect(rows[0]).toHaveTextContent(/^Programming9\/10$/)
-    expect(rows[4]).toHaveTextContent(/^CRM & Storage8\/10$/)
-    expect(rows[5]).toHaveTextContent(/^AI & Agents9\/10$/)
+    expect(rows[0]).toHaveTextContent(/^Programming$/)
+    expect(rows[1]).toHaveTextContent(/^Statistics & ML$/)
+    expect(rows[4]).toHaveTextContent(/^CRM & Storage$/)
+    expect(rows[5]).toHaveTextContent(/^AI & Agents$/)
+  })
+
+  it('shows levels as pips only, never as a score out of ten', () => {
+    renderWithProviders(<StatsSection />)
+
+    expect(screen.queryByText(/\/10/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Version control/i)).not.toBeInTheDocument()
   })
 
   it('shows every tool of a group on hover, and hides them on leave', async () => {
@@ -43,7 +51,7 @@ describe('StatsSection', () => {
     expect(screen.getByRole('tooltip')).toHaveTextContent(
       'AWS Athena · AWS Glue · AWS Lambda · SAS Data Integration · SAS Data Management',
     )
-    expect(point('Data Engineering')).toHaveAccessibleDescription(/Level 9\/10/)
+    expect(point('Data Engineering')).toHaveAccessibleDescription(/AWS Athena/)
 
     await userEvent.unhover(point('Data Engineering'))
     expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
@@ -81,13 +89,23 @@ describe('StatsSection', () => {
     expect(screen.getByRole('tooltip')).toHaveTextContent('Salesforce')
   })
 
-  it('shows the AI tools on the AI & Agents point', async () => {
+  it('shows the AI capabilities on the AI & Agents point', async () => {
     renderWithProviders(<StatsSection />)
 
     await userEvent.hover(point('AI & Agents'))
 
     expect(screen.getByRole('tooltip')).toHaveTextContent(
-      'Claude Code · Claude · ChatGPT · Gemini',
+      'LLM APIs · RAG & vector DBs · Agents & MCP · Prompt engineering & evals',
+    )
+  })
+
+  it('plots Statistics & ML with its tools', async () => {
+    renderWithProviders(<StatsSection />)
+
+    await userEvent.hover(point('Statistics & ML'))
+
+    expect(screen.getByRole('tooltip')).toHaveTextContent(
+      'R · scikit-learn · TensorFlow · Keras · SciPy',
     )
   })
 })

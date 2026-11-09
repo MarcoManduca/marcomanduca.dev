@@ -17,12 +17,18 @@
     "error": "Something went wrong. Please try again.",
     "retry": "Retry",
     "viewAll": "View all",
-    "readMore": "Read more"
+    "readMore": "Read more",
+    "enlargeImage": "Enlarge image",
+    "close": "Close"
   },
   "home": {
     "heroName": "Marco Manduca",
-    "heroRole": "Data Engineer & Data Scientist",
+    "heroRole": "Data Scientist",
     "heroTagline": "Between raw data and strategic decisions lies a path built of architectures, algorithms and analysis. My job is to design that path and make it scalable, efficient and measurable.",
+    "hero": {
+      "label": "Quick links",
+      "contact": "Contact me"
+    },
     "card": {
       "label": "Character card",
       "portraitAlt": "Portrait of Marco Manduca",
@@ -51,15 +57,14 @@
       "title": "Statistics",
       "axis": {
         "programming": "Programming",
+        "statisticsMl": "Stats & ML",
         "dataEngineering": "Data Eng.",
         "dataViz": "Data Viz",
-        "versioning": "Version control",
         "crmStorage": "CRM & Storage",
         "ai": "AI & Agents"
       },
-      "level": "Level {{level}}/{{max}}",
       "point": "{{name}}: level {{level}} of {{max}}",
-      "hint": "Tap a point to see its level and tools"
+      "hint": "Tap a point to see its tools"
     },
     "sideQuests": {
       "title": "Side Quests",
@@ -142,10 +147,10 @@
   },
   "about": {
     "title": "About me",
-    "subtitle": "Data professional with 5+ years across the full data lifecycle.",
+    "subtitle": "Data Scientist with 5+ years across the full data lifecycle.",
     "downloadCv": "Download CV",
     "cvError": "Could not open the CV. Please try again later.",
-    "bio": "Data professional with over five years of experience across the full data lifecycle — from data collection and validation to operational dashboards and strategic insights for commercial and C-level teams. I pair a strong statistical foundation (BSc in Statistics, MSc in Data Science in progress) with a practical, result-driven mindset. I work mainly with Python, SQL and cloud tooling on AWS, with experience in process automation and Machine/Deep Learning. Passionate about AI and emerging technologies, I enjoy turning complex data into clear, actionable strategies for both technical and non-technical stakeholders.",
+    "bio": "Data Scientist with over five years of experience across the full data lifecycle — from data collection and validation to operational dashboards and strategic insights for commercial and C-level teams. I pair a strong statistical foundation (BSc in Statistics, MSc in Data Science in progress) with a practical, result-driven mindset. I work mainly with Python, SQL and cloud tooling on AWS, with experience in process automation and Machine/Deep Learning. Passionate about AI and emerging technologies, I enjoy turning complex data into clear, actionable strategies for both technical and non-technical stakeholders.",
     "experienceTitle": "Experience",
     "educationTitle": "Education",
     "courseFacts": "Course facts",
@@ -159,9 +164,9 @@
     "skillsTitle": "Skills",
     "skillGroups": {
       "programming": "Programming",
+      "statisticsMl": "Statistics & ML",
       "dataEngineering": "Data Engineering",
       "dataViz": "Data Visualization",
-      "versioning": "Version Control",
       "crmStorage": "CRM & Storage",
       "ai": "AI & Agents"
     },
@@ -365,7 +370,8 @@
       }
     ],
     "skills": {
-      "programming": ["Python", "R", "SAS Base", "SAS Macro", "SQL"],
+      "programming": ["Python", "R", "SAS Base", "SAS Macro", "SQL", "Git"],
+      "statisticsMl": ["R", "scikit-learn", "TensorFlow", "Keras", "SciPy"],
       "dataEngineering": [
         "AWS Athena",
         "AWS Glue",
@@ -374,7 +380,6 @@
         "SAS Data Management"
       ],
       "dataViz": ["Power BI", "Tableau", "SAS Viya", "Looker Studio"],
-      "versioning": ["GitHub", "Bitbucket"],
       "crmStorage": [
         "Salesforce",
         "AWS S3",
@@ -385,7 +390,12 @@
         "Oracle",
         "PostgreSQL"
       ],
-      "ai": ["Claude Code", "Claude", "ChatGPT", "Gemini"]
+      "ai": [
+        "LLM APIs",
+        "RAG & vector DBs",
+        "Agents & MCP",
+        "Prompt engineering & evals"
+      ]
     }
   },
   "projects": {
@@ -494,7 +504,11 @@
       "validation": "Please check the fields: the email address looks invalid or a field is too long.",
       "rateLimited": "Too many messages in a short time. Please try again in a few minutes."
     },
-    "consent": "I have read and accept the <privacy>Privacy Policy</privacy> and consent to the processing of my data to receive a reply."
+    "consent": "I have read and accept the <privacy>Privacy Policy</privacy> and consent to the processing of my data to receive a reply.",
+    "channels": {
+      "title": "Elsewhere",
+      "text": "Prefer a more direct channel? You can also find me here."
+    }
   },
   "privacy": {
     "title": "Privacy Policy",
@@ -695,7 +709,8 @@
   },
   "footer": {
     "rights": "All rights reserved.",
-    "privacy": "Privacy Policy"
+    "privacy": "Privacy Policy",
+    "linksLabel": "Site and profile links"
   },
   "language": {
     "label": "Language",
