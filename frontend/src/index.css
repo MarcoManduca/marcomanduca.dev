@@ -14,35 +14,13 @@
 @tailwind utilities;
 
 /*
- * Theme tokens as RGB channels (see tailwind.config.js). The dark theme is
- * the default; public/theme-init.js sets `data-theme` before first paint
- * from the stored choice or the OS preference.
+ * Theme tokens as RGB channels (see tailwind.config.js). The light theme is
+ * the default (`:root`); public/theme-init.js sets `data-theme` before first
+ * paint from the stored choice, else dark only for an OS set to dark. The
+ * dark block comes second so it wins over `:root` at equal specificity.
  */
 @layer base {
   :root,
-  [data-theme='dark'] {
-    color-scheme: dark;
-    --color-background: 13 27 31; /* #0D1B1F */
-    --color-surface: 19 40 46; /* #13282E */
-    --color-raised: 26 52 59; /* #1A343B */
-    --color-edge: 38 68 76; /* #26444C */
-    --color-accent: 3 169 193; /* #03A9C1 */
-    --color-accent-hover: 47 195 214; /* #2FC3D6 */
-    --color-accent-deep: 3 114 139; /* #03728B */
-    --color-warm: 243 140 48; /* #F38C30 */
-    --color-warm-hover: 247 164 85; /* #F7A455 */
-    --color-highlight: 244 223 109; /* #F4DF6D */
-    --color-body: 201 216 220; /* #C9D8DC */
-    --color-heading: 244 240 240; /* #F4F0F0 */
-    --color-muted: 127 154 161; /* #7F9AA1 */
-    --color-success: 52 211 153; /* #34D399 */
-    --color-danger: 248 113 113; /* #F87171 */
-    --color-card: 244 240 240; /* #F4F0F0 */
-    --color-card-ink: 13 27 31; /* #0D1B1F */
-    --color-card-accent: 168 80 26; /* #A8501A */
-    --color-card-muted: 63 90 97; /* #3F5A61 */
-  }
-
   [data-theme='light'] {
     color-scheme: light;
     --color-background: 239 227 200; /* #EFE3C8 */
@@ -64,6 +42,29 @@
     --color-card-ink: 11 58 68; /* #0B3A44 */
     --color-card-accent: 156 74 18; /* #9C4A12 */
     --color-card-muted: 110 94 62; /* #6E5E3E */
+  }
+
+  [data-theme='dark'] {
+    color-scheme: dark;
+    --color-background: 13 27 31; /* #0D1B1F */
+    --color-surface: 19 40 46; /* #13282E */
+    --color-raised: 26 52 59; /* #1A343B */
+    --color-edge: 38 68 76; /* #26444C */
+    --color-accent: 3 169 193; /* #03A9C1 */
+    --color-accent-hover: 47 195 214; /* #2FC3D6 */
+    --color-accent-deep: 3 114 139; /* #03728B */
+    --color-warm: 243 140 48; /* #F38C30 */
+    --color-warm-hover: 247 164 85; /* #F7A455 */
+    --color-highlight: 244 223 109; /* #F4DF6D */
+    --color-body: 201 216 220; /* #C9D8DC */
+    --color-heading: 244 240 240; /* #F4F0F0 */
+    --color-muted: 127 154 161; /* #7F9AA1 */
+    --color-success: 52 211 153; /* #34D399 */
+    --color-danger: 248 113 113; /* #F87171 */
+    --color-card: 244 240 240; /* #F4F0F0 */
+    --color-card-ink: 13 27 31; /* #0D1B1F */
+    --color-card-accent: 168 80 26; /* #A8501A */
+    --color-card-muted: 63 90 97; /* #3F5A61 */
   }
 
   body {

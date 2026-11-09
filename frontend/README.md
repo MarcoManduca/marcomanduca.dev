@@ -32,11 +32,12 @@ all 37 "common" ones); `katex` is pulled in for its CSS theme.
 
 - **Themes.** Semantic colours (`background`, `surface`, `accent`, `warm`,
   `highlight`, …) are RGB-channel CSS variables defined per `data-theme` in
-  `src/index.css` and mapped in `tailwind.config.js`. Dark ("Trading Card",
-  night teal) is the default; light uses the "Adventurers' Guild" parchment
-  palette. `public/theme-init.js` applies the stored or OS theme before first
-  paint (external script, as the CSP forbids inline ones); `useTheme` toggles
-  and persists it. `brand.*` colours are fixed across themes (card foil).
+  `src/index.css` and mapped in `tailwind.config.js`. Light ("Adventurers'
+  Guild" parchment) is the default; dark is the "Trading Card" night teal
+  palette. `public/theme-init.js` picks the theme before first paint
+  (external script, as the CSP forbids inline ones): the stored choice, else
+  dark only when the OS is set to dark, else light (also when storage or
+  `matchMedia` are unavailable). `useTheme` toggles and persists it. `brand.*` colours are fixed across themes (card foil).
 - **Fonts.** Barlow Condensed for headings/labels (`font-display`), Barlow for
   body text, JetBrains Mono for code.
 - **Footprints.** On the public pages the mouse leaves bare footprints on the

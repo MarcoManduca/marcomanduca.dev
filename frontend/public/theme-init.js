@@ -3,15 +3,26 @@
 // index.html places before this script). Loaded as a classic blocking script
 // from <head>: CSP forbids inline scripts. Keep the storage key and the
 // colours in sync with src/utils/theme.ts.
+//
+// Light is the default: a stored choice (the theme switch) wins, then an OS
+// set to dark, and everything else (no preference, storage blocked, no
+// matchMedia) gets the light theme.
 ;(function () {
-  var theme = 'dark'
+  var theme = null
   try {
     var stored = localStorage.getItem('theme')
     if (stored === 'light' || stored === 'dark') theme = stored
-    else if (window.matchMedia('(prefers-color-scheme: light)').matches)
-      theme = 'light'
   } catch (e) {
-    // Storage blocked: keep the default dark theme.
+    // Storage blocked: fall back to the OS preference below.
+  }
+  if (!theme) {
+    var prefersDark = false
+    try {
+      prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    } catch (e) {
+      // No matchMedia: keep the light default.
+    }
+    theme = prefersDark ? 'dark' : 'light'
   }
   document.documentElement.setAttribute('data-theme', theme)
   var themeColor = document.querySelector('meta[name="theme-color"]')

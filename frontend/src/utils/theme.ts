@@ -12,9 +12,12 @@ const THEME_COLORS: Record<Theme, string> = {
   light: '#EFE3C8',
 }
 
-/** Theme currently applied on <html> (set before paint by theme-init.js). */
+/**
+ * Theme currently applied on <html> (set before paint by theme-init.js);
+ * light unless the document is explicitly dark, like the CSS defaults.
+ */
 export const readTheme = (): Theme =>
-  document.documentElement.dataset.theme === 'light' ? 'light' : 'dark'
+  document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light'
 
 const listeners = new Set<() => void>()
 
