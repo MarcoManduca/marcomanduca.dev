@@ -1,7 +1,8 @@
-import { fireEvent, screen } from '@testing-library/react'
+import { act, fireEvent, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import { renderWithProviders } from '@/test/utils'
+import { applyTheme } from '@/utils/theme'
 
 import { CharacterCard } from './CharacterCard'
 
@@ -34,7 +35,9 @@ describe('CharacterCard', () => {
     expect(screen.getByText('Data Scientist')).toBeInTheDocument()
     expect(screen.getByText(/^Level: \d+ years of experience$/)).toBeVisible()
     expect(
-      screen.getByRole('img', { name: 'Portrait of Marco Manduca' }),
+      screen.getByRole('img', {
+        name: 'Illustration of Marco Manduca as an explorer reading a map',
+      }),
     ).toBeInTheDocument()
   })
 
@@ -93,6 +96,20 @@ describe('CharacterCard', () => {
     await userEvent.click(cardControl())
 
     expect(store.getState().game.unlocked).toContain('curious')
+  })
+
+  it('shows the art of the active theme and swaps it on a theme switch', () => {
+    document.documentElement.dataset.theme = 'dark'
+    renderWithProviders(<CharacterCard />)
+    const art = screen.getByRole('img', { name: /Illustration of Marco/ })
+
+    expect(art).toHaveAttribute('src', expect.stringContaining('dark'))
+    expect(art.getAttribute('srcset')).not.toMatch(/light/)
+
+    act(() => applyTheme('light'))
+
+    expect(art).toHaveAttribute('src', expect.stringContaining('light'))
+    expect(art.getAttribute('srcset')).not.toMatch(/dark/)
   })
 
   it('lists the skills, AI included, and the description on the back', () => {

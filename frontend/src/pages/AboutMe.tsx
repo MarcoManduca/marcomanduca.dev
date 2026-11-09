@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 
+import { AboutPortrait } from '@/components/about/AboutPortrait'
 import { DownloadCvButton } from '@/components/about/DownloadCvButton'
 import {
   EducationTimeline,
@@ -35,12 +36,19 @@ export const AboutMe = () => {
       <Seo title={t('about.title')} description={t('about.subtitle')} />
       <h1 className="text-3xl font-bold text-heading">{t('about.title')}</h1>
       <p className="mt-2 text-muted">{t('about.subtitle')}</p>
-      <Prose className="mt-6 leading-relaxed">
-        <p>{t('about.bio')}</p>
-      </Prose>
-
-      <div className="mt-6">
-        <DownloadCvButton />
+      {/* Below xl the photo floats into the bio (the text wraps around it);
+          from xl it has its own column, stretched to the bio's height. Either
+          way the sections below stay where the text alone puts them. */}
+      <div className="mt-6 flow-root xl:grid xl:grid-cols-[minmax(0,1fr)_15rem] xl:gap-12">
+        <AboutPortrait className="float-right mb-3 ml-4 w-28 sm:w-40 xl:float-none xl:col-start-2 xl:row-start-1 xl:m-0 xl:w-full" />
+        <div className="xl:col-start-1 xl:row-start-1">
+          <Prose className="leading-relaxed">
+            <p>{t('about.bio')}</p>
+          </Prose>
+          <div className="mt-6">
+            <DownloadCvButton />
+          </div>
+        </div>
       </div>
 
       <h2 className="mt-12 text-2xl font-semibold text-heading">

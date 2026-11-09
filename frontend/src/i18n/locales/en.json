@@ -31,7 +31,7 @@
     },
     "card": {
       "label": "Character card",
-      "portraitAlt": "Portrait of Marco Manduca",
+      "portraitAlt": "Illustration of Marco Manduca as an explorer reading a map",
       "level": "LV {{years}}",
       "levelLabel": "Level: {{years}} years of experience",
       "flip": "Flip the character card",
@@ -155,6 +155,7 @@
     "downloadCv": "Download CV",
     "cvError": "Could not open the CV. Please try again later.",
     "bio": "Data Scientist with over five years of experience across the full data lifecycle — from data collection and validation to operational dashboards and strategic insights for commercial and C-level teams. I pair a strong statistical foundation (BSc in Statistics, MSc in Data Science in progress) with a practical, result-driven mindset. I work mainly with Python, SQL and cloud tooling on AWS, with experience in process automation and Machine/Deep Learning. Passionate about AI and emerging technologies, I enjoy turning complex data into clear, actionable strategies for both technical and non-technical stakeholders.",
+    "portraitAlt": "Photo of Marco Manduca",
     "experienceTitle": "Experience",
     "educationTitle": "Education",
     "courseFacts": "Course facts",

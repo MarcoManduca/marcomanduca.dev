@@ -49,8 +49,10 @@ all 37 "common" ones); `katex` is pulled in for its CSS theme.
   background or border around it), so none slips under a card. Every print
   shown counts towards the _Level Up_ figurine. Mouse only; off under reduced
   motion.
-- **Home.** Flippable character card (full-art portrait on the front, with
-  the level = calendar years since the first job's `start`; skills and
+- **Home.** Flippable character card (full-art illustration on the front: a
+  day scene in the light theme, a night one in the dark theme, only the
+  active one requested; level badge and name box on plates themed like the
+  page; the level = calendar years since the first job's `start`; skills and
   description on the back; 3D turn, instant under reduced motion; leans
   toward the mouse pointer, the foil sheen sliding after it), with the CV /
   LinkedIn / contact shortcuts under it (`components/home/HeroActions.tsx`),
@@ -111,6 +113,11 @@ all 37 "common" ones); `katex` is pulled in for its CSS theme.
   End) and screen readers.
   Project images ship in `public/images/projects/<slug>/` and are referenced
   by path (`utils/safeUrl.ts` `safeMediaUrl`).
+- **About photo.** The Home card is illustrated, so the About page shows the
+  real photo beside the bio (`components/about/AboutPortrait.tsx`, foil frame
+  like the card). Below `xl` it floats into the bio and the text wraps
+  around it; from `xl` it has its own column, stretched to the bio's height.
+  Either way it adds no height of its own, so the sections below stay put.
 - **About timeline.** Every experience and education entry is a card with
   its dot on a rail (`components/about/Timeline.tsx`). A scroll-spy
   (`useScrollSpy`) lights up the entry crossing a reading line at 35% of the
