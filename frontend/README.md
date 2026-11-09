@@ -115,10 +115,10 @@ all 37 "common" ones); `katex` is pulled in for its CSS theme.
   by path (`utils/safeUrl.ts` `safeMediaUrl`).
 - **About photo.** The Home card is illustrated, so the About page shows the
   real photo beside the bio (`components/about/AboutPortrait.tsx`, foil frame
-  like the card). On phones it has its own column beside the title, so the
-  bio stays full width; from `sm` it floats into the bio and the text wraps
-  around it; from `xl` it has its own column, stretched to the bio's height.
-  One element, placed by grid areas and a float per breakpoint.
+  like the card). On phones it has a full-width row of its own between the
+  title and the bio, like the Home card; from `sm` it floats into the bio and
+  the text wraps around it; from `xl` it has its own column, stretched to the
+  bio's height. One element, placed per breakpoint (flex, float, grid areas).
 - **About timeline.** Every experience and education entry is a card with
   its dot on a rail (`components/about/Timeline.tsx`). A scroll-spy
   (`useScrollSpy`) lights up the entry crossing a reading line at 35% of the

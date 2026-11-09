@@ -34,18 +34,18 @@ export const AboutMe = () => {
   return (
     <>
       <Seo title={t('about.title')} description={t('about.subtitle')} />
-      {/* One photo, three placements. Phones: its own column beside the
-          title, so the bio stays full width. From sm: floated into the bio,
-          the text wrapping around it. From xl: its own column, stretched to
-          the bio's height. The sections below stay where the text puts them. */}
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-6 [grid-template-areas:'title_photo'_'bio_bio'] sm:flow-root xl:grid xl:grid-cols-[minmax(0,1fr)_15rem] xl:gap-x-12 xl:[grid-template-areas:'title_title'_'bio_photo']">
+      {/* One photo, three placements. Phones: a row of its own, full width
+          like the Home card, between the title and the bio. From sm: floated
+          into the bio, the text wrapping around it. From xl: its own column,
+          stretched to the bio's height. */}
+      <div className="flex flex-col gap-6 sm:flow-root xl:grid xl:grid-cols-[minmax(0,1fr)_15rem] xl:gap-x-12 xl:[grid-template-areas:'title_title'_'bio_photo']">
         <div className="[grid-area:title]">
           <h1 className="text-3xl font-bold text-heading">
             {t('about.title')}
           </h1>
           <p className="mt-2 text-muted">{t('about.subtitle')}</p>
         </div>
-        <AboutPortrait className="w-24 self-start [grid-area:photo] sm:float-right sm:mb-3 sm:ml-4 sm:mt-6 sm:w-40 xl:float-none xl:m-0 xl:w-full xl:self-stretch" />
+        <AboutPortrait className="w-full max-w-[26.25rem] self-center [grid-area:photo] sm:float-right sm:mb-3 sm:ml-4 sm:mt-6 sm:w-40 sm:max-w-[15rem] xl:float-none xl:m-0 xl:w-full xl:self-stretch" />
         <div className="[grid-area:bio] sm:mt-6 xl:mt-0">
           <Prose className="leading-relaxed">
             <p>{t('about.bio')}</p>
