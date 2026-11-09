@@ -51,7 +51,7 @@ export const CharacterCard = () => {
               aria-hidden={!flipped}
               className={cn(
                 FACE,
-                'gap-5 bg-surface p-5 [transform:rotateY(180deg)] sm:p-6',
+                'gap-4 bg-surface p-5 [transform:rotateY(180deg)] max-[359px]:gap-3 max-[359px]:p-4 sm:gap-5 sm:p-6 lg:p-5 xl:p-6',
               )}
             >
               <CardBack />

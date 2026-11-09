@@ -95,12 +95,17 @@ describe('CharacterCard', () => {
     expect(store.getState().game.unlocked).toContain('curious')
   })
 
-  it('lists the skills and description on the back', () => {
+  it('lists the skills, AI included, and the description on the back', () => {
     renderWithProviders(<CharacterCard />)
 
     expect(screen.getByText('Python · SQL')).toBeInTheDocument()
     expect(screen.getByText('AWS')).toBeInTheDocument()
     expect(screen.getByText('Power BI')).toBeInTheDocument()
+    expect(screen.getByText('AI')).toBeInTheDocument()
+    expect(screen.getByText('Claude Code')).toBeInTheDocument()
+    expect(
+      screen.getByText(/I design the path from raw data/),
+    ).toBeInTheDocument()
   })
 
   it('flips back and forth with the keyboard', async () => {

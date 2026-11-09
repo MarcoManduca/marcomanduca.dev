@@ -48,6 +48,10 @@
         {
           "title": "Data viz",
           "items": "Power BI"
+        },
+        {
+          "title": "AI",
+          "items": "Claude Code"
         }
       ],
       "descriptionTitle": "Descrizione",
