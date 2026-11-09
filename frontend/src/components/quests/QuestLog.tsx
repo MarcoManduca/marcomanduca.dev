@@ -47,7 +47,7 @@ export const QuestLog = () => {
       {/* The projects are one section down, behind the side quests deck. */}
       <Link
         to="/about-me"
-        className="self-end font-display text-[15px] font-bold uppercase tracking-wider text-highlight hover:text-heading sm:text-base"
+        className="mt-auto self-end font-display text-[15px] font-bold uppercase tracking-wider text-highlight hover:text-heading sm:text-base"
       >
         {t('home.quests.fullPath')} →
       </Link>

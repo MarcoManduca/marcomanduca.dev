@@ -14,9 +14,12 @@ export const Home = () => {
   return (
     <div className="flex flex-col gap-12 lg:gap-14">
       <Seo description={t('home.heroTagline')} />
-      {/* The card narrows on lg so quest names keep a single line. */}
-      <div className="grid items-start gap-10 lg:grid-cols-[340px_minmax(0,1fr)] lg:gap-12 xl:grid-cols-[420px_minmax(0,1fr)]">
-        <div className="flex flex-col gap-8">
+      {/* The card narrows on lg so quest names keep a single line. From lg
+          both columns stretch to the row: card + CTAs and the quest log line
+          up at the top and at the bottom (CTAs and "Full journey" pinned
+          there), whichever of the two is taller. */}
+      <div className="grid items-start gap-10 lg:grid-cols-[340px_minmax(0,1fr)] lg:items-stretch lg:gap-12 xl:grid-cols-[420px_minmax(0,1fr)]">
+        <div className="flex flex-col gap-6 lg:justify-between lg:gap-4">
           <CharacterCard />
           <HeroActions />
         </div>

@@ -19,6 +19,17 @@ describe('Home', () => {
     ).toBeInTheDocument()
   })
 
+  it('states the pitch once, on the card back, with the CTAs under the card', () => {
+    renderWithProviders(<Home />)
+
+    expect(screen.getAllByText(/I design the path from raw data/)).toHaveLength(
+      1,
+    )
+    expect(
+      screen.getByRole('region', { name: 'Quick links' }),
+    ).toHaveTextContent(/Download CV.*LinkedIn.*Contact me/)
+  })
+
   it('renders the quest log with the active quests first', () => {
     renderWithProviders(<Home />)
 
