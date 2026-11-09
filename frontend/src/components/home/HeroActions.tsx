@@ -7,13 +7,15 @@ import { cn } from '@/utils/cn'
 
 /** Button-sized action, shared by the CV button and the two links. */
 const ACTION =
-  'inline-flex h-11 items-center justify-center gap-2 rounded-xl px-4 py-0 font-display text-base font-bold uppercase tracking-[0.04em] transition-colors'
+  'inline-flex h-11 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-4 py-0 font-display text-base font-bold uppercase tracking-[0.04em] transition-colors'
 const OUTLINE =
   'border-2 border-edge text-heading hover:border-highlight hover:text-highlight'
 
 /**
- * One-line pitch under the character card, with the shortcuts a recruiter
- * looks for first: the CV, LinkedIn and the contact form.
+ * The shortcuts a recruiter looks for first, under the character card: the
+ * CV, LinkedIn and the contact form. One row where the column is wide enough
+ * (from `sm`, and from `xl` beside the quest log), stacked in the narrower
+ * `lg` column, CV over the two links on phones.
  */
 export const HeroActions = () => {
   const { t } = useTranslation()
@@ -21,27 +23,22 @@ export const HeroActions = () => {
   return (
     <section
       aria-label={t('home.hero.label')}
-      className="mx-auto flex w-full max-w-[420px] flex-col gap-5"
+      className="mx-auto grid w-full max-w-[420px] grid-cols-2 gap-3 sm:flex lg:flex-col xl:flex-row"
     >
-      <p className="text-lg text-body">{t('home.card.description')}</p>
-      {/* CV first and full width, the two links side by side under it: one
-          layout that fits every column width and both languages. */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="col-span-2">
-          <DownloadCvButton className={cn(ACTION, 'w-full')} />
-        </div>
-        <a
-          href={profile.links.linkedin}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={cn(ACTION, OUTLINE)}
-        >
-          LinkedIn ↗
-        </a>
-        <Link to="/contacts" className={cn(ACTION, OUTLINE)}>
-          {t('home.hero.contact')}
-        </Link>
+      <div className="col-span-2 sm:flex-auto">
+        <DownloadCvButton className={cn(ACTION, 'w-full')} />
       </div>
+      <a
+        href={profile.links.linkedin}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={cn(ACTION, OUTLINE, 'sm:flex-auto')}
+      >
+        LinkedIn ↗
+      </a>
+      <Link to="/contacts" className={cn(ACTION, OUTLINE, 'sm:flex-auto')}>
+        {t('home.hero.contact')}
+      </Link>
     </section>
   )
 }

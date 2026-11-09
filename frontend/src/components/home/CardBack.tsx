@@ -6,6 +6,7 @@ const SKILL_TOKENS = [
   { icon: '{ }', className: 'bg-brand-yellow text-brand-ink' },
   { icon: '⇄', className: 'bg-brand-orange text-brand-ink' },
   { icon: '▥', className: 'bg-brand-cyan text-brand-ink' },
+  { icon: '✦', className: 'bg-brand-teal text-brand-cream' },
 ] as const
 
 interface CardSkill {
@@ -30,12 +31,14 @@ export const CardBack = () => {
           {skills.map(({ title, items }, index) => (
             <li
               key={title}
-              className="flex items-center gap-3 border-b border-edge py-2.5 last:border-b-0"
+              // Tighter rows where the card is smallest: phones and the
+              // 340px lg column.
+              className="flex items-center gap-3 border-b border-edge py-1.5 last:border-b-0 max-[359px]:py-1 sm:py-2.5 lg:py-2 xl:py-2.5"
             >
               <span
                 aria-hidden="true"
                 className={cn(
-                  'flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-display text-base font-extrabold',
+                  'flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-display text-base font-extrabold max-[359px]:h-8 max-[359px]:w-8 sm:h-10 sm:w-10',
                   SKILL_TOKENS[index % SKILL_TOKENS.length].className,
                 )}
               >
@@ -52,9 +55,9 @@ export const CardBack = () => {
         </ul>
       </section>
 
-      <section className="flex flex-col gap-2 border-t-2 border-edge pt-4">
+      <section className="flex flex-col gap-2 border-t-2 border-edge pt-3 sm:pt-4">
         <h2 className={SECTION_TITLE}>{t('home.card.descriptionTitle')}</h2>
-        <p className="text-base leading-relaxed text-body">
+        <p className="text-sm leading-relaxed text-body sm:text-base">
           {t('home.card.description')}
         </p>
       </section>

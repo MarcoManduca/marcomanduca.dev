@@ -51,10 +51,14 @@ all 37 "common" ones); `katex` is pulled in for its CSS theme.
 - **Home.** Flippable character card (full-art portrait on the front, with
   the level = calendar years since the first job's `start`; skills and
   description on the back; 3D turn, instant under reduced motion; leans
-  toward the mouse pointer, the foil sheen sliding after it), with a
-  one-line pitch and the CV / LinkedIn / contact shortcuts under it
-  (`components/home/HeroActions.tsx`) + quest log + stats + side quests +
-  figurine collection. The quest log has two tabs built
+  toward the mouse pointer, the foil sheen sliding after it), with the CV /
+  LinkedIn / contact shortcuts under it (`components/home/HeroActions.tsx`),
+  then quest log, stats, side quests and figurine collection. From `lg` the
+  card column and the quest log stretch to the same row height, so card and
+  CTAs line up with the quest log at the top and at the bottom (CTAs and
+  "Full journey" pinned there). The back lists the skills (AI: Claude Code
+  included) and the description, compacted on phones and in the 340px `lg`
+  column so it fits. The quest log has two tabs built
   from the CV copy in the locale files (`about.experience` /
   `about.education`, each with `start`/`end` months and a `quest` block:
   guild, objective, final boss, rewards). Entries without an `end` are

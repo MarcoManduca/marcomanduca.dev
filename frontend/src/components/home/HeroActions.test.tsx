@@ -5,14 +5,6 @@ import { renderWithProviders } from '@/test/utils'
 import { HeroActions } from './HeroActions'
 
 describe('HeroActions', () => {
-  it('pitches the role in one line', () => {
-    renderWithProviders(<HeroActions />)
-
-    expect(
-      screen.getByText(/I design the path from raw data to decisions/),
-    ).toBeVisible()
-  })
-
   it('offers the CV, LinkedIn and the contact form', () => {
     renderWithProviders(<HeroActions />)
 
