@@ -55,15 +55,14 @@
       "title": "Statistiche",
       "axis": {
         "programming": "Programmazione",
+        "statisticsMl": "Statistica & ML",
         "dataEngineering": "Data Eng.",
         "dataViz": "Data Viz",
-        "versioning": "Versionamento",
         "crmStorage": "CRM & Storage",
         "ai": "AI & Agenti"
       },
-      "level": "Livello {{level}}/{{max}}",
       "point": "{{name}}: livello {{level}} su {{max}}",
-      "hint": "Tocca un punto per vedere livello e strumenti"
+      "hint": "Tocca un punto per vedere gli strumenti"
     },
     "sideQuests": {
       "title": "Quest secondarie",
@@ -163,9 +162,9 @@
     "skillsTitle": "Competenze",
     "skillGroups": {
       "programming": "Programmazione",
+      "statisticsMl": "Statistica & ML",
       "dataEngineering": "Data Engineering",
       "dataViz": "Data Visualization",
-      "versioning": "Versionamento",
       "crmStorage": "CRM & Storage",
       "ai": "AI & Agenti"
     },
@@ -369,7 +368,8 @@
       }
     ],
     "skills": {
-      "programming": ["Python", "R", "SAS Base", "SAS Macro", "SQL"],
+      "programming": ["Python", "R", "SAS Base", "SAS Macro", "SQL", "Git"],
+      "statisticsMl": ["R", "scikit-learn", "TensorFlow", "Keras", "SciPy"],
       "dataEngineering": [
         "AWS Athena",
         "AWS Glue",
@@ -378,7 +378,6 @@
         "SAS Data Management"
       ],
       "dataViz": ["Power BI", "Tableau", "SAS Viya", "Looker Studio"],
-      "versioning": ["GitHub", "Bitbucket"],
       "crmStorage": [
         "Salesforce",
         "AWS S3",
@@ -389,7 +388,12 @@
         "Oracle",
         "PostgreSQL"
       ],
-      "ai": ["Claude Code", "Claude", "ChatGPT", "Gemini"]
+      "ai": [
+        "API LLM",
+        "RAG & vector DB",
+        "Agenti & MCP",
+        "Prompt engineering & valutazione"
+      ]
     }
   },
   "projects": {

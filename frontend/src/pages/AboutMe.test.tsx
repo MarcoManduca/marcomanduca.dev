@@ -136,13 +136,13 @@ describe('AboutMe', () => {
       .map((heading) => heading.textContent)
     expect(groups).toEqual([
       'Programming',
+      'Statistics & ML',
       'Data Engineering',
       'Data Visualization',
-      'Version Control',
       'CRM & Storage',
       'AI & Agents',
     ])
-    expect(screen.getByText('Claude Code')).toBeInTheDocument()
+    expect(screen.getByText('RAG & vector DBs')).toBeInTheDocument()
   })
 
   it('gives every timeline entry an anchor for the home quests', () => {
