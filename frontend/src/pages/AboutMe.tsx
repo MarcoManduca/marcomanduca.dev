@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 
+import { AboutPortrait } from '@/components/about/AboutPortrait'
 import { DownloadCvButton } from '@/components/about/DownloadCvButton'
 import {
   EducationTimeline,
@@ -35,12 +36,18 @@ export const AboutMe = () => {
       <Seo title={t('about.title')} description={t('about.subtitle')} />
       <h1 className="text-3xl font-bold text-heading">{t('about.title')}</h1>
       <p className="mt-2 text-muted">{t('about.subtitle')}</p>
-      <Prose className="mt-6 leading-relaxed">
-        <p>{t('about.bio')}</p>
-      </Prose>
-
-      <div className="mt-6">
-        <DownloadCvButton />
+      {/* Bio and CV first in the DOM; the photo sits above them on phones
+          and beside them from md. */}
+      <div className="mt-6 grid gap-6 md:grid-cols-[minmax(0,1fr)_15rem] md:items-start md:gap-10 lg:gap-12">
+        <div>
+          <Prose className="leading-relaxed">
+            <p>{t('about.bio')}</p>
+          </Prose>
+          <div className="mt-6">
+            <DownloadCvButton />
+          </div>
+        </div>
+        <AboutPortrait className="row-start-1 md:col-start-2" />
       </div>
 
       <h2 className="mt-12 text-2xl font-semibold text-heading">

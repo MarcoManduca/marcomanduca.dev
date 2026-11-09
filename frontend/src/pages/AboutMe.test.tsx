@@ -195,6 +195,14 @@ describe('AboutMe', () => {
     expect(currentEntry()[0]).toHaveTextContent('Business Data Analyst')
   })
 
+  it('shows the real photo next to the bio', () => {
+    renderWithProviders(<AboutMe />)
+
+    expect(
+      screen.getByRole('img', { name: 'Photo of Marco Manduca' }),
+    ).toHaveAttribute('srcset', expect.stringContaining('about-portrait-680'))
+  })
+
   it('renders the CV download button', () => {
     renderWithProviders(<AboutMe />)
 
