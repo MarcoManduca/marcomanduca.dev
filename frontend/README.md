@@ -51,8 +51,10 @@ all 37 "common" ones); `katex` is pulled in for its CSS theme.
 - **Home.** Flippable character card (full-art portrait on the front, with
   the level = calendar years since the first job's `start`; skills and
   description on the back; 3D turn, instant under reduced motion; leans
-  toward the mouse pointer, the foil sheen sliding after it) + quest log +
-  stats + side quests + figurine collection. The quest log has two tabs built
+  toward the mouse pointer, the foil sheen sliding after it), with a
+  one-line pitch and the CV / LinkedIn / contact shortcuts under it
+  (`components/home/HeroActions.tsx`) + quest log + stats + side quests +
+  figurine collection. The quest log has two tabs built
   from the CV copy in the locale files (`about.experience` /
   `about.education`, each with `start`/`end` months and a `quest` block:
   guild, objective, final boss, rewards). Entries without an `end` are
@@ -67,9 +69,10 @@ all 37 "common" ones); `katex` is pulled in for its CSS theme.
 - **Stats and side quests.** Side by side from `lg`, stacked on phones.
   _Stats_ plots the six CV skill groups on a radar (`utils/radarGeometry.ts`),
   the same groups and order as the About page skills (`SKILL_GROUPS` in
-  `types/stat.ts`), with their levels in `utils/statLevels.ts`. Each point
-  shows the group's level and tools on hover, focus or tap; from `lg` a list
-  of the levels alone sits beside the chart, and the stats box stretches to
+  `types/stat.ts`), with their levels in `utils/statLevels.ts`. Levels are
+  drawn (radar, pips), never printed as a score. Each point shows the group's
+  tools on hover, focus or tap; from `lg` a list of the levels alone sits
+  beside the chart, and the stats box stretches to
   the height of the side quests beside it. _Side Quests_ deals
   the published projects as a fanned deck, oldest first and numbered
   `SQ: 01/NN`, closed by a face-down card that links to the contacts page.
@@ -81,8 +84,11 @@ all 37 "common" ones); `katex` is pulled in for its CSS theme.
   has one to three areas, all shown as chips on its cards and page, grouped
   in three colour families; the first sets the card's frame
   (`components/projects/areaStyles.ts`: build = frontend, backend, cloud;
-  data; intelligence = ML, DL, AI). It also has a context. The Projects page
-  filters by area, context, technology and text (`utils/filterProjects.ts`). The admin form edits the card, the page and
+  data; intelligence = ML, DL, AI). It also has a context. Project cards show
+  the cover, or the area art without one (`ProjectCover`). From six projects
+  up, the Projects page filters by area, context, technology and text
+  (`utils/filterProjects.ts`); below that the filters stay hidden. The admin
+  form edits the card, the page and
   the optional lab; lists of objects (metrics, topics, gallery, lab) are
   edited as JSON and validated by the API, and editing loads the full
   project first (`ProjectFormLoader`).
@@ -158,18 +164,19 @@ Copy `.env.example` to `.env` (never committed):
 src/
 ├── components/
 │   ├── ui/          # Atomic primitives: Button, Card, Badge, Tag, Input, ...
-│   ├── layout/      # Header, NavBar, Footer, LanguageSwitcher, layouts
-│   ├── markdown/    # MarkdownRenderer (lazy: highlight subset + KaTeX)
+│   ├── layout/      # Header, NavBar, Footer, SocialLinks, LanguageSwitcher, layouts
+│   ├── markdown/    # MarkdownRenderer (lazy: highlight subset + KaTeX), zoomable MarkdownImage
 │   ├── seo/         # Seo (helmet meta + OpenGraph + canonical)
-│   ├── home/        # CharacterCard, stats radar, side-quests deck
-│   ├── projects/    # ProjectCard, ProjectFilters, AreaChip, AreaArt, detail/, lab/
+│   ├── home/        # CharacterCard, HeroActions, stats radar, side-quests deck
+│   ├── projects/    # ProjectCard, ProjectCover, ProjectFilters, AreaChip, AreaArt, detail/, lab/
 │   ├── learning/    # ArticleCard
-│   └── contact/     # ContactForm (with honeypot anti-spam)
+│   └── contact/     # ContactForm (with honeypot anti-spam), ContactChannels
 ├── pages/           # Route-level components (+ pages/admin/ for the panel)
 ├── hooks/           # useAuth (admin-group check), useLanguage, useMediaUpload
 ├── services/        # RTK Query base api + domain endpoints, OIDC UserManager/session
 ├── store/           # Redux store factory
 ├── i18n/            # i18next init + locales/{en,it}.json
+├── data/            # profile.json: name, role, profile links (also read by the pre-render)
 ├── types/           # Interfaces mirroring backend schemas + enums
 ├── utils/           # cn, formatDate, env, getAccessToken, markdown helpers
 ├── routes/          # Route table, lazy AdminRoutes (auth context) + ProtectedRoute
@@ -256,9 +263,19 @@ docker run -p 8080:8080 -e BACKEND_UPSTREAM=http://backend:8000 marcomanduca-fro
   `scripts/prerender/html.mjs` in sync with `components/seo/Seo.tsx`.
 - `Seo` component sets title, description, canonical, OpenGraph
   (`en_GB`/`it_IT` locales) and optional `noindex` per page; 404 pages are
-  `noindex`. Detail pages use slug-based URLs.
+  `noindex`. Detail pages use slug-based URLs. Titles read
+  `<page> — Marco Manduca`, the home page `Marco Manduca — Data Scientist`
+  (name, role and profile links live in `src/data/profile.json`, read by
+  both `Seo` and the pre-render step).
+- The pre-rendered home page also carries a schema.org `Person` (JSON-LD:
+  name, role, GitHub/LinkedIn `sameAs`, alma mater). It has no `data-rh`, so
+  `Seo` leaves it alone; non-JS `<script>` data blocks are not subject to the
+  CSP `script-src`.
 - `public/robots.txt` allows everything except `/admin` and the internal
-  `/_routes/` and `/_deploys/` prefixes.
+  `/_routes/` and `/_deploys/` prefixes. AI training crawlers (GPTBot,
+  ClaudeBot, Google-Extended, CCBot, …) are blocked; AI search and
+  on-demand fetchers (OAI-SearchBot, ChatGPT-User, Claude-User,
+  PerplexityBot, …) are allowed, so the site can surface in AI search.
 - The same pre-render step writes `dist/sitemap.xml`: the static routes plus
   the published project and learning pages (with `<lastmod>`), `/learning`
   itself only once an article is published. It reads the live API and skips
