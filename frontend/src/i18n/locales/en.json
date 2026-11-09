@@ -494,7 +494,11 @@
       "validation": "Please check the fields: the email address looks invalid or a field is too long.",
       "rateLimited": "Too many messages in a short time. Please try again in a few minutes."
     },
-    "consent": "I have read and accept the <privacy>Privacy Policy</privacy> and consent to the processing of my data to receive a reply."
+    "consent": "I have read and accept the <privacy>Privacy Policy</privacy> and consent to the processing of my data to receive a reply.",
+    "channels": {
+      "title": "Elsewhere",
+      "text": "Prefer a more direct channel? You can also find me here."
+    }
   },
   "privacy": {
     "title": "Privacy Policy",
@@ -695,7 +699,8 @@
   },
   "footer": {
     "rights": "All rights reserved.",
-    "privacy": "Privacy Policy"
+    "privacy": "Privacy Policy",
+    "linksLabel": "Site and profile links"
   },
   "language": {
     "label": "Language",

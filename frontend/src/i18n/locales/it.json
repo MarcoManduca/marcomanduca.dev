@@ -494,7 +494,11 @@
       "validation": "Controlla i campi: l'indirizzo email non sembra valido o un campo è troppo lungo.",
       "rateLimited": "Troppi messaggi in poco tempo. Riprova tra qualche minuto."
     },
-    "consent": "Ho letto e accetto la <privacy>Privacy Policy</privacy> e acconsento al trattamento dei miei dati per ricevere una risposta."
+    "consent": "Ho letto e accetto la <privacy>Privacy Policy</privacy> e acconsento al trattamento dei miei dati per ricevere una risposta.",
+    "channels": {
+      "title": "Altrove",
+      "text": "Preferisci un canale più diretto? Mi trovi anche qui."
+    }
   },
   "privacy": {
     "title": "Privacy Policy",
@@ -695,7 +699,8 @@
   },
   "footer": {
     "rights": "Tutti i diritti riservati.",
-    "privacy": "Privacy Policy"
+    "privacy": "Privacy Policy",
+    "linksLabel": "Link del sito e dei profili"
   },
   "language": {
     "label": "Lingua",
