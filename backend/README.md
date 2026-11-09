@@ -183,8 +183,10 @@ docker build -t marcomanduca-backend .
 docker run --rm -p 8000:8000 --env-file .env marcomanduca-backend
 ```
 
-Multi-stage build on `python:3.12.15-slim` pinned by digest, runs as a
-non-root user, no secrets baked into the image. Dependencies are installed
+Multi-stage build on `python:3.12.16-slim` pinned by digest, runs as a
+non-root user, no secrets baked into the image. The runtime stage upgrades
+`zlib1g` to the Debian security fix the base image does not ship yet (see the
+comment in the Dockerfile; drop it once the base image catches up). Dependencies are installed
 from `requirements.lock` with `--require-hashes`.
 
 ## Dependency lockfile
