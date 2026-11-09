@@ -150,6 +150,14 @@ npm run format            # Prettier
 npm run prerender         # Write dist/_routes/** + dist/sitemap.xml (after vite build)
 ```
 
+Dependency install scripts are blocked by default (npm ≥ 11.20). The
+`allowScripts` field in `package.json` records the reviewed ones as explicit
+denials, since nothing needs them: `esbuild` (binary check; the platform
+binary comes from its optional dependency), `fsevents` (prebuilt macOS
+watcher) and `msw` (copies a browser worker this project doesn't use). Allow
+a new one only after reviewing its script (`npm install-scripts ls`, then
+`npm install-scripts approve <pkg>`).
+
 ## Environment variables
 
 Copy `.env.example` to `.env` (never committed):
