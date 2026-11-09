@@ -36,10 +36,12 @@ export const AboutMe = () => {
       <Seo title={t('about.title')} description={t('about.subtitle')} />
       <h1 className="text-3xl font-bold text-heading">{t('about.title')}</h1>
       <p className="mt-2 text-muted">{t('about.subtitle')}</p>
-      {/* Bio and CV first in the DOM; the photo sits above them on phones
-          and beside them from md. */}
-      <div className="mt-6 grid gap-6 md:grid-cols-[minmax(0,1fr)_15rem] md:items-start md:gap-10 lg:gap-12">
-        <div>
+      {/* Below xl the photo floats into the bio (the text wraps around it);
+          from xl it has its own column, stretched to the bio's height. Either
+          way the sections below stay where the text alone puts them. */}
+      <div className="mt-6 flow-root xl:grid xl:grid-cols-[minmax(0,1fr)_15rem] xl:gap-12">
+        <AboutPortrait className="float-right mb-3 ml-4 w-28 sm:w-40 xl:float-none xl:col-start-2 xl:row-start-1 xl:m-0 xl:w-full" />
+        <div className="xl:col-start-1 xl:row-start-1">
           <Prose className="leading-relaxed">
             <p>{t('about.bio')}</p>
           </Prose>
@@ -47,7 +49,6 @@ export const AboutMe = () => {
             <DownloadCvButton />
           </div>
         </div>
-        <AboutPortrait className="row-start-1 md:col-start-2" />
       </div>
 
       <h2 className="mt-12 text-2xl font-semibold text-heading">
